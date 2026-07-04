@@ -35,6 +35,16 @@
     "Day3": "周三",
     "Day4": "周四",
     "Day5": "周五",
-    "Day6": "周六"
+    "Day6": "周六",
+    "Menu:DailyTasks": "当日任务",
+    "Completed": "已完成",
+    "IsFull": "吃饱",
+    "RestDay": "休息日",
+    "ReviewState": "复核",
+    "Revoke": "撤销",
+    "Restore": "恢复",
+    "Normal": "正常",
+    "Revoked": "已撤销",
+    "AddTask": "加任务"
   }
 }

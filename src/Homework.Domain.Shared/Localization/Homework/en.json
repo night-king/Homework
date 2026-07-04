@@ -35,6 +35,16 @@
     "Day3": "Wed",
     "Day4": "Thu",
     "Day5": "Fri",
-    "Day6": "Sat"
+    "Day6": "Sat",
+    "Menu:DailyTasks": "Daily Tasks",
+    "Completed": "Completed",
+    "IsFull": "All done",
+    "RestDay": "Rest day",
+    "ReviewState": "Review",
+    "Revoke": "Revoke",
+    "Restore": "Restore",
+    "Normal": "Normal",
+    "Revoked": "Revoked",
+    "AddTask": "Add task"
   }
 }
