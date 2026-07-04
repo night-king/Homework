@@ -8,9 +8,8 @@ public class HomeworkPermissionDefinitionProvider : PermissionDefinitionProvider
 {
     public override void Define(IPermissionDefinitionContext context)
     {
-        var myGroup = context.AddGroup(HomeworkPermissions.GroupName);
-        //Define your own permissions here. Example:
-        //myGroup.AddPermission(HomeworkPermissions.MyPermission1, L("Permission:MyPermission1"));
+        var myGroup = context.AddGroup(HomeworkPermissions.GroupName, L("Permission:Homework"));
+        myGroup.AddPermission(HomeworkPermissions.ParentAdmin, L("Permission:ParentAdmin"));
     }
 
     private static LocalizableString L(string name)

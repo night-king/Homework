@@ -4,6 +4,6 @@ public static class HomeworkPermissions
 {
     public const string GroupName = "Homework";
 
-    //Add your own permission names. Example:
-    //public const string MyPermission1 = GroupName + ".MyPermission1";
+    /// <summary>Single gate for all parent-admin features.</summary>
+    public const string ParentAdmin = GroupName + ".ParentAdmin";
 }
