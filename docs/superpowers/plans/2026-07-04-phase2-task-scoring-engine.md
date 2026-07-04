@@ -39,47 +39,47 @@
 ## Chunk 1: 实体 + EF 映射 + 迁移
 
 ### Task 1: 建实体与枚举
-- [ ] 建 `TaskReviewState`、`WeeklyTaskTemplateItem`、`DailyTask`、`DailyScore`、`FamilyGoal`、`ScoringConsts`（字段/方法见上）。构造函数做基本校验（Title 非空、Order≥0、TargetStars>0、Date 合理）。
-- [ ] `DailyTask.Complete()` 置 `IsCompleted=true, CompletedTime=now, ReviewState=Normal`；`Revoke()` 置 `ReviewState=Revoked`（记分时视为未完成）。
+- [x] 建 `TaskReviewState`、`WeeklyTaskTemplateItem`、`DailyTask`、`DailyScore`、`FamilyGoal`、`ScoringConsts`（字段/方法见上）。构造函数做基本校验（Title 非空、Order≥0、TargetStars>0、Date 合理）。
+- [x] `DailyTask.Complete()` 置 `IsCompleted=true, CompletedTime=now, ReviewState=Normal`；`Revoke()` 置 `ReviewState=Revoked`（记分时视为未完成）。
 
 ### Task 2: DbContext + 迁移
-- [ ] `HomeworkDbContext` 加 5 个 `DbSet` + `builder.Entity<>` 映射（`ToTable(App..)`, `ConfigureByConvention()`, 索引：`DailyTask (ChildId,Date)`、`DailyScore (ChildId,Date) 唯一`、`WeeklyTaskTemplateItem (ChildId,DayOfWeek)`）。
-- [ ] `dotnet ef migrations add Added_TaskScoring -p src/Homework.EntityFrameworkCore -s src/Homework.EntityFrameworkCore`；`cd src/Homework.DbMigrator && dotnet run` 应用；核对表存在。
+- [x] `HomeworkDbContext` 加 5 个 `DbSet` + `builder.Entity<>` 映射（`ToTable(App..)`, `ConfigureByConvention()`, 索引：`DailyTask (ChildId,Date)`、`DailyScore (ChildId,Date) 唯一`、`WeeklyTaskTemplateItem (ChildId,DayOfWeek)`）。
+- [x] `dotnet ef migrations add Added_TaskScoring -p src/Homework.EntityFrameworkCore -s src/Homework.EntityFrameworkCore`；`cd src/Homework.DbMigrator && dotnet run` 应用；核对表存在。
 
 ## Chunk 2: StarCalculator（纯函数，先 TDD）
 
 ### Task 3: 星星规则测试→实现
-- [ ] 写失败测试 `test/Homework.Domain.Tests/Scoring/StarCalculator_Tests.cs`，覆盖：
+- [x] 写失败测试 `test/Homework.Domain.Tests/Scoring/StarCalculator_Tests.cs`，覆盖：
   - `(0,0)→0`；`(4,0)→0`；`(4,4)→5`；`(7,7)→5`（公平：两娃都满星）
   - `(4,1)→2`(ceil 1.25)、`(4,2)→3`(ceil 2.5)、`(4,3)→4`(ceil 3.75)
   - `(7,1)→1`、`(7,4)→3`(ceil 2.86)、`(7,6)→5`(ceil 4.29)
   - 越界 `completed>total` 夹取、封顶不超过 5
-- [ ] 跑红 → 实现 `StarCalculator.CalculateStars` → 跑绿 → 提交。
+- [x] 跑红 → 实现 `StarCalculator.CalculateStars` → 跑绿 → 提交。
 
 ## Chunk 3: DailyScoreCalculator（结算，含休息日）
 
 ### Task 4: 结算规则测试→实现
-- [ ] 测试：N>0 全完成→`Stars=5,IsFull=true,IsRestDay=false`；N>0 部分→星星按规则、`IsFull=false`；**N=0→`IsRestDay=true,Stars=0,IsFull=false`**；被 `Revoke` 的任务不计入 completed。
-- [ ] 实现 `DailyScoreCalculator`（可先接受 `(total, completed)` 或 `IEnumerable<DailyTask>`）→ 绿 → 提交。
+- [x] 测试：N>0 全完成→`Stars=5,IsFull=true,IsRestDay=false`；N>0 部分→星星按规则、`IsFull=false`；**N=0→`IsRestDay=true,Stars=0,IsFull=false`**；被 `Revoke` 的任务不计入 completed。
+- [x] 实现 `DailyScoreCalculator`（可先接受 `(total, completed)` 或 `IEnumerable<DailyTask>`）→ 绿 → 提交。
 
 ## Chunk 4: DailyTaskGenerator（惰性生成 + 过去日补档）
 
 ### Task 5: 生成 + 补档集成测试→实现
-- [ ] 在 `EFCore.Tests`（SQLite in-memory）写测试：给某孩子建周模板（周一 2 项、周日 0 项）；`EnsureDayAsync` 某周一 → 生成 2 个 DailyTask；再调不重复生成（幂等）。
-- [ ] 补档测试（关键）：孩子周一~周三吃饱、周四整天没做（不建 DailyTask）、周五做完；`SettlePastDaysAsync` 到周五后，周四得到 `N>0,C=0` 的漏做 `DailyScore`（非休息日）；周日(N=0)得到休息日行。
-- [ ] 实现 `DailyTaskGenerator` → 绿 → 提交。
+- [x] 在 `EFCore.Tests`（SQLite in-memory）写测试：给某孩子建周模板（周一 2 项、周日 0 项）；`EnsureDayAsync` 某周一 → 生成 2 个 DailyTask；再调不重复生成（幂等）。
+- [x] 补档测试（关键）：孩子周一~周三吃饱、周四整天没做（不建 DailyTask）、周五做完；`SettlePastDaysAsync` 到周五后，周四得到 `N>0,C=0` 的漏做 `DailyScore`（非休息日）；周日(N=0)得到休息日行。
+- [x] 实现 `DailyTaskGenerator` → 绿 → 提交。
 
 ## Chunk 5: StreakCalculator（连击，桥接/断裂）
 
 ### Task 6: 连击测试→实现
-- [ ] 测试（基于补齐的 `DailyScore`）：连续 3 天吃饱→streak=3；中间夹一个休息日(N=0)→**桥接**仍连续；夹一个漏做日→**断裂**归零重来；今天没吃饱→不含今天。
-- [ ] 实现 `StreakCalculator` → 绿 → 提交。
+- [x] 测试（基于补齐的 `DailyScore`）：连续 3 天吃饱→streak=3；中间夹一个休息日(N=0)→**桥接**仍连续；夹一个漏做日→**断裂**归零重来；今天没吃饱→不含今天。
+- [x] 实现 `StreakCalculator` → 绿 → 提交。
 
 ## Chunk 6: FamilyGoal 进度聚合
 
 ### Task 7: 大目标进度测试→实现
-- [ ] 测试：两个孩子在 `[start,end]` 内的 `DailyScore.Stars` 求和 = 进度；≥Target→达标（置 `AchievedTime`）。
-- [ ] 实现聚合（领域服务或 FamilyGoal 方法 + 仓储查询）→ 绿 → 提交。
+- [x] 测试：两个孩子在 `[start,end]` 内的 `DailyScore.Stars` 求和 = 进度；≥Target→达标（置 `AchievedTime`）。
+- [x] 实现聚合（领域服务或 FamilyGoal 方法 + 仓储查询）→ 绿 → 提交。
 
 ---
 
