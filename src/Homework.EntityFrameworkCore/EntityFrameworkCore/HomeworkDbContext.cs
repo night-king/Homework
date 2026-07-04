@@ -1,4 +1,6 @@
 using Homework.Children;
+using Homework.Scoring;
+using Homework.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -29,6 +31,10 @@ public class HomeworkDbContext :
 
     // Homework game
     public DbSet<ChildProfile> ChildProfiles { get; set; }
+    public DbSet<WeeklyTaskTemplateItem> WeeklyTaskTemplateItems { get; set; }
+    public DbSet<DailyTask> DailyTasks { get; set; }
+    public DbSet<DailyScore> DailyScores { get; set; }
+    public DbSet<FamilyGoal> FamilyGoals { get; set; }
 
     #region Entities from the modules
 
@@ -89,6 +95,39 @@ public class HomeworkDbContext :
             b.Property(x => x.AvatarKey).HasMaxLength(64);
             b.Property(x => x.Pin).HasMaxLength(8);
             b.HasIndex(x => x.IdentityUserId).IsUnique();
+        });
+
+        builder.Entity<WeeklyTaskTemplateItem>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "WeeklyTaskTemplateItems", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Subject).HasMaxLength(64);
+            b.HasIndex(x => new { x.ChildId, x.DayOfWeek });
+        });
+
+        builder.Entity<DailyTask>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "DailyTasks", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Subject).HasMaxLength(64);
+            b.HasIndex(x => new { x.ChildId, x.Date });
+        });
+
+        builder.Entity<DailyScore>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "DailyScores", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => new { x.ChildId, x.Date }).IsUnique();
+        });
+
+        builder.Entity<FamilyGoal>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "FamilyGoals", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
+            b.Property(x => x.RewardText).HasMaxLength(256);
         });
     }
 }
