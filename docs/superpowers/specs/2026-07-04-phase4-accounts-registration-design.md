@@ -42,6 +42,7 @@
 ### Domain 改动（`Homework.Domain` / `Homework.EntityFrameworkCore`）
 
 - **`ChildProfile`**：**去掉 `IdentityUserId`（及其唯一索引）**，改为 **`ParentId (Guid)`** = 拥有该档案的家长 `IdentityUser` Id；加索引 `(ParentId)`。其余字段不变（`DisplayName / Grade / AvatarKey / Pin / ActivePetId`）。构造器签名相应改为 `ChildProfile(id, parentId, displayName, grade)`。
+  - **连带改动（去掉 `IdentityUserId` 会波及的地方，评审补）**：`ChildProfileDto` 去掉 `IdentityUserId` 字段；`ChildProfileMapper`（Mapperly 之前**按名自动映射**了 `IdentityUserId`）相应调整（否则出 RMG020 未映射目标 + DTO 残留脏字段）。**`ParentId` 不外泄给客户端**（DTO 不加 `ParentId`）。已 grep 确认无 `.cshtml/.js` 用到 `identityUserId`，波及面仅 **DTO + mapper** 两处。
 - **`FamilyGoal`**：加 **`ParentId (Guid)`**（大目标属于某个家庭；现在是全局的）。
 - **`WeeklyTaskTemplateItem` / `DailyTask` / `DailyScore`**：**不加 `ParentId`**——它们通过 `ChildId` 归属；授权时校验"该 `ChildId` 是否属于当前家长"。
 - 一个 EF 迁移 `Reworked_Accounts`（改列 + 索引）。
@@ -51,9 +52,11 @@
 **所有"家庭数据"的读写都按当前登录家长过滤 / 校验归属**（`CurrentUser.Id`）：
 
 - `ChildProfileAppService`：`GetListAsync` 只返回 `ParentId == CurrentUser.Id` 的孩子；`Get/Update/SetPin/Delete` 先校验该孩子属于当前家长（否则 `EntityNotFoundException`）。**新增 `CreateAsync(CreateChildDto)`（建孩子，ParentId = 当前家长）与 `DeleteAsync`**（Phase 3 当时特意没做）。
-- `WeeklyTaskTemplateAppService` / `DailyTaskAppService`：所有按 `childId` 的方法先校验"该 `childId` 属于当前家长"。
-- `FamilyGoalAppService`：按 `ParentId == CurrentUser.Id` 过滤；进度**只聚合本家庭孩子的 `DailyScore`**（现在是聚合全体——多家庭下必须收窄到本家庭）。
-- 抽一个小的归属校验复用点（如领域服务 `ChildProfileManager.EnsureOwnedByCurrentParentAsync(childId)` 或 AppService 基类辅助方法），各服务统一调用，避免漏判。
+- `WeeklyTaskTemplateAppService` / `DailyTaskAppService` 有**两类**方法，**都**要校验（这是本阶段最关键的安全点）：
+  - **按 `childId`**（`DailyTask.GetBoard(childId,date)`、`WeeklyTemplate.GetList(childId,…)`、两者的 `Create`）→ 校验"该 `childId` 属于当前家长"。
+  - **按实体 id**（`WeeklyTemplate.Update/Delete(id)`、`DailyTask.Update/Delete/Revoke/Restore(id)`）→ **先加载实体 → 取其 `ChildId` → 校验该孩子属于当前家长**（否则 `EntityNotFoundException`）。这类才是真正的越权写入口——现在直接 `GetAsync(id)` 无过滤，**猜到别家的 id 就能改/删**；**只有 `childId` 形状的 helper 不够**。
+- `FamilyGoalAppService`：`GetListAsync` 按 `ParentId == CurrentUser.Id` 过滤；**按实体 id 的 `Get/Update/Delete(id)` 先加载 → 校验 `goal.ParentId == CurrentUser.Id`**；进度**只聚合本家庭孩子的 `DailyScore`**（现在聚合全体——多家庭下必须收窄：按 `goal.ParentId` 取本家庭的 `childId` 集合，再聚合这些孩子的星星）。
+- 归属校验抽成复用点（领域服务 `ChildProfileManager`）：`EnsureChildOwnedAsync(childId)`（不属于当前家长就抛）+ `GetOwnedChildIdsAsync()`（取当前家长的全部 childId，供列表/聚合用）。各 AppService 在"按-childId"和"按-实体 id"两条路径上都统一调用，杜绝漏判。
 - **例外——全局只读**：未来的排行榜 / PK 是**跨全体家庭**的只读投影（化名 + 头像），**不受** ownership 过滤（Phase 5 实现；本阶段只保证数据形态支持）。
 
 ### 注册流程
@@ -63,7 +66,7 @@
 ### 种子数据迁移
 
 - 重写 `ChildrenDataSeedContributor`：**不再建孩子登录账号**；改为播一个**示例家庭**——一个家长账号（`demo@homework.today`，给定初始密码，Parent 角色）+ 2 个 `ChildProfile`（哥哥/3、弟弟/1，`ParentId` = 该家长）。幂等。
-- 把 `ParentPermissionDataSeedContributor` 从"授 ParentAdmin 给 admin 角色"改为"**授给 Parent 角色**"（admin 作为超管可另配）。
+- 把 `ParentPermissionDataSeedContributor` 改为把 `ParentAdmin` **授给 `Parent` 角色**，并**同时保留授给 `admin` 角色**（否则 reseed 后 admin 超管进不了家长后台，运营不便）。
 - 开发库数据可丢：迁移 + 重播即可。
 
 ### 公网上线安全（列为"上线前必做"，本阶段最小实现）
@@ -82,7 +85,9 @@ HTTPS/正式证书、`appsettings` 明文密钥移出（user-secrets / 环境变
 - **种子**：DbMigrator 播出一个示例家庭（1 家长 + 2 孩子档案），无孩子登录账号。
 - 框架行为（自助注册开关、默认角色分配、注册页同意勾选）以"跑起来冒烟"确认，不写脆弱的框架单测。
 
-> 测试用 `ICurrentUser` 造家长上下文：ABP 测试可用 `FakeCurrentPrincipalAccessor`（`Homework.TestBase/Security` 已有）切换当前用户 Id。
+> **造两个家长上下文**：用 `ICurrentPrincipalAccessor.Change(principal)`（ABP `CurrentPrincipalAccessorBase`）临时切换当前登录用户 Id——`FakeCurrentPrincipalAccessor` 默认返回**固定 admin**，别直接用它的默认身份。
+>
+> **注意（评审补）**：Phase 3 现有的 `ChildProfileAppService_Tests` 用**随机** `parentId` 建娃；一旦 `GetList/Get/Update/SetPin` 按 `CurrentUser.Id` 过滤，这 3 个用例会失败——需改成"用当前家长 Id 建娃"（domain 的 `ChildProfile_Tests` 因构造器参数个数不变，仍能编过）。
 
 ---
 
@@ -108,7 +113,5 @@ HTTPS/正式证书、`appsettings` 明文密钥移出（user-secrets / 环境变
 
 - ABP 10.5 自助注册的确切开关（`Account.IsSelfRegistrationEnabled` 设置 vs `AbpAccountOptions`）与**默认角色**机制（`IdentityRole.IsDefault` 自动分配 vs 注册后事件挂钩授角色）。
 - 注册页加"同意勾选"的落地方式（扩展 ABP `Register` 页 / 自定义页 / 追加字段校验）。
-- `ChildProfile.ParentId` 用显式属性（推荐）vs 复用 `FullAudited` 的 `CreatorId`——推荐显式，避免拿审计字段当授权依据。
-- 归属校验放**领域服务**（`ChildProfileManager`）还是各 AppService 内联——倾向领域服务，统一、少漏判。
 - 是否彻底删 `Child` 角色，还是留给 Phase 5 复用。
 - 示例家长用新建 `demo@homework.today` 还是复用现有 `admin`。
