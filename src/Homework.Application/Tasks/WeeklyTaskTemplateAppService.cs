@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Homework.Children;
 using Homework.Permissions;
 using Homework.Tasks.Dtos;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +14,19 @@ namespace Homework.Tasks;
 public class WeeklyTaskTemplateAppService : HomeworkAppService, IWeeklyTaskTemplateAppService
 {
     private readonly IRepository<WeeklyTaskTemplateItem, Guid> _repository;
+    private readonly ChildProfileManager _manager;
 
-    public WeeklyTaskTemplateAppService(IRepository<WeeklyTaskTemplateItem, Guid> repository)
-        => _repository = repository;
+    public WeeklyTaskTemplateAppService(
+        IRepository<WeeklyTaskTemplateItem, Guid> repository,
+        ChildProfileManager manager)
+    {
+        _repository = repository;
+        _manager = manager;
+    }
 
     public async Task<ListResultDto<WeeklyTaskTemplateItemDto>> GetListAsync(GetWeeklyTemplateInput input)
     {
+        await _manager.EnsureChildOwnedAsync(input.ChildId);
         var childId = input.ChildId;
         var dow = input.DayOfWeek;
         var items = await _repository.GetListAsync(t => t.ChildId == childId && (dow == null || t.DayOfWeek == dow));
@@ -29,6 +37,7 @@ public class WeeklyTaskTemplateAppService : HomeworkAppService, IWeeklyTaskTempl
 
     public async Task<WeeklyTaskTemplateItemDto> CreateAsync(CreateWeeklyTaskTemplateItemDto input)
     {
+        await _manager.EnsureChildOwnedAsync(input.ChildId);
         var item = new WeeklyTaskTemplateItem(GuidGenerator.Create(), input.ChildId, input.DayOfWeek,
             input.Title, input.Subject, input.Order, input.EstimatedMinutes);
         await _repository.InsertAsync(item, autoSave: true);
@@ -38,6 +47,7 @@ public class WeeklyTaskTemplateAppService : HomeworkAppService, IWeeklyTaskTempl
     public async Task<WeeklyTaskTemplateItemDto> UpdateAsync(Guid id, UpdateWeeklyTaskTemplateItemDto input)
     {
         var item = await _repository.GetAsync(id);
+        await _manager.EnsureChildOwnedAsync(item.ChildId);
         item.SetTitle(input.Title);
         item.SetSubject(input.Subject);
         item.SetOrder(input.Order);
@@ -47,5 +57,10 @@ public class WeeklyTaskTemplateAppService : HomeworkAppService, IWeeklyTaskTempl
         return ObjectMapper.Map<WeeklyTaskTemplateItem, WeeklyTaskTemplateItemDto>(item);
     }
 
-    public Task DeleteAsync(Guid id) => _repository.DeleteAsync(id);
+    public async Task DeleteAsync(Guid id)
+    {
+        var item = await _repository.GetAsync(id);
+        await _manager.EnsureChildOwnedAsync(item.ChildId);
+        await _repository.DeleteAsync(item);
+    }
 }

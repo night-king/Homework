@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Homework.Children;
 using Homework.Permissions;
 using Homework.Scoring;
 using Homework.Tasks.Dtos;
@@ -14,15 +15,21 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
 {
     private readonly IRepository<DailyTask, Guid> _repository;
     private readonly DailyTaskGenerator _generator;
+    private readonly ChildProfileManager _manager;
 
-    public DailyTaskAppService(IRepository<DailyTask, Guid> repository, DailyTaskGenerator generator)
+    public DailyTaskAppService(
+        IRepository<DailyTask, Guid> repository,
+        DailyTaskGenerator generator,
+        ChildProfileManager manager)
     {
         _repository = repository;
         _generator = generator;
+        _manager = manager;
     }
 
     public async Task<DailyBoardDto> GetBoardAsync(GetDailyBoardInput input)
     {
+        await _manager.EnsureChildOwnedAsync(input.ChildId);
         await _generator.EnsureDayAsync(input.ChildId, input.Date); // lazy-generate
         await _generator.SettleDayAsync(input.ChildId, input.Date);  // settle-on-read (incl. today)
 
@@ -44,6 +51,7 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
 
     public async Task<DailyTaskDto> CreateAsync(CreateDailyTaskDto input)
     {
+        await _manager.EnsureChildOwnedAsync(input.ChildId);
         var task = new DailyTask(GuidGenerator.Create(), input.ChildId, input.Date, input.Title, input.Subject, input.Order);
         await _repository.InsertAsync(task, autoSave: true);
         await _generator.SettleDayAsync(input.ChildId, input.Date);
@@ -53,6 +61,7 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
     public async Task<DailyTaskDto> UpdateAsync(Guid id, UpdateDailyTaskDto input)
     {
         var task = await _repository.GetAsync(id);
+        await _manager.EnsureChildOwnedAsync(task.ChildId);
         task.SetTitle(input.Title).SetSubject(input.Subject).SetOrder(input.Order);
         await _repository.UpdateAsync(task, autoSave: true);
         await _generator.SettleDayAsync(task.ChildId, task.Date);
@@ -62,6 +71,7 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
     public async Task DeleteAsync(Guid id)
     {
         var task = await _repository.GetAsync(id);
+        await _manager.EnsureChildOwnedAsync(task.ChildId);
         await _repository.DeleteAsync(task, autoSave: true);
         await _generator.SettleDayAsync(task.ChildId, task.Date);
     }
@@ -72,6 +82,7 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
     private async Task ReviewAsync(Guid id, bool revoke)
     {
         var task = await _repository.GetAsync(id);
+        await _manager.EnsureChildOwnedAsync(task.ChildId);
         if (revoke) { task.Revoke(); } else { task.Restore(); }
         await _repository.UpdateAsync(task, autoSave: true);
         await _generator.SettleDayAsync(task.ChildId, task.Date);
