@@ -94,6 +94,10 @@ Expected: `Build succeeded`。
 
 **Files:**
 - Create: `src/Homework.Application/Data/ParentPermissionDataSeedContributor.cs`
+- Modify: `src/Homework.DbMigrator/Homework.DbMigrator.csproj`（加 `Homework.Application` 项目引用）
+- Modify: `src/Homework.DbMigrator/HomeworkDbMigratorModule.cs`（`[DependsOn(typeof(HomeworkApplicationModule))]`）
+
+> **为何要动 DbMigrator（评审 blocking 修复）：** 播种器放在 `Homework.Application`，但 DbMigrator（唯一执行播种的入口，见 Chunk 5）默认只引用 `Application.Contracts` + `EntityFrameworkCore`，其模块图里没有 `HomeworkApplicationModule` → ABP 加载不到该程序集的 `IDataSeedContributor` → admin 永远拿不到 `ParentAdmin`（这也是现有 `ChildrenDataSeedContributor` 放在 Domain 的原因）。故让 DbMigrator 依赖 `Homework.Application`；权限常量仍留在 `Application.Contracts`（符合 ABP 惯例）。
 
 - [ ] **Step 1: 写幂等授权播种**
 
@@ -128,10 +132,18 @@ public class ParentPermissionDataSeedContributor : IDataSeedContributor, ITransi
 }
 ```
 
-- [ ] **Step 2: 编译**
+- [ ] **Step 2: 让 DbMigrator 能加载该播种器**
 
-Run: `dotnet build src/Homework.Application`
-Expected: `Build succeeded`。（授予效果在 Chunk 5 `dotnet run --project src/Homework.DbMigrator` 后于后台 admin 生效；此处不单测框架授权。）
+`src/Homework.DbMigrator/Homework.DbMigrator.csproj` 加：
+```xml
+<ProjectReference Include="..\Homework.Application\Homework.Application.csproj" />
+```
+`src/Homework.DbMigrator/HomeworkDbMigratorModule.cs` 的 `[DependsOn(...)]` 列表加 `typeof(HomeworkApplicationModule)`。
+
+- [ ] **Step 3: 编译**
+
+Run: `dotnet build Homework.slnx`
+Expected: `Build succeeded`。（授予效果在 Chunk 5 `cd src/Homework.DbMigrator && dotnet run` 后于后台 admin 生效；此处不单测框架授权。）
 
 ### Task 0.3: 领域原语 `SettleDayAsync`（TDD，含"今天"）
 
@@ -139,7 +151,7 @@ Expected: `Build succeeded`。（授予效果在 Chunk 5 `dotnet run --project s
 - Modify: `src/Homework.Domain/Tasks/DailyTaskGenerator.cs`
 - Test: `test/Homework.EntityFrameworkCore.Tests/EntityFrameworkCore/Tasks/DailyTaskGenerator_Tests.cs`
 
-- [ ] **Step 1: 写失败测试——单日结算（复用已有 helper `SeedFedDayAsync`/`_dailyScoreRepository`）**
+- [ ] **Step 1: 写失败测试——单日结算（用已有字段 `_generator`/`_dailyTaskRepository`/`_dailyScoreRepository`/`_guidGenerator`）**
 
 在 `DailyTaskGenerator_Tests` 追加：
 ```csharp
@@ -307,11 +319,11 @@ Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>(options =>
     options.SetDefaultCulture("zh-Hans");
 });
 ```
-说明：ABP `app.UseAbpRequestLocalization()` 已在中间件管线；`SetDefaultCulture` 让首次无 cookie/Accept-Language 时默认中文。LeptonX 语言切换保留。若模板未注册 zh-Hans 到支持语言列表，则在同处 `AbpLocalizationOptions.Languages` 里 `Add(new LanguageInfo("zh-Hans", "zh-Hans", "简体中文"))`（先查是否已存在，避免重复）。
+说明：ABP `app.UseAbpRequestLocalization()` 已在中间件管线；`SetDefaultCulture` 让首次无 cookie/Accept-Language 时默认中文。LeptonX 语言切换保留。（`zh-Hans` 已在 `HomeworkDomainModule` 的 `AbpLocalizationOptions.Languages` 注册，无需再加。）`SetDefaultCulture` 与 `UseAbpRequestLocalization` 的实际生效点略 finicky，故本 Task 用人工目视冒烟（Step 2）确认，而非自动化测试。
 
 - [ ] **Step 2: 冒烟——起服看默认中文**
 
-Run: `dotnet run --project src/Homework.Web`（起后 Ctrl+C）
+Run: `cd src/Homework.Web && dotnet run`（起后 Ctrl+C）
 Expected: 首页默认显示简体中文（登录页/菜单中文）。此步为人工目视，Chunk 5 再统一验收。
 
 - [ ] **Step 3: 提交**
@@ -330,7 +342,7 @@ git commit -m "feat(web): default UI culture to zh-Hans"
 - [ ] **Step 1: 确认 Task 0.1 Step 3 的 key 已在两文件**（`Permission:Homework`、`Permission:ParentAdmin`，key 数一致，无空值——`@abp-localization-fix`）。
 - [ ] **Step 2: 全量编译**
 
-Run: `dotnet build Homework.sln`
+Run: `dotnet build Homework.slnx`
 Expected: `Build succeeded`，0 error。
 
 - [ ] **Step 3: 提交**
@@ -462,7 +474,9 @@ public partial class HomeworkApplicationMappers
 - Create: `src/Homework.Application/Children/ChildProfileAppService.cs`
 - Test: `test/Homework.EntityFrameworkCore.Tests/EntityFrameworkCore/Children/ChildProfileAppService_Tests.cs`
 
-- [ ] **Step 1: 写失败测试（两娃已由测试宿主播种）**
+- [ ] **Step 1: 写失败测试（每用例自建孩子——见下方说明）**
+
+> **评审 blocking 修复：** 测试宿主**不播种孩子**（`HomeworkTestDataSeedContributor.SeedAsync` 是空实现，`AbpIntegratedTest` 不自动 `SeedAsync`）；且集成测试共用一条 SQLite 连接（数据跨用例累积）。故**每个用例用独立 guid 自建孩子**，断言只针对自建的那条（不断言全局 count）。`ChildProfile` 构造器需 `identityUserId`——传个假 guid 即可（服务不 join Identity）。
 
 ```csharp
 using System;
@@ -471,6 +485,8 @@ using System.Threading.Tasks;
 using Homework.Children;
 using Homework.Children.Dtos;
 using Shouldly;
+using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Guids;
 using Xunit;
 
 namespace Homework.EntityFrameworkCore.Children;
@@ -479,23 +495,38 @@ namespace Homework.EntityFrameworkCore.Children;
 public class ChildProfileAppService_Tests : HomeworkEntityFrameworkCoreTestBase
 {
     private readonly IChildProfileAppService _service;
+    private readonly IRepository<ChildProfile, Guid> _childRepository;
+    private readonly IGuidGenerator _guid;
 
     public ChildProfileAppService_Tests()
-        => _service = GetRequiredService<IChildProfileAppService>();
+    {
+        _service = GetRequiredService<IChildProfileAppService>();
+        _childRepository = GetRequiredService<IRepository<ChildProfile, Guid>>();
+        _guid = GetRequiredService<IGuidGenerator>();
+    }
+
+    private async Task<Guid> SeedChildAsync(string name, int grade)
+    {
+        var id = _guid.Create();
+        await WithUnitOfWorkAsync(async () =>
+            await _childRepository.InsertAsync(new ChildProfile(id, _guid.Create(), name, grade)));
+        return id;
+    }
 
     [Fact]
-    public async Task GetList_Returns_Both_Seeded_Children()
+    public async Task GetList_Includes_Seeded_Child()
     {
-        var list = await _service.GetListAsync();
-        list.Items.Count.ShouldBe(2);
-        list.Items.Select(c => c.Grade).OrderBy(g => g).ShouldBe(new[] { 1, 3 });
+        var id = await SeedChildAsync("哥哥", 3);
+        var mine = (await _service.GetListAsync()).Items.SingleOrDefault(c => c.Id == id);
+        mine.ShouldNotBeNull();
+        mine!.Grade.ShouldBe(3);
     }
 
     [Fact]
     public async Task Update_Changes_Name_And_Grade()
     {
-        var gege = (await _service.GetListAsync()).Items.First(c => c.Grade == 3);
-        var updated = await _service.UpdateAsync(gege.Id,
+        var id = await SeedChildAsync("哥哥", 3);
+        var updated = await _service.UpdateAsync(id,
             new UpdateChildProfileDto { DisplayName = "大宝", Grade = 4 });
         updated.DisplayName.ShouldBe("大宝");
         updated.Grade.ShouldBe(4);
@@ -504,13 +535,13 @@ public class ChildProfileAppService_Tests : HomeworkEntityFrameworkCoreTestBase
     [Fact]
     public async Task SetPin_Sets_Then_Clears()
     {
-        var didi = (await _service.GetListAsync()).Items.First(c => c.Grade == 1);
+        var id = await SeedChildAsync("弟弟", 1);
 
-        await _service.SetPinAsync(didi.Id, new SetChildPinDto { Pin = "1234" });
-        (await _service.GetAsync(didi.Id)).HasPin.ShouldBeTrue();
+        await _service.SetPinAsync(id, new SetChildPinDto { Pin = "1234" });
+        (await _service.GetAsync(id)).HasPin.ShouldBeTrue();
 
-        await _service.SetPinAsync(didi.Id, new SetChildPinDto { Pin = null });
-        (await _service.GetAsync(didi.Id)).HasPin.ShouldBeFalse();
+        await _service.SetPinAsync(id, new SetChildPinDto { Pin = null });
+        (await _service.GetAsync(id)).HasPin.ShouldBeFalse();
     }
 }
 ```
@@ -607,7 +638,7 @@ public const string WeeklyTemplates = ParentAdmin + ".WeeklyTemplates";
 public const string DailyTasks = ParentAdmin + ".DailyTasks";
 public const string FamilyGoals = ParentAdmin + ".FamilyGoals";
 ```
-`HomeworkMenuContributor.ConfigureMainMenuAsync` 加（`await` 化，注入无需）：
+`HomeworkMenuContributor.ConfigureMainMenuAsync` 里，在现有 `return Task.CompletedTask;` 之前插入（菜单添加是同步的，无需把方法改成 `async`）：
 ```csharp
 var parent = new ApplicationMenuItem(
     HomeworkMenus.ParentAdmin, l["Menu:ParentAdmin"], icon: "fas fa-user-shield", order: 1)
@@ -738,7 +769,7 @@ public class EditModalModel : HomeworkPageModel
 
 - [ ] **Step 7: 冒烟 + 提交**
 
-Run: `dotnet build Homework.sln` → 成功。（页面点通留 Chunk 5 统一 `@run`。）
+Run: `dotnet build Homework.slnx` → 成功。（页面点通留 Chunk 5 统一 `@run`。）
 ```bash
 git add src/Homework.Web/Pages/ParentAdmin/Children src/Homework.Web/Menus src/Homework.Domain.Shared/Localization/Homework/*.json
 git commit -m "feat(web): 孩子档案 parent-admin page (list/edit/set-pin)"
@@ -953,10 +984,35 @@ public interface IDailyTaskAppService : IApplicationService
 
 - [ ] **Step 1: 写失败测试（重结算是重点）**
 
-要点用例（用 `IDailyTaskAppService` + `IWeeklyTaskTemplateAppService` + `IGuidGenerator`；childId 自造）：
+测试类骨架（字段 / 构造 / helper）+ 三个要点用例。childId 自造，无需 Identity 用户（服务不 join）：
 ```csharp
-[Fact]
-public async Task GetBoard_Generates_From_Template_And_Settles()
+[Collection(HomeworkTestConsts.CollectionDefinitionName)]
+public class DailyTaskAppService_Tests : HomeworkEntityFrameworkCoreTestBase
+{
+    private readonly IDailyTaskAppService _service;
+    private readonly IWeeklyTaskTemplateAppService _templates;
+    private readonly IRepository<DailyTask, Guid> _dailyTaskRepository;
+    private readonly IGuidGenerator _guid;
+
+    public DailyTaskAppService_Tests()
+    {
+        _service = GetRequiredService<IDailyTaskAppService>();
+        _templates = GetRequiredService<IWeeklyTaskTemplateAppService>();
+        _dailyTaskRepository = GetRequiredService<IRepository<DailyTask, Guid>>();
+        _guid = GetRequiredService<IGuidGenerator>();
+    }
+
+    // helper：模拟孩子端打卡（Phase 4 才有打卡服务，这里直接走领域完成）
+    private Task CompleteViaRepositoryAsync(Guid taskId) => WithUnitOfWorkAsync(async () =>
+    {
+        var t = await _dailyTaskRepository.GetAsync(taskId);
+        t.Complete(new DateTime(2026, 7, 6, 18, 0, 0));
+        await _dailyTaskRepository.UpdateAsync(t);
+    });
+
+    // 以下三个 [Fact] 均为本类方法：
+    [Fact]
+    public async Task GetBoard_Generates_From_Template_And_Settles()
 {
     var child = _guid.Create();
     var monday = new DateOnly(2026, 7, 6);
@@ -1010,8 +1066,9 @@ public async Task Create_AdHoc_Task_Raises_Total_And_Breaks_Full()
     after.TasksTotal.ShouldBe(2);
     after.IsFull.ShouldBeFalse();
 }
+}
 ```
-（`CompleteViaRepositoryAsync` = 用 `IRepository<DailyTask,Guid>` 加载→`Complete(now)`→`UpdateAsync`，模拟孩子端打卡；Phase 4 才有打卡服务，这里直接走领域。）
+（`_service`/`_templates`/`_dailyTaskRepository`/`_guid` 与 helper `CompleteViaRepositoryAsync` 均为上面测试类成员。usings：`System; System.Threading.Tasks; Homework.Tasks; Homework.Tasks.Dtos; Shouldly; Volo.Abp.Domain.Repositories; Volo.Abp.Guids; Xunit;`。）
 
 - [ ] **Step 2: 跑红** → 服务未实现。
 - [ ] **Step 3: 实现服务**
@@ -1027,6 +1084,8 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
 
     public async Task<DailyBoardDto> GetBoardAsync(GetDailyBoardInput input)
     {
+        // ⚠ 前提修复（见本 Step 末）：EnsureDayAsync 的 InsertAsync 必须 autoSave:true，
+        // 否则同一 UoW 内下面的 GetListAsync 读不到刚生成的任务，board 会空/误判休息日。
         await _generator.EnsureDayAsync(input.ChildId, input.Date);       // 惰性生成
         await _generator.SettleDayAsync(input.ChildId, input.Date);       // 读取即结算（含今天）
         var tasks = await _repository.GetListAsync(t => t.ChildId == input.ChildId && t.Date == input.Date);
@@ -1082,6 +1141,8 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
 ```
 （`using System.Linq; Homework.Scoring; Homework.Permissions; Microsoft.AspNetCore.Authorization; Volo.Abp.Domain.Repositories;`。）
 
+- [ ] **Step 3b（前提修复，blocking）：`EnsureDayAsync` 改 autoSave** — 打开 `src/Homework.Domain/Tasks/DailyTaskGenerator.cs`，把 `EnsureDayAsync` 内 `await _dailyTaskRepository.InsertAsync(task);` 改为 `await _dailyTaskRepository.InsertAsync(task, autoSave: true);`。原因：GetBoard 在同一 UoW 内先生成再查询，EF 查询前不自动 flush，不 autoSave 则查不到刚插入的任务（`GetBoard_Generates_From_Template_And_Settles` 会红）。Phase 2 现有测试用独立 UoW，改后仍全绿——跑 `dotnet test test/Homework.EntityFrameworkCore.Tests/Homework.EntityFrameworkCore.Tests.csproj --filter "FullyQualifiedName~DailyTaskGenerator_Tests"` 复核 6 绿。
+
 - [ ] **Step 4: 跑绿** → passed（3 重结算用例 + GetBoard）。
 - [ ] **Step 5: 提交** — `feat(tasks): DailyTaskAppService board + overrides + revoke/re-settle (TDD)`。
 
@@ -1089,8 +1150,8 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
 
 **Files:** `Pages/ParentAdmin/DailyTasks/{Index,CreateModal,EditModal}.cshtml(.cs)` + `index.js`；菜单 `DailyTasks` 项；localization。
 
-- [ ] **Step 1: Index** — 顶部 child 切换器 + `<input type="date" id="BoardDate">`（默认今天）；一张**汇总卡**显示 `Stars/吃饱/总数/完成数`；一张任务表（列：Order、Title、Subject、完成状态、ReviewState、Actions）。切换 child/date → 调 `homework.tasks.dailyTask.getBoard({childId,date})` 重渲染卡 + 表。
-- [ ] **Step 2: 行内操作** — 每行按 `reviewState`/`isCompleted` 显示 `Revoke`（正常且已完成时）或 `Restore`（被撤销时）按钮 + `Edit`/`Delete`；调对应 JS 代理后 reload。
+- [ ] **Step 1: Index（自定义渲染，非 DataTables `createAjax`）** — 顶部 child 切换器 + `<input type="date" id="BoardDate">`（默认今天）；一张**汇总卡**显示 `Stars/吃饱/总数/完成数`；一张任务表（列：Order、Title、Subject、完成状态、ReviewState、Actions）。`homework.tasks.dailyTask.getBoard({ childId, date })` 返回**单个 `DailyBoardDto`（非 `ListResultDto`）**，故**不能**用 `abp.libs.datatables.createAjax`；改为 `.then(board => {...})` 手动渲染汇总卡 + 遍历 `board.tasks` 拼表（DataTables `rows.add()` 或直接 `<tr>`）。`date` 传 `<input type="date">.value` 的 `"yyyy-MM-dd"` 字符串，**勿**传 JS `Date` 对象。切换 child/date → 重新拉取重渲染。
+- [ ] **Step 2: 行内操作** — 每行显示 `Revoke`（`reviewState===0` 正常且 `isCompleted`）或 `Restore`（`reviewState===1` 被撤销）+ `Edit`/`Delete`；调对应 JS 代理后重新拉取。**注意**：无 `JsonStringEnumConverter`，`reviewState` 序列化为**数字**（Normal=0、Revoked=1）——JS 按数字比较，`Normal`/`Revoked` 本地化 key 仅用于显示文案。
 - [ ] **Step 3: CreateModal / EditModal** — Create 隐藏 ChildId+Date（取自当前选中）+ Title/Subject/Order；Edit 载入任务改 Title/Subject/Order。
 - [ ] **Step 4: 本地化** — `Menu:DailyTasks`(当日任务)、`Date`(日期)、`Stars`(星星)、`IsFull`(吃饱)、`Completed`(已完成)、`ReviewState`(复核状态)、`Revoke`(撤销)、`Restore`(恢复)、`Normal`(正常)、`Revoked`(已撤销)、`AddTask`(加任务)。两文件同步。
 - [ ] **Step 5: 菜单追加 + build + 提交** — `feat(web): 当日任务 page (board/overrides/review)`。
@@ -1158,10 +1219,10 @@ public interface IFamilyGoalAppService : IApplicationService
 - Create: `src/Homework.Application/Scoring/FamilyGoalAppService.cs`
 - Test: `test/Homework.EntityFrameworkCore.Tests/EntityFrameworkCore/Scoring/FamilyGoalAppService_Tests.cs`
 
-- [ ] **Step 1: 写失败测试** — 覆盖：`CreateAsync` 后 `GetAsync` 回读字段；播种若干 `DailyScore`（用 `IRepository<DailyScore,Guid>` + `DailyScore.Settle(5, stars)`）在区间内 → `GetAsync().CurrentStars` = 和、`ProgressPercent` 正确、达标时 `IsAchieved` 且 `AchievedTime` 非空；`EndDate < StartDate` 的 Create 抛校验/领域异常；`DeleteAsync` 移除。
+- [ ] **Step 1: 写失败测试** — 覆盖：`CreateAsync` 后 `GetAsync` 回读字段；播种若干 `DailyScore`（用 `IRepository<DailyScore,Guid>` + `DailyScore.Settle(5, stars)`，同 Phase 2 `FamilyGoalProgress_Tests` 的手法）在区间内 → `GetAsync().CurrentStars` = 和、`ProgressPercent` 正确、达标时 `IsAchieved` 且 `AchievedTime` 非空；`EndDate < StartDate` 的 Create 应 `Should.Throw<ArgumentException>()`（领域构造器 `SetPeriod` 抛；DTO 无跨字段校验，故不是 `AbpValidationException`）；`DeleteAsync` 移除。
 - [ ] **Step 2: 跑红** → 未实现。
 - [ ] **Step 3: 实现服务**（注入 `IRepository<FamilyGoal, Guid>` + `FamilyGoalProgressService`）：
-  - `MapWithProgressAsync(goal)`：`stars = await _progress.CalculateStarsAsync(goal)`；`goal.CheckAchieved(stars, Clock.Now)` 后（若变化则 `UpdateAsync`）；组 `FamilyGoalDto`：`CurrentStars=stars`、`IsAchieved=goal.AchievedTime!=null`、`ProgressPercent = goal.TargetStars==0?0:Math.Min(100, (int)(stars*100L/goal.TargetStars))`。
+  - `MapWithProgressAsync(goal)`：`stars = await _progress.CalculateStarsAsync(goal)`；`if (goal.CheckAchieved(stars, Clock.Now)) await _repository.UpdateAsync(goal);`（`CheckAchieved` 仅在 `AchievedTime==null && stars>=Target` 时置一次时间、返回 true——不会重复盖章）；然后**手工构造整个 `FamilyGoalDto`（不用 `ObjectMapper.Map`——本 Task 不加 Mapperly 映射方法，且有 3 个计算字段）**：基础字段 `Id/Title/TargetStars/RewardText/StartDate/EndDate/AchievedTime` 从 `goal` 直取，`CurrentStars=stars`、`IsAchieved=goal.AchievedTime!=null`、`ProgressPercent = goal.TargetStars==0?0:Math.Min(100,(int)(stars*100L/goal.TargetStars))`。
   - `CreateAsync`：`new FamilyGoal(GuidGenerator.Create(), input.Title, input.TargetStars, input.StartDate, input.EndDate, input.RewardText)`（领域构造器已校验 EndDate≥StartDate、TargetStars>0）→ insert → map。
   - `UpdateAsync`：`GetAsync` → `SetTitle/SetTarget/SetPeriod/SetRewardText` → update → map。
   - `GetListAsync`：全部 goal → 逐个 `MapWithProgressAsync` → `ListResultDto`。
@@ -1189,12 +1250,12 @@ public interface IFamilyGoalAppService : IApplicationService
 Run: `dotnet test test/Homework.Domain.Tests/Homework.Domain.Tests.csproj` 然后 `dotnet test test/Homework.EntityFrameworkCore.Tests/Homework.EntityFrameworkCore.Tests.csproj`
 Expected: 全绿（含 Phase 2 原有 + Phase 3 新增服务测试）。
 
-- [ ] **Step 2: 全量 build** — Run: `dotnet build Homework.sln` → 0 error。
+- [ ] **Step 2: 全量 build** — Run: `dotnet build Homework.slnx` → 0 error。
 
 ### Task 5.2: 端到端冒烟（`@run` / `@superpowers:verification-before-completion`）
 
-- [ ] **Step 1: 迁移/播种（授予 admin 权限）** — Run: `dotnet run --project src/Homework.DbMigrator`（在其项目目录义务见 `abp-postgres-stack`）。Expected: 成功；admin 获 `ParentAdmin`。
-- [ ] **Step 2: 起 Web + admin 登录** — Run: `dotnet run --project src/Homework.Web`；浏览器 admin/`1q2w3E*` 登录。
+- [ ] **Step 1: 迁移/播种（授予 admin 权限）** — Run: `cd src/Homework.DbMigrator && dotnet run`（在其项目目录义务见 `abp-postgres-stack`）。Expected: 成功；admin 获 `ParentAdmin`。
+- [ ] **Step 2: 起 Web + admin 登录** — Run: `cd src/Homework.Web && dotnet run`；浏览器 admin/`1q2w3E*` 登录。
 - [ ] **Step 3: 逐页点通（中文界面）**
   - 家长后台菜单 4 项可见。
   - 孩子档案：改哥哥昵称/年级、设弟弟 PIN 再清除。
