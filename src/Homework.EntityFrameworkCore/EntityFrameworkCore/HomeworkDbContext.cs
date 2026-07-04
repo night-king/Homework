@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Homework.Children;
+using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
@@ -24,6 +26,9 @@ public class HomeworkDbContext :
     ITenantManagementDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
+
+    // Homework game
+    public DbSet<ChildProfile> ChildProfiles { get; set; }
 
     #region Entities from the modules
 
@@ -76,11 +81,14 @@ public class HomeworkDbContext :
 
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(HomeworkConsts.DbTablePrefix + "YourEntities", HomeworkConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<ChildProfile>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "ChildProfiles", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.DisplayName).IsRequired().HasMaxLength(32);
+            b.Property(x => x.AvatarKey).HasMaxLength(64);
+            b.Property(x => x.Pin).HasMaxLength(8);
+            b.HasIndex(x => x.IdentityUserId).IsUnique();
+        });
     }
 }
