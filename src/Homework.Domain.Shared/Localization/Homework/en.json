@@ -17,6 +17,24 @@
     "PinInfo": "Leave empty to clear the PIN",
     "SetPin": "Set PIN",
     "Edit": "Edit",
-    "Actions": "Actions"
+    "Actions": "Actions",
+    "Menu:WeeklyTemplates": "Weekly Templates",
+    "Child": "Child",
+    "Create": "Create",
+    "Delete": "Delete",
+    "DeleteConfirm": "Are you sure?",
+    "DayOfWeek": "Day",
+    "Title": "Title",
+    "Subject": "Subject",
+    "Order": "Order",
+    "EstimatedMinutes": "Est. Minutes",
+    "IsActive": "Active",
+    "Day0": "Sun",
+    "Day1": "Mon",
+    "Day2": "Tue",
+    "Day3": "Wed",
+    "Day4": "Thu",
+    "Day5": "Fri",
+    "Day6": "Sat"
   }
 }

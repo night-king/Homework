@@ -53,6 +53,8 @@ public class HomeworkMenuContributor : IMenuContributor
                 HomeworkMenus.ParentAdmin, l["Menu:ParentAdmin"], icon: "fas fa-user-shield", order: 1);
             parentAdmin.AddItem(new ApplicationMenuItem(
                 HomeworkMenus.Children, l["Menu:Children"], "/ParentAdmin/Children"));
+            parentAdmin.AddItem(new ApplicationMenuItem(
+                HomeworkMenus.WeeklyTemplates, l["Menu:WeeklyTemplates"], "/ParentAdmin/WeeklyTemplates"));
             context.Menu.AddItem(parentAdmin);
         }
     }

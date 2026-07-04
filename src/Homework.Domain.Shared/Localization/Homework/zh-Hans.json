@@ -17,6 +17,24 @@
     "PinInfo": "留空则清除 PIN",
     "SetPin": "设置PIN",
     "Edit": "编辑",
-    "Actions": "操作"
+    "Actions": "操作",
+    "Menu:WeeklyTemplates": "每周任务模板",
+    "Child": "孩子",
+    "Create": "新建",
+    "Delete": "删除",
+    "DeleteConfirm": "确定删除？",
+    "DayOfWeek": "星期",
+    "Title": "标题",
+    "Subject": "科目",
+    "Order": "排序",
+    "EstimatedMinutes": "预计分钟",
+    "IsActive": "启用",
+    "Day0": "周日",
+    "Day1": "周一",
+    "Day2": "周二",
+    "Day3": "周三",
+    "Day4": "周四",
+    "Day5": "周五",
+    "Day6": "周六"
   }
 }
