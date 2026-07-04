@@ -10,6 +10,7 @@ using Homework.EntityFrameworkCore;
 using Homework.Localization;
 using Homework.MultiTenancy;
 using Homework.Web.Menus;
+using Homework.Permissions;
 using Microsoft.OpenApi;
 using OpenIddict.Validation.AspNetCore;
 using Volo.Abp;
@@ -115,6 +116,12 @@ public class HomeworkWebModule : AbpModule
         Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>(options =>
         {
             options.SetDefaultCulture("zh-Hans");
+        });
+
+        // 家长后台整套受 ParentAdmin 权限门禁（页面路由级；各应用服务另有 [Authorize]）。
+        Configure<Microsoft.AspNetCore.Mvc.RazorPages.RazorPagesOptions>(options =>
+        {
+            options.Conventions.AuthorizeFolder("/ParentAdmin", HomeworkPermissions.ParentAdmin);
         });
 
         context.Services.AddMapperlyObjectMapper<HomeworkWebModule>();
