@@ -31,10 +31,10 @@
 ## Architecture
 
 ### 新增 `src/Homework.HttpApi.Host`
-- `Program.cs` + `HomeworkHttpApiHostModule`：`DependsOn` **对标 port-shield `PortShieldHttpApiHostModule`**（照抄架构、删部署）——含 `HomeworkHttpApiModule` + `HomeworkApplicationModule` + `HomeworkEntityFrameworkCoreModule` + `AbpAutofacModule` + **`AbpAccountWebOpenIddictModule`**（提供 `/connect/token` 认证服务；捆绑的 Account Razor 页保留但闲置）+ **`AbpAspNetCoreMvcUiThemeSharedModule`**（前者的依赖，必须留）+ `AbpSwashbuckleModule`(Swagger) + `AbpAspNetCoreSerilogModule` 等。**关键：不能为了"去 Razor"而排除 `AbpAccountWebOpenIddictModule` 或 `Theme.Shared`——会把 token 端点删掉或启动失败。** 不含的是我们自建的 `HomeworkWebModule`、家长后台/注册页、菜单、branding。
+- `Program.cs` + `HomeworkHttpApiHostModule`：`DependsOn` **对标 port-shield `PortShieldHttpApiHostModule`**（照抄架构、删部署）——含 `HomeworkHttpApiModule` + `HomeworkApplicationModule` + `HomeworkEntityFrameworkCoreModule` + `AbpAutofacModule` + **`AbpAccountWebOpenIddictModule`**（提供 `/connect/token` 认证服务；捆绑的 Account Razor 页保留但闲置）+ **`AbpAspNetCoreMvcUiThemeSharedModule`**（前者的依赖，必须留）+ `AbpSwashbuckleModule`(Swagger) + `AbpAspNetCoreSerilogModule` 等。**关键：不能为了"去 Razor"而排除 `AbpAccountWebOpenIddictModule` 或 `Theme.Shared`——会把 token 端点删掉或启动失败。** 不含的是我们自建的 `HomeworkWebModule`、家长后台/注册页、菜单、branding。**"照抄 port-shield" 仅指认证/API/主题-Shared 这套骨架**——port-shield 还带的 **Hangfire、Redis、多租户、ForwardedHeaders、一堆外部 HttpClient、健康检查**等**一律不引**（那些是它的业务/基础设施，不是本项目所需，也不算"部署项"）。本 spec 上面枚举的 `DependsOn` 就是完整清单。
 - 配置（多数迁自 `HomeworkWebModule`）：
   - **OpenIddict 认证服务**：托管 `/connect/token`（密码流）、发 JWT。
-  - **Bearer 校验**：`ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)`（迁自 Web）。
+  - **Bearer 校验**：整块迁自 `HomeworkWebModule`——含 OpenIddict **validation**（`PreConfigureServices` 里 `AddValidation().AddAudiences("Homework").UseLocalServer().UseAspNetCore()`）+ `ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)`。**validation 块不能漏**——只搬 forwarder 会导致带有效 token 也 401（资源服务器没配受众/本地校验）。对标 port-shield 的 `PreConfigureServices`。
   - **Auto API controllers**：`ConventionalControllers.Create(typeof(HomeworkApplicationModule).Assembly)`（迁自 Web）→ 应用服务全部暴露为 `/api/app/*`。
   - **CORS**：放行前端源（dev 如 `http://localhost:517x`，prod 可配；从 `appsettings` 读）。
   - **Swagger**：`/swagger`（联调 / 冒烟用）。现有 Web 用普通 `AddAbpSwaggerGen`（迁过来即可满足"列出 API"）；若想在 Swagger UI 里直接测受保护接口，可换 port-shield 的 `AddAbpSwaggerGenWithOAuth` + 一个 swagger 客户端（可选）。
@@ -45,7 +45,7 @@
   - 可选 `/health` 健康检查。
 
 ### OpenIddict 密码流客户端
-- 种子代码在 **`src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs`**，配置在 **`src/Homework.DbMigrator/appsettings.json`** 的 `OpenIddict:Applications`（**不是** Web 的 appsettings）。新增一个**公共客户端** `Homework_App`（`GrantTypes.Password` + `RefreshToken`，**无 secret**）+ 授予 `password` grant 相关 permission。**对标 port-shield `OpenIddictDataSeedContributor` 的 `PortShield_App`**（Public/Password 客户端）。React 用它换 token。
+- 种子代码在 **`src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs`**，配置在 **`src/Homework.DbMigrator/appsettings.json`** 的 `OpenIddict:Applications`（**不是** Web 的 appsettings）。新增一个**公共客户端** `Homework_App`（`GrantTypes.Password` + `RefreshToken`，**无 secret**）+ 授予 `password` grant 相关 permission + scope 含 **`offline_access`**（否则 RefreshToken grant 不会真的下发 refresh token）。**对标 port-shield `OpenIddictDataSeedContributor` 的 `PortShield_App`**（Public/Password 客户端，含 `offline_access`）。React 用它换 token。
 - **删除陈旧的 `Homework_Web` 机密客户端**（评审补）：它是给已删的 Razor host 用的授权码/cookie 流客户端，headless 不再需要——从种子里移除，避免留下无用的机密客户端。
 - ⚠ **dev 必须走 HTTPS**（评审补）：OpenIddict 对 `/connect/token` 在非 HTTPS 下会抛 **ID2083** 拒绝请求。`Homework.HttpApi.Host` dev 用 `https://localhost:44xxx`（`launchSettings` + dev 证书），CORS 与前端联调按 HTTPS 配。
 - **自助注册配置核对**（评审补）：`/api/account/register` 依赖 ABP `Account` 设置——确认 `Abp.Account.IsSelfRegistrationEnabled = true`（现有种子/设置若已开则沿用），`Parent` 默认角色 + `ParentAdmin` 授权链照旧（`ChildrenDataSeedContributor` / `ParentPermissionDataSeedContributor` 不动）。
@@ -74,14 +74,15 @@ React 登录表单 → `POST /connect/token`（`grant_type=password` + username 
 - `Homework.HttpApi.Host` 起得来，`/swagger` 列出应用服务 API。
 - 密码流能拿 token；带 token 调受保护 API 通、账号归属生效；无 token 401。
 - `Homework.Web` 已从解决方案删除；`dotnet build Homework.slnx` 绿；Domain/EFCore 测试全绿；DbMigrator 正常建库+种子。
-- 后端此后是纯 API、无 Razor UI。
+- 后端此后是纯 API：**无我们自建/面向用户的 Razor UI**（ABP 自带 Account 页作为 token 端点依赖保留但闲置，不对外链接、不渲染给家长）。
 
 ## Out of scope（本子项目不做）
 官网（Astro）、家长前端（React console）、孩子游戏端（React）——各自子项目。部署（docker/k8s）——用户另有安排。服务端同意强制 / 上线安全加固——`DEPLOY.md`。
 
 ## Open items to confirm at implementation
-- 对标 port-shield `PortShield.HttpApi.Host` 的**精确模块 `DependsOn` 清单 + `Program.cs`**（照抄架构、去部署）；确认是否需要 Serilog/健康检查等。
+- 对标 port-shield `PortShield.HttpApi.Host` 的**精确 `Program.cs` 启动顺序**（照抄骨架、去部署与上面点名不引的 Hangfire/Redis/多租户等）；Serilog 已定为引入（见上），`/health` 是否加为可选项。
 - OpenIddict 密码流客户端的确切 scope / permissions 种子（对标 port-shield 的 `OpenIddictDataSeedContributor`）。
 - CORS 允许的前端源（dev 端口）+ 配置化方式。
 - HttpApi.Host `appsettings.json`（连接串 / SelfUrl / 证书）与 DbMigrator 对齐；dev 证书生成。
 - 删 `Homework.Web` 后，确认没有别处（测试 / CI / DbMigrator）残留引用。
+- `test/Homework.HttpApi.Client.ConsoleTestApp`（引用 `HttpApi.Client`、不引 Web，故不阻塞 build）的 `appsettings.json` 现指向旧 host `https://localhost:44394` + `Homework_App`/`admin`——换 host 端口后其 BaseUrl/Authority 会失效；实现时**更新为新 host** 或标注为"未维护的 dev 工具"。
