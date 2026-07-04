@@ -1,7 +1,1 @@
-namespace Homework.Children;
-
-public static class GradeConsts
-{
-    public const int Min = 1;
-    public const int Max = 12;
-}
+// Moved to Homework.Domain.Shared/Children/GradeConsts.cs so Application.Contracts can reference it.

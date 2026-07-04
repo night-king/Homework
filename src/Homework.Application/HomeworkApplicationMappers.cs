@@ -1,12 +1,16 @@
+using Homework.Children;
+using Homework.Children.Dtos;
 using Riok.Mapperly.Abstractions;
 using Volo.Abp.Mapperly;
 
 namespace Homework;
 
 [Mapper]
-public partial class HomeworkApplicationMappers
+public partial class ChildProfileMapper : MapperBase<ChildProfile, ChildProfileDto>
 {
-    /* You can configure your Mapperly mapping configuration here.
-     * Alternatively, you can split your mapping configurations
-     * into multiple mapper classes for a better organization. */
+    [MapperIgnoreTarget(nameof(ChildProfileDto.HasPin))]
+    public override partial ChildProfileDto Map(ChildProfile source);
+
+    [MapperIgnoreTarget(nameof(ChildProfileDto.HasPin))]
+    public override partial void Map(ChildProfile source, ChildProfileDto destination);
 }
