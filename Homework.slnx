@@ -1,0 +1,35 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Homework.Application.Contracts/Homework.Application.Contracts.csproj" />
+    <Project Path="src/Homework.Application/Homework.Application.csproj" />
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <Project Path="src/Homework.DbMigrator/Homework.DbMigrator.csproj" />
+    <Project Path="src/Homework.Domain.Shared/Homework.Domain.Shared.csproj" />
+    <Project Path="src/Homework.Domain/Homework.Domain.csproj" />
+    <Project Path="src/Homework.EntityFrameworkCore/Homework.EntityFrameworkCore.csproj" />
+    <Project Path="src/Homework.HttpApi.Client/Homework.HttpApi.Client.csproj" />
+    
+    
+    <Project Path="src/Homework.HttpApi/Homework.HttpApi.csproj" />
+    
+    
+    <Project Path="src/Homework.Web/Homework.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Homework.Application.Tests/Homework.Application.Tests.csproj" />
+    <Project Path="test/Homework.Domain.Tests/Homework.Domain.Tests.csproj" />
+    <Project Path="test/Homework.EntityFrameworkCore.Tests/Homework.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="test/Homework.HttpApi.Client.ConsoleTestApp/Homework.HttpApi.Client.ConsoleTestApp.csproj" />
+    
+    <Project Path="test/Homework.TestBase/Homework.TestBase.csproj" />
+    <Project Path="test/Homework.Web.Tests/Homework.Web.Tests.csproj" />
+  </Folder>
+</Solution>
