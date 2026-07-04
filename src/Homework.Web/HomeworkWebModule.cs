@@ -112,6 +112,11 @@ public class HomeworkWebModule : AbpModule
         ConfigureAutoApiControllers();
         ConfigureSwaggerServices(context.Services);
 
+        Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>(options =>
+        {
+            options.SetDefaultCulture("zh-Hans");
+        });
+
         context.Services.AddMapperlyObjectMapper<HomeworkWebModule>();
     }
 
