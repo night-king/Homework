@@ -31,4 +31,12 @@ public class ChildProfile_Tests
         Should.Throw<ArgumentException>(() =>
             new ChildProfile(Guid.NewGuid(), Guid.NewGuid(), "弟弟", grade));
     }
+
+    [Fact]
+    public void Exposes_ParentId()
+    {
+        var parentId = Guid.NewGuid();
+        var c = new ChildProfile(Guid.NewGuid(), parentId, "哥哥", 3);
+        c.ParentId.ShouldBe(parentId);
+    }
 }

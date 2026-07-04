@@ -94,7 +94,7 @@ public class HomeworkDbContext :
             b.Property(x => x.DisplayName).IsRequired().HasMaxLength(32);
             b.Property(x => x.AvatarKey).HasMaxLength(64);
             b.Property(x => x.Pin).HasMaxLength(8);
-            b.HasIndex(x => x.IdentityUserId).IsUnique();
+            b.HasIndex(x => x.ParentId);
         });
 
         builder.Entity<WeeklyTaskTemplateItem>(b =>

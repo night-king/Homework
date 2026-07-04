@@ -11,7 +11,7 @@ namespace Homework.Children;
 /// </summary>
 public class ChildProfile : FullAuditedAggregateRoot<Guid>
 {
-    public Guid IdentityUserId { get; private set; }
+    public Guid ParentId { get; private set; }
     public string DisplayName { get; private set; }
     public int Grade { get; private set; }
     public string? AvatarKey { get; private set; }
@@ -22,10 +22,10 @@ public class ChildProfile : FullAuditedAggregateRoot<Guid>
     {
     }
 
-    public ChildProfile(Guid id, Guid identityUserId, [NotNull] string displayName, int grade)
+    public ChildProfile(Guid id, Guid parentId, [NotNull] string displayName, int grade)
         : base(id)
     {
-        IdentityUserId = identityUserId;
+        ParentId = parentId;
         SetDisplayName(displayName);
         SetGrade(grade);
     }

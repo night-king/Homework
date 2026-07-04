@@ -57,7 +57,7 @@ public class ChildrenDataSeedContributor : IDataSeedContributor, ITransientDepen
             CheckResult(await _userManager.AddToRoleAsync(user, HomeworkRoles.Child));
         }
 
-        if (await _childRepository.FindAsync(c => c.IdentityUserId == user.Id) == null)
+        if (await _childRepository.FindAsync(c => c.ParentId == user.Id) == null)
         {
             await _childRepository.InsertAsync(
                 new ChildProfile(_guidGenerator.Create(), user.Id, displayName, grade), autoSave: true);

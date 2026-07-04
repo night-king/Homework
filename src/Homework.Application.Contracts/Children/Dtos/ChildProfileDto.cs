@@ -9,5 +9,4 @@ public class ChildProfileDto : EntityDto<Guid>
     public int Grade { get; set; }
     public string? AvatarKey { get; set; }
     public bool HasPin { get; set; }          // never expose the raw PIN
-    public Guid IdentityUserId { get; set; }
 }
