@@ -31,23 +31,22 @@
     <a asp-page="./Login">已有账号？返回登录</a>
 </div>
 
-@section scripts {
-    <script>
-        (function () {
-            'use strict';
-            document.addEventListener('DOMContentLoaded', function () {
-                var checkbox = document.getElementById('ConsentGiven');
-                var submitBtn = document.getElementById('RegisterSubmitBtn');
-                if (!checkbox || !submitBtn) return;
-
-                function syncSubmit() {
-                    submitBtn.disabled = !checkbox.checked;
-                }
-
-                syncSubmit(); // initial state: disabled until consent given
-
-                checkbox.addEventListener('change', syncSubmit);
-            });
-        }());
-    </script>
-}
+@* 内联脚本（ABP 账号布局不渲染 scripts 段，不能用 @@section scripts）：同意勾选前禁用提交 *@
+<script>
+    (function () {
+        'use strict';
+        function wire() {
+            var checkbox = document.getElementById('ConsentGiven');
+            var submitBtn = document.getElementById('RegisterSubmitBtn');
+            if (!checkbox || !submitBtn) return;
+            function syncSubmit() { submitBtn.disabled = !checkbox.checked; }
+            syncSubmit(); // 初始：未勾选则禁用
+            checkbox.addEventListener('change', syncSubmit);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', wire);
+        } else {
+            wire();
+        }
+    }());
+</script>
