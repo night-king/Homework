@@ -24,15 +24,16 @@
 
 ## Architecture
 
-### Domain（`Homework.Domain`）—— 唯一新增逻辑：单日重结算
+### Domain（`Homework.Domain`）—— 单日重结算 + 两个小 mutator
 
 - 在既有 `DailyTaskGenerator` 上公开 `Task SettleDayAsync(Guid childId, DateOnly date)`：按当日现有 `DailyTask` 重算该天 `DailyScore`（复用现有 `ResolveDayTotalsAsync` + `DailyScore.Settle`；无 DailyTask 时退回模板数 = 漏做，与 Phase 2 一致）。
 - 重构 `SettlePastDaysAsync` 改为**循环调用 `SettleDayAsync`**（行为不变，Phase 2 现有 5 个测试仍须绿）。
-- **不新增实体**。宠物 / 成长值 / 鼓励语均属后续阶段。
+- 给 `DailyTask` 补两个公有 mutator `SetSubject(string?)` / `SetOrder(int)`（当前 `Subject`/`Order` 为 `private set`，实体仅有 `SetTitle`），供 `DailyTaskAppService.UpdateAsync` 用；`SetOrder` 与 `WeeklyTaskTemplateItem.SetOrder` 保持一致——负值抛 `ArgumentException`（DTO 层已 `Order≥0`，二者兼容）。
+- **不新增实体**（仅上述方法级改动）。宠物 / 成长值 / 鼓励语均属后续阶段。
 
 ### Application layer（`Homework.Application(.Contracts)`）—— 四个按能力拆分的服务
 
-约定：所有服务标注 `[Authorize(HomeworkPermissions.ParentAdmin)]`；接口 + DTO 在 `Application.Contracts`，实现于 `Application`；DTO↔实体映射走模板既有 mapper 机制（实现时确认 AutoMapper profile vs source-gen）。返回列表用 ABP `ListResultDto<T>`（v1 数据量极小，暂不分页）。
+约定：所有服务标注 `[Authorize(HomeworkPermissions.ParentAdmin)]`；接口 + DTO 在 `Application.Contracts`，实现于 `Application`；DTO↔实体映射用模板既有的 **Mapperly**（`HomeworkApplicationMappers`：`[Mapper] partial class` + `Riok.Mapperly`，source-gen，非 AutoMapper），按需加 `partial` 映射方法。返回列表用 ABP `ListResultDto<T>`（v1 数据量极小，暂不分页）。
 
 **1) `IChildProfileAppService`** —— 孩子档案（无 create/delete，两娃已播种）
 - `Task<ListResultDto<ChildProfileDto>> GetListAsync()`
@@ -55,7 +56,7 @@
   - `UpdateWeeklyTaskTemplateItemDto { Title(req,≤128), Subject?, Order(≥0), EstimatedMinutes?, IsActive }`
 
 **3) `IDailyTaskAppService`** —— 当日任务 + 复核 / 撤销（**含重结算**，最重）
-- `Task<DailyBoardDto> GetBoardAsync(GetDailyBoardInput input)` —— 按 `ChildId` + `Date`；先 `EnsureDayAsync` 惰性生成，再返回当天任务 + 当日汇总
+- `Task<DailyBoardDto> GetBoardAsync(GetDailyBoardInput input)` —— 按 `ChildId` + `Date`；**读取即结算**：先 `EnsureDayAsync` 惰性生成，再 `SettleDayAsync(ChildId, Date)` 结算 / 刷新该天 `DailyScore`（含"今天"——`SettlePastDaysAsync` 只补到昨天，故 board 读取路径显式结算所请求日，符合 spec §7.7"访问时结算"），据其返回当天任务 + 当日汇总（Stars/IsFull/IsRestDay 与任务一致）
 - `Task<DailyTaskDto> CreateAsync(CreateDailyTaskDto input)` —— 家长临时加任务 → 后置 `SettleDayAsync`
 - `Task<DailyTaskDto> UpdateAsync(Guid id, UpdateDailyTaskDto input)` —— 改 Title/Subject/Order → `SettleDayAsync`（不变式统一维护）
 - `Task DeleteAsync(Guid id)` —— 删任务 → `SettleDayAsync`
@@ -99,7 +100,7 @@
 
 ### Testing
 
-- **TDD 应用服务集成测试**，跑在 SQLite in-memory ABP host（与 Phase 2 `EntityFrameworkCore.Tests` 同套基础设施）。
+- **TDD 应用服务集成测试**，置于 `Homework.EntityFrameworkCore.Tests`（唯一挂了 SQLite in-memory、且已引入应用层的测试工程；`Application.Tests` 未挂 DB，不承载需库用例），跑在 SQLite in-memory ABP host（与 Phase 2 集成测试同套）。
 - 重点覆盖不变式：
   - **mutation → 重结算**：`RevokeAsync` 使 `CountsAsCompleted`↓ → `DailyScore.Stars` 重算、`IsFull` 可能转 false；`CreateAsync` ad-hoc 任务使 `TasksTotal`↑、可能跌破吃饱。
   - `GetBoardAsync` 惰性生成（空当天按模板生成）。
@@ -142,7 +143,7 @@
 0. 权限 `ParentAdmin` + 授予 admin 播种 + 菜单壳 + `zh-Hans` 默认文化 + `SettleDayAsync` 抽取重构（TDD，保持 Phase 2 测试绿）。
 1. **ChildProfile**：contracts → TDD service → page + 本地化。
 2. **WeeklyTaskTemplate**：同上。
-3. **DailyTask**（+ 重结算 / 复核，最重）：同上。
+3. **DailyTask**（+ `DailyTask.SetSubject` / `SetOrder` mutator + 重结算 / 复核，最重）：同上。
 4. **FamilyGoal**：同上。
 5. 端到端冒烟（跑应用逐页验证）+ Phase 3 验收。
 
@@ -150,7 +151,10 @@
 
 ## Open items to confirm at implementation
 
-- Mapper 机制：模板 `HomeworkApplicationMappers.cs` 是 AutoMapper profile 还是 source-gen，按实际写映射。
-- `Application.Tests` 是否已挂 SQLite；若无，则应用服务测试置于 `EntityFrameworkCore.Tests`，或给 `Application.Tests` 测试模块补 SQLite（实现时定）。
-- ABP 默认语言 / 文化配置的确切 API（`AbpLocalizationOptions` 语言列表 + 默认语言设置 / `RequestLocalizationOptions`）。
-- ParentAdmin 授予 admin 的落地方式（permission data seeder：`IPermissionDataSeeder` / `IPermissionManager`）。
+**评审后已查证 / 定案：**
+- **Mapper = Mapperly**（source-gen `HomeworkApplicationMappers`：`[Mapper] partial class` + `Riok.Mapperly`）——非 AutoMapper，按需加 `partial` 映射方法。✅
+- **需库的应用服务测试置于 `Homework.EntityFrameworkCore.Tests`**（`Application.Tests` 未挂 SQLite；EFCore.Tests 已含应用层 + SQLite）。✅
+- **当前 `HomeworkResource` 默认文化 = `en`**（`HomeworkDomainSharedModule` 的 `options.Resources.Add<HomeworkResource>("en")`），`zh-Hans.json` 已存在；改默认为中文的确切配置点（`RequestLocalizationOptions.DefaultRequestCulture` / ABP 默认语言设置 / Web 模块支持语言列表）实现时定。
+
+**仍待实现时定：**
+- ParentAdmin 授予 `admin` 的落地方式（permission data seeder：`IPermissionDataSeeder` / `IPermissionManager`）。
