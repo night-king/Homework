@@ -7,6 +7,7 @@ using Homework.Scoring.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Users;
 
 namespace Homework.Scoring;
 
@@ -38,7 +39,7 @@ public class FamilyGoalAppService : HomeworkAppService, IFamilyGoalAppService
 
     public async Task<FamilyGoalDto> CreateAsync(CreateUpdateFamilyGoalDto input)
     {
-        var goal = new FamilyGoal(GuidGenerator.Create(), input.Title, input.TargetStars, input.StartDate, input.EndDate, input.RewardText);
+        var goal = new FamilyGoal(GuidGenerator.Create(), CurrentUser.GetId(), input.Title, input.TargetStars, input.StartDate, input.EndDate, input.RewardText);
         await _repository.InsertAsync(goal, autoSave: true);
         return await MapWithProgressAsync(goal);
     }

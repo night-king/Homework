@@ -11,6 +11,7 @@ namespace Homework.Scoring;
 /// </summary>
 public class FamilyGoal : FullAuditedAggregateRoot<Guid>
 {
+    public Guid ParentId { get; private set; }
     public string Title { get; private set; }
     public int TargetStars { get; private set; }
     public string? RewardText { get; private set; }
@@ -23,10 +24,11 @@ public class FamilyGoal : FullAuditedAggregateRoot<Guid>
     }
 
     public FamilyGoal(
-        Guid id, [NotNull] string title, int targetStars, DateOnly startDate, DateOnly endDate,
+        Guid id, Guid parentId, [NotNull] string title, int targetStars, DateOnly startDate, DateOnly endDate,
         string? rewardText = null)
         : base(id)
     {
+        ParentId = parentId;
         SetTitle(title);
         SetTarget(targetStars);
         SetPeriod(startDate, endDate);

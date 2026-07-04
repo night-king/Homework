@@ -44,7 +44,7 @@ public class FamilyGoalProgress_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var goal = new FamilyGoal(_guidGenerator.Create(), "暑假大目标", targetStars: 100, Start, End);
+            var goal = new FamilyGoal(_guidGenerator.Create(), Guid.NewGuid(), "暑假大目标", targetStars: 100, Start, End);
             var stars = await _service.CalculateStarsAsync(goal);
             stars.ShouldBe(12);
         });
@@ -62,7 +62,7 @@ public class FamilyGoalProgress_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var goal = new FamilyGoal(_guidGenerator.Create(), "小目标", targetStars: 10, Start, End);
+            var goal = new FamilyGoal(_guidGenerator.Create(), Guid.NewGuid(), "小目标", targetStars: 10, Start, End);
             var achieved = await _service.RefreshAchievementAsync(goal);
             achieved.ShouldBeTrue();
             goal.AchievedTime.ShouldNotBeNull();
@@ -80,7 +80,7 @@ public class FamilyGoalProgress_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var goal = new FamilyGoal(_guidGenerator.Create(), "大目标", targetStars: 10, Start, End);
+            var goal = new FamilyGoal(_guidGenerator.Create(), Guid.NewGuid(), "大目标", targetStars: 10, Start, End);
             var achieved = await _service.RefreshAchievementAsync(goal);
             achieved.ShouldBeFalse();
             goal.AchievedTime.ShouldBeNull();
