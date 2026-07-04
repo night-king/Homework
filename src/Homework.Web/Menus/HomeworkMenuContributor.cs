@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Homework.Localization;
 using Homework.MultiTenancy;
+using Homework.Permissions;
 using Volo.Abp.Identity.Web.Navigation;
 using Volo.Abp.SettingManagement.Web.Navigation;
 using Volo.Abp.TenantManagement.Web.Navigation;
@@ -18,7 +19,7 @@ public class HomeworkMenuContributor : IMenuContributor
         }
     }
 
-    private Task ConfigureMainMenuAsync(MenuConfigurationContext context)
+    private async Task ConfigureMainMenuAsync(MenuConfigurationContext context)
     {
         var administration = context.Menu.GetAdministration();
         var l = context.GetLocalizer<HomeworkResource>();
@@ -46,6 +47,13 @@ public class HomeworkMenuContributor : IMenuContributor
         administration.SetSubItemOrder(IdentityMenuNames.GroupName, 2);
         administration.SetSubItemOrder(SettingManagementMenuNames.GroupName, 3);
 
-        return Task.CompletedTask;
+        if (await context.IsGrantedAsync(HomeworkPermissions.ParentAdmin))
+        {
+            var parentAdmin = new ApplicationMenuItem(
+                HomeworkMenus.ParentAdmin, l["Menu:ParentAdmin"], icon: "fas fa-user-shield", order: 1);
+            parentAdmin.AddItem(new ApplicationMenuItem(
+                HomeworkMenus.Children, l["Menu:Children"], "/ParentAdmin/Children"));
+            context.Menu.AddItem(parentAdmin);
+        }
     }
 }

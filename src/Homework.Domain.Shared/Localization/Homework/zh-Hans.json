@@ -6,6 +6,17 @@
     "Welcome": "欢迎",
     "LongWelcomeMessage": "欢迎使用本应用程序。这是一个基于 ABP 框架的启动项目。更多信息，请访问 abp.io。",
     "Permission:Homework": "家长后台功能",
-    "Permission:ParentAdmin": "家长后台"
+    "Permission:ParentAdmin": "家长后台",
+    "Menu:ParentAdmin": "家长后台",
+    "Menu:Children": "孩子档案",
+    "DisplayName": "昵称",
+    "Grade": "年级",
+    "AvatarKey": "头像",
+    "HasPin": "已设PIN",
+    "Pin": "PIN 码",
+    "PinInfo": "留空则清除 PIN",
+    "SetPin": "设置PIN",
+    "Edit": "编辑",
+    "Actions": "操作"
   }
 }

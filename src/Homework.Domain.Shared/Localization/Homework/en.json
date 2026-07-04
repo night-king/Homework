@@ -6,6 +6,17 @@
     "Welcome": "Welcome",
     "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information, visit abp.io.",
     "Permission:Homework": "Homework",
-    "Permission:ParentAdmin": "Parent Admin"
+    "Permission:ParentAdmin": "Parent Admin",
+    "Menu:ParentAdmin": "Parent Admin",
+    "Menu:Children": "Children",
+    "DisplayName": "Display Name",
+    "Grade": "Grade",
+    "AvatarKey": "Avatar",
+    "HasPin": "Has PIN",
+    "Pin": "PIN",
+    "PinInfo": "Leave empty to clear the PIN",
+    "SetPin": "Set PIN",
+    "Edit": "Edit",
+    "Actions": "Actions"
   }
 }
