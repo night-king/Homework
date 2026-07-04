@@ -170,6 +170,33 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
         });
     }
 
+    [Fact]
+    public async Task SettleDay_Settles_A_Single_Day_From_Its_DailyTasks()
+    {
+        var childId = _guidGenerator.Create();
+        var date = new DateOnly(2026, 7, 6);
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            // 2 tasks, one completed -> C=1/N=2 -> stars=ceil(1/2*5)=3, not full
+            var t1 = new DailyTask(_guidGenerator.Create(), childId, date, "语文", order: 0);
+            t1.Complete(new DateTime(2026, 7, 6, 18, 0, 0));
+            await _dailyTaskRepository.InsertAsync(t1);
+            await _dailyTaskRepository.InsertAsync(new DailyTask(_guidGenerator.Create(), childId, date, "数学", order: 1));
+        });
+
+        await WithUnitOfWorkAsync(async () => await _generator.SettleDayAsync(childId, date));
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var score = await _dailyScoreRepository.GetAsync(s => s.ChildId == childId && s.Date == date);
+            score.TasksTotal.ShouldBe(2);
+            score.TasksCompleted.ShouldBe(1);
+            score.Stars.ShouldBe(3);
+            score.IsFull.ShouldBeFalse();
+        });
+    }
+
     private async Task SeedFedDayAsync(Guid childId, DateOnly date, int count)
     {
         for (var i = 0; i < count; i++)

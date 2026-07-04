@@ -53,26 +53,32 @@ public class DailyTaskGenerator : DomainService
         return created;
     }
 
+    /// <summary>结算/刷新某孩子某一天的 DailyScore（含"今天"）。幂等。</summary>
+    public async Task SettleDayAsync(Guid childId, DateOnly date)
+    {
+        var (total, completed) = await ResolveDayTotalsAsync(childId, date);
+
+        var score = await _dailyScoreRepository.FindAsync(s => s.ChildId == childId && s.Date == date);
+        if (score == null)
+        {
+            score = new DailyScore(GuidGenerator.Create(), childId, date);
+            score.Settle(total, completed);
+            await _dailyScoreRepository.InsertAsync(score);
+        }
+        else
+        {
+            score.Settle(total, completed);
+            await _dailyScoreRepository.UpdateAsync(score);
+        }
+    }
+
     /// <summary>逐日补档 DailyScore，使账本无缺口（spec §7.7）：有 DailyTask 的按其完成情况结算；
     /// 无 DailyTask 的按当天启用模板数结算（缺档 = 漏做，C=0）；模板也为 0 → 休息日。可重复运行（幂等）。</summary>
     public async Task SettlePastDaysAsync(Guid childId, DateOnly fromDate, DateOnly toDate)
     {
         for (var date = fromDate; date <= toDate; date = date.AddDays(1))
         {
-            var (total, completed) = await ResolveDayTotalsAsync(childId, date);
-
-            var score = await _dailyScoreRepository.FindAsync(s => s.ChildId == childId && s.Date == date);
-            if (score == null)
-            {
-                score = new DailyScore(GuidGenerator.Create(), childId, date);
-                score.Settle(total, completed);
-                await _dailyScoreRepository.InsertAsync(score);
-            }
-            else
-            {
-                score.Settle(total, completed);
-                await _dailyScoreRepository.UpdateAsync(score);
-            }
+            await SettleDayAsync(childId, date);
         }
     }
 
