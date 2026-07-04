@@ -57,6 +57,8 @@ public class HomeworkMenuContributor : IMenuContributor
                 HomeworkMenus.WeeklyTemplates, l["Menu:WeeklyTemplates"], "/ParentAdmin/WeeklyTemplates"));
             parentAdmin.AddItem(new ApplicationMenuItem(
                 HomeworkMenus.DailyTasks, l["Menu:DailyTasks"], "/ParentAdmin/DailyTasks"));
+            parentAdmin.AddItem(new ApplicationMenuItem(
+                HomeworkMenus.FamilyGoals, l["Menu:FamilyGoals"], "/ParentAdmin/FamilyGoals"));
             context.Menu.AddItem(parentAdmin);
         }
     }

@@ -45,6 +45,15 @@
     "Restore": "Restore",
     "Normal": "Normal",
     "Revoked": "Revoked",
-    "AddTask": "Add task"
+    "AddTask": "Add task",
+    "Menu:FamilyGoals": "Family Goals",
+    "TargetStars": "Target Stars",
+    "CurrentStars": "Current Stars",
+    "Progress": "Progress",
+    "Achieved": "Achieved",
+    "RewardText": "Reward",
+    "StartDate": "Start Date",
+    "EndDate": "End Date",
+    "CreateGoal": "New Goal"
   }
 }
