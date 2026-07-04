@@ -46,7 +46,7 @@ public class DailyTaskGenerator : DomainService
             var task = new DailyTask(
                 GuidGenerator.Create(), childId, date, template.Title,
                 template.Subject, template.Order, sourceTemplateItemId: template.Id);
-            await _dailyTaskRepository.InsertAsync(task);
+            await _dailyTaskRepository.InsertAsync(task, autoSave: true);
             created.Add(task);
         }
 

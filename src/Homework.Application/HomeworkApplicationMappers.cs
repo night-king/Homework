@@ -23,3 +23,10 @@ public partial class WeeklyTaskTemplateItemMapper : MapperBase<WeeklyTaskTemplat
     public override partial WeeklyTaskTemplateItemDto Map(WeeklyTaskTemplateItem source);
     public override partial void Map(WeeklyTaskTemplateItem source, WeeklyTaskTemplateItemDto destination);
 }
+
+[Mapper]
+public partial class DailyTaskMapper : MapperBase<DailyTask, DailyTaskDto>
+{
+    public override partial DailyTaskDto Map(DailyTask source);
+    public override partial void Map(DailyTask source, DailyTaskDto destination);
+}
