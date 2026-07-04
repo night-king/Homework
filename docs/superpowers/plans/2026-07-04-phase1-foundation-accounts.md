@@ -2,7 +2,9 @@
 
 > **For agentic workers:** REQUIRED: Use `superpowers:subagent-driven-development` (if subagents available) or `superpowers:executing-plans` to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 用 ABP 10 CLI 搭起一个能跑起来、连上 MySQL、有家长管理员登录、并已播种两个孩子账号与 `ChildProfile` 的最小可运行地基。
+> ✅ **已执行完成（2026-07-04）· 有重大偏差**：数据库从 MySQL 改为 **PostgreSQL**（ABP 10.5 的 MySQL/Oracle provider 对 EF Core 10 太不成熟）。实际落地：ABP 10.5 脚手架（生成在仓库根）+ Npgsql + `Microsoft.EntityFrameworkCore.Design` 固定 10.0.7 + DbMigrator 建库并播种 admin + `ChildProfile` 实体 + 播种两娃（哥哥/3、弟弟/1）+ Web 冒烟通过（https://localhost:44394 起得来）。DbMigrator/Web 须在各自项目目录下运行（否则读不到 appsettings）。关键坑见记忆 `abp-postgres-stack`。**下文 MySQL 相关命令仅作历史参考。**
+
+**Goal:** 用 ABP 10 CLI 搭起一个能跑起来、连上 **PostgreSQL**、有家长管理员登录、并已播种两个孩子账号与 `ChildProfile` 的最小可运行地基。
 
 **Architecture:** 单体 ABP MVC 解决方案（DDD 分层：Domain / Application / EntityFrameworkCore / HttpApi / Web / DbMigrator），**生成在仓库根**（`-csf false`）——`Homework.sln`、`src/`、`test/` 与 `docs/` 平级。本阶段只在生成物上新增一个聚合根 `ChildProfile`、一个 `Child` 角色、和一个数据播种器。基础设施步骤"运行即验证"，领域逻辑走 TDD。
 

@@ -2,7 +2,9 @@
 
 - **日期**：2026-07-04
 - **状态**：设计已确认（评审通过 · 可进入实现计划）
-- **技术栈**：ABP Framework 10+（.NET）· MySQL · ABP MVC 单体应用
+- **技术栈**：ABP Framework 10+（.NET）· **PostgreSQL / Npgsql**（原定 MySQL，见下）· ABP MVC 单体应用
+
+> ⚠️ **执行更新（2026-07-04）**：Phase 1 落地时数据库已从 MySQL 改为 **PostgreSQL / Npgsql**——ABP 10.5 的 MySQL 支持（Oracle `MySql.EntityFrameworkCore` provider）对 EF Core 10 太不成熟（.NET 10 Identity passkey `string[]`、ABP 种子查询的集合参数等多处无法映射），而 Pomelo 尚未支持 EF Core 10。PostgreSQL/Npgsql 原生支持这些，落地只需一处修复。**本文下方凡提到 MySQL，一律以 PostgreSQL 为准。** 详见记忆 `abp-postgres-stack` 与 Phase 1 计划文档。
 - **形态**：全栈 Web 应用（家长后台 + 孩子游戏端），移动端优先，PWA 可安装
 
 ---
