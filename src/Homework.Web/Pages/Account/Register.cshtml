@@ -1,0 +1,53 @@
+@page
+@model Homework.Web.Pages.Account.RegisterModel
+
+<div class="account-module-form">
+    <h2>注册</h2>
+    <form method="post">
+        <abp-validation-summary />
+        <abp-input asp-for="Input.UserName" />
+        <abp-input asp-for="Input.EmailAddress" />
+        <abp-input asp-for="Input.Password" />
+
+        <div class="mb-3 mt-3 form-check">
+            <input type="checkbox"
+                   class="form-check-input"
+                   id="ConsentGiven"
+                   required />
+            <label class="form-check-label" for="ConsentGiven">
+                我已阅读并同意《儿童隐私与家长同意声明》
+            </label>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button id="RegisterSubmitBtn"
+                    type="submit"
+                    class="btn btn-primary btn-lg mb-3">
+                注册
+            </button>
+        </div>
+    </form>
+
+    <a asp-page="./Login">已有账号？返回登录</a>
+</div>
+
+@section scripts {
+    <script>
+        (function () {
+            'use strict';
+            document.addEventListener('DOMContentLoaded', function () {
+                var checkbox = document.getElementById('ConsentGiven');
+                var submitBtn = document.getElementById('RegisterSubmitBtn');
+                if (!checkbox || !submitBtn) return;
+
+                function syncSubmit() {
+                    submitBtn.disabled = !checkbox.checked;
+                }
+
+                syncSubmit(); // initial state: disabled until consent given
+
+                checkbox.addEventListener('change', syncSubmit);
+            });
+        }());
+    </script>
+}
