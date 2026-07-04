@@ -6,6 +6,7 @@ using Homework.Permissions;
 using Homework.Scoring.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 
@@ -25,7 +26,8 @@ public class FamilyGoalAppService : HomeworkAppService, IFamilyGoalAppService
 
     public async Task<ListResultDto<FamilyGoalDto>> GetListAsync()
     {
-        var goals = await _repository.GetListAsync();
+        var pid = CurrentUser.GetId();
+        var goals = await _repository.GetListAsync(g => g.ParentId == pid);
         var dtos = new List<FamilyGoalDto>();
         foreach (var g in goals.OrderBy(g => g.StartDate))
         {
@@ -35,7 +37,7 @@ public class FamilyGoalAppService : HomeworkAppService, IFamilyGoalAppService
     }
 
     public async Task<FamilyGoalDto> GetAsync(Guid id)
-        => await MapWithProgressAsync(await _repository.GetAsync(id));
+        => await MapWithProgressAsync(await GetOwnedGoalAsync(id));
 
     public async Task<FamilyGoalDto> CreateAsync(CreateUpdateFamilyGoalDto input)
     {
@@ -46,7 +48,7 @@ public class FamilyGoalAppService : HomeworkAppService, IFamilyGoalAppService
 
     public async Task<FamilyGoalDto> UpdateAsync(Guid id, CreateUpdateFamilyGoalDto input)
     {
-        var goal = await _repository.GetAsync(id);
+        var goal = await GetOwnedGoalAsync(id);
         goal.SetTitle(input.Title);
         goal.SetTarget(input.TargetStars);
         goal.SetPeriod(input.StartDate, input.EndDate);
@@ -55,7 +57,19 @@ public class FamilyGoalAppService : HomeworkAppService, IFamilyGoalAppService
         return await MapWithProgressAsync(goal);
     }
 
-    public Task DeleteAsync(Guid id) => _repository.DeleteAsync(id);
+    public async Task DeleteAsync(Guid id)
+    {
+        var goal = await GetOwnedGoalAsync(id);
+        await _repository.DeleteAsync(goal);
+    }
+
+    private async Task<FamilyGoal> GetOwnedGoalAsync(Guid id)
+    {
+        var g = await _repository.FindAsync(id);
+        if (g == null || g.ParentId != CurrentUser.GetId())
+            throw new EntityNotFoundException(typeof(FamilyGoal), id);
+        return g;
+    }
 
     private async Task<FamilyGoalDto> MapWithProgressAsync(FamilyGoal goal)
     {

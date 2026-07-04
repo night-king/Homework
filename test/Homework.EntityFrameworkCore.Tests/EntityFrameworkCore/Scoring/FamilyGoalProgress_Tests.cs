@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Homework.Children;
 using Homework.Scoring;
 using Shouldly;
 using Volo.Abp.Domain.Repositories;
@@ -13,6 +14,7 @@ public class FamilyGoalProgress_Tests : HomeworkEntityFrameworkCoreTestBase
 {
     private readonly FamilyGoalProgressService _service;
     private readonly IRepository<DailyScore, Guid> _dailyScoreRepository;
+    private readonly IRepository<ChildProfile, Guid> _childRepo;
     private readonly IGuidGenerator _guidGenerator;
 
     private static readonly DateOnly Start = new(2026, 7, 6);
@@ -22,17 +24,21 @@ public class FamilyGoalProgress_Tests : HomeworkEntityFrameworkCoreTestBase
     {
         _service = GetRequiredService<FamilyGoalProgressService>();
         _dailyScoreRepository = GetRequiredService<IRepository<DailyScore, Guid>>();
+        _childRepo = GetRequiredService<IRepository<ChildProfile, Guid>>();
         _guidGenerator = GetRequiredService<IGuidGenerator>();
     }
 
     [Fact]
     public async Task Progress_Sums_Both_Childrens_Stars_Within_Range_Only()
     {
+        var parentId = _guidGenerator.Create();
         var gege = _guidGenerator.Create();
         var didi = _guidGenerator.Create();
 
         await WithUnitOfWorkAsync(async () =>
         {
+            await _childRepo.InsertAsync(new ChildProfile(gege, parentId, "娃", 3));
+            await _childRepo.InsertAsync(new ChildProfile(didi, parentId, "娃", 3));
             // 区间内：哥哥 5 + 4，弟弟 3 → 合计 12
             await SeedScoreAsync(gege, new DateOnly(2026, 7, 6), stars: 5);
             await SeedScoreAsync(gege, new DateOnly(2026, 7, 7), stars: 4);
@@ -44,7 +50,7 @@ public class FamilyGoalProgress_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var goal = new FamilyGoal(_guidGenerator.Create(), Guid.NewGuid(), "暑假大目标", targetStars: 100, Start, End);
+            var goal = new FamilyGoal(_guidGenerator.Create(), parentId, "暑假大目标", targetStars: 100, Start, End);
             var stars = await _service.CalculateStarsAsync(goal);
             stars.ShouldBe(12);
         });
@@ -53,16 +59,18 @@ public class FamilyGoalProgress_Tests : HomeworkEntityFrameworkCoreTestBase
     [Fact]
     public async Task Reaching_Target_Marks_Achieved()
     {
+        var parentId = _guidGenerator.Create();
         var gege = _guidGenerator.Create();
         await WithUnitOfWorkAsync(async () =>
         {
+            await _childRepo.InsertAsync(new ChildProfile(gege, parentId, "娃", 3));
             await SeedScoreAsync(gege, new DateOnly(2026, 7, 6), stars: 5);
             await SeedScoreAsync(gege, new DateOnly(2026, 7, 7), stars: 5);
         });
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var goal = new FamilyGoal(_guidGenerator.Create(), Guid.NewGuid(), "小目标", targetStars: 10, Start, End);
+            var goal = new FamilyGoal(_guidGenerator.Create(), parentId, "小目标", targetStars: 10, Start, End);
             var achieved = await _service.RefreshAchievementAsync(goal);
             achieved.ShouldBeTrue();
             goal.AchievedTime.ShouldNotBeNull();
@@ -72,15 +80,17 @@ public class FamilyGoalProgress_Tests : HomeworkEntityFrameworkCoreTestBase
     [Fact]
     public async Task Below_Target_Is_Not_Achieved()
     {
+        var parentId = _guidGenerator.Create();
         var gege = _guidGenerator.Create();
         await WithUnitOfWorkAsync(async () =>
         {
+            await _childRepo.InsertAsync(new ChildProfile(gege, parentId, "娃", 3));
             await SeedScoreAsync(gege, new DateOnly(2026, 7, 6), stars: 3);
         });
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var goal = new FamilyGoal(_guidGenerator.Create(), Guid.NewGuid(), "大目标", targetStars: 10, Start, End);
+            var goal = new FamilyGoal(_guidGenerator.Create(), parentId, "大目标", targetStars: 10, Start, End);
             var achieved = await _service.RefreshAchievementAsync(goal);
             achieved.ShouldBeFalse();
             goal.AchievedTime.ShouldBeNull();

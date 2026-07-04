@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Homework.Children;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Domain.Services;
 
@@ -10,21 +11,32 @@ namespace Homework.Scoring;
 public class FamilyGoalProgressService : DomainService
 {
     private readonly IRepository<DailyScore, Guid> _dailyScoreRepository;
+    private readonly IRepository<ChildProfile, Guid> _childRepository;
 
-    public FamilyGoalProgressService(IRepository<DailyScore, Guid> dailyScoreRepository)
+    public FamilyGoalProgressService(
+        IRepository<DailyScore, Guid> dailyScoreRepository,
+        IRepository<ChildProfile, Guid> childRepository)
     {
         _dailyScoreRepository = dailyScoreRepository;
+        _childRepository = childRepository;
     }
 
-    /// <summary>大目标进度：goal 区间内全家（所有孩子）DailyScore.Stars 之和。</summary>
+    /// <summary>大目标进度：goal 区间内本家（ParentId 下所有孩子）DailyScore.Stars 之和。</summary>
     public async Task<int> CalculateStarsAsync(FamilyGoal goal)
     {
         var start = goal.StartDate;
         var end = goal.EndDate;
 
+        var pid = goal.ParentId;
+        var children = await _childRepository.GetListAsync(c => c.ParentId == pid);
+        var childIds = children.Select(c => c.Id).ToList();
+
+        if (childIds.Count == 0)
+            return 0;
+
         var queryable = await _dailyScoreRepository.GetQueryableAsync();
         return await AsyncExecuter.SumAsync(
-            queryable.Where(s => s.Date >= start && s.Date <= end),
+            queryable.Where(s => s.Date >= start && s.Date <= end && childIds.Contains(s.ChildId)),
             s => s.Stars);
     }
 
