@@ -43,6 +43,23 @@ public class DailyTask : FullAuditedAggregateRoot<Guid>
         return this;
     }
 
+    public DailyTask SetSubject(string? subject)
+    {
+        Subject = subject;
+        return this;
+    }
+
+    public DailyTask SetOrder(int order)
+    {
+        if (order < 0)
+        {
+            throw new ArgumentException("order must be >= 0", nameof(order));
+        }
+
+        Order = order;
+        return this;
+    }
+
     /// <summary>孩子打勾完成（即时反馈）。</summary>
     public void Complete(DateTime now)
     {
