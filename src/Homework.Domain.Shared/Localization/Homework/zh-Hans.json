@@ -21,6 +21,7 @@
     "Menu:WeeklyTemplates": "每周任务模板",
     "Child": "孩子",
     "Create": "新建",
+    "CreateChild": "新建孩子",
     "Delete": "删除",
     "DeleteConfirm": "确定删除？",
     "DayOfWeek": "星期",
