@@ -10,6 +10,8 @@ public interface IChildProfileAppService : IApplicationService
 {
     Task<ListResultDto<ChildProfileDto>> GetListAsync();
     Task<ChildProfileDto> GetAsync(Guid id);
+    Task<ChildProfileDto> CreateAsync(CreateChildDto input);
     Task<ChildProfileDto> UpdateAsync(Guid id, UpdateChildProfileDto input);
     Task SetPinAsync(Guid id, SetChildPinDto input);
+    Task DeleteAsync(Guid id);
 }
