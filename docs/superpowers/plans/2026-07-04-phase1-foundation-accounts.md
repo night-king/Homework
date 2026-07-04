@@ -4,151 +4,151 @@
 
 **Goal:** 用 ABP 10 CLI 搭起一个能跑起来、连上 MySQL、有家长管理员登录、并已播种两个孩子账号与 `ChildProfile` 的最小可运行地基。
 
-**Architecture:** 单体 ABP MVC 解决方案（DDD 分层：Domain / Application / EntityFrameworkCore / HttpApi / Web / DbMigrator）。ABP 样板由 `abp new` 生成；本阶段只在生成物上新增一个聚合根 `ChildProfile`、一个 `Child` 角色、和一个数据播种器。基础设施步骤"运行即验证"，领域逻辑走 TDD。
+**Architecture:** 单体 ABP MVC 解决方案（DDD 分层：Domain / Application / EntityFrameworkCore / HttpApi / Web / DbMigrator），**生成在仓库根**（`-csf false`）——`Homework.sln`、`src/`、`test/` 与 `docs/` 平级。本阶段只在生成物上新增一个聚合根 `ChildProfile`、一个 `Child` 角色、和一个数据播种器。基础设施步骤"运行即验证"，领域逻辑走 TDD。
 
 **Tech Stack:** ABP CLI 10.4.x · .NET 10 · EF Core 10 + Pomelo MySQL · MySQL 9.6 · LeptonX-Lite 主题 · xUnit（ABP 生成的测试工程）
 
 **Spec:** `docs/superpowers/specs/2026-07-04-kids-homework-pet-game-design.md`（§3 角色、§6 领域模型、§7 架构）
 
----
-
-## 前置决策（执行前先确认，因为 `abp new` 之后难改）
-
-- [ ] **解决方案名 / 根命名空间**：默认 `NightKing.Homework`（生成 `./NightKing.Homework/` 子目录，与已有 `docs/` 并存）。如需改，改本计划里所有 `NightKing.Homework`。
-- [ ] **孩子游戏端产品名**：默认「学习小伙伴」（仅显示用，后续可改本地化）。
-- [ ] **MySQL 服务端**：确认本机 MySQL 9.6 **服务已启动**、拿到可用账号密码（默认按 `root` 规划）。连接串占位见 Task 3，执行时替换真实密码。
-- [ ] **MySQL 9.x 兼容性**：MySQL 9.6 较新，Task 3 含一步用 `ServerVersion.AutoDetect` 探测；若 Pomelo 报版本不支持，退回固定 `MySqlServerVersion(new Version(8,4,0))` 并记录（见 Task 3 备注）。
+## 已确认参数
+- **解决方案名 / 根命名空间**：`Homework`
+- **布局**：生成在仓库根（`-csf false`），路径形如 `src/Homework.Domain`、`test/Homework.Domain.Tests`
+- **MySQL**：本机 `root` / `123@abc`，数据库名 `Homework`
+- **产品名（显示用）**：学习小伙伴（后续本地化可改）
+- **备注（MySQL 9.x）**：MySQL 9.6 较新，Task 3 用 `ServerVersion.AutoDetect` 探测；若 Pomelo 报版本不支持，退回固定 `new MySqlServerVersion(new Version(8,4,0))` 并记入 spec §12。
 
 ---
 
 ## Chunk 1: 脚手架与运行（Scaffold & Run）
 
-### Task 1: 生成 ABP 10 MVC + MySQL 解决方案
+### Task 1: 生成 ABP 10 MVC + MySQL 解决方案（在仓库根）
 
 **Files:**
-- Create: `NightKing.Homework/`（整套解决方案，由 CLI 生成）
+- Create: 仓库根下 `Homework.sln`、`src/*`、`test/*`（由 CLI 生成）
 
-- [ ] **Step 1: 在仓库根确认工具与目录**
-
-Run:
-```bash
-cd /d/WorkSpaces/night-king/Homework
-abp --version && dotnet --version && ls
-```
-Expected: 打印 `ABP CLI 10.4.1`、`10.0.201`；`ls` 能看到 `docs`、`.gitignore`（尚无 `NightKing.Homework`）。
-
-- [ ] **Step 2: 生成解决方案**
+- [ ] **Step 1: 预检工具链（含 EF CLI）**
 
 Run:
 ```bash
-abp new NightKing.Homework -u mvc -m none --dbms mysql -csf true
+abp --version && dotnet --version && (dotnet ef --version || dotnet tool install --global dotnet-ef)
 ```
-Expected: 生成 `./NightKing.Homework/` 子目录（内含 `src/` 与 `test/`），CLI 自动执行 `abp install-libs`（拉取前端库）；末尾提示创建成功。耗时数分钟。
+Expected: `ABP CLI 10.4.1`、`10.0.201`、`dotnet ef` 版本（本机已 10.0.5）。
 
-- [ ] **Step 3: 核对生成的分层结构**
+- [ ] **Step 2: 生成解决方案到仓库根**
 
 Run:
 ```bash
-ls NightKing.Homework/src
+abp new Homework -u mvc -m none --dbms mysql -csf false -sib -o "D:/WorkSpaces/night-king/Homework"
 ```
-Expected: 看到
-`NightKing.Homework.Domain.Shared`、`...Domain`、`...Application.Contracts`、`...Application`、`...EntityFrameworkCore`、`...HttpApi`、`...HttpApi.Client`、`...Web`、`...DbMigrator` 九个项目。
+说明：`-csf false` 不建外层解决方案文件夹（直接落在 `-o` 指定的仓库根）；`-sib` 先跳过前端库安装（Task 2 再装，加快且更可控）。
+Expected: 生成成功；仓库根出现 `Homework.sln`、`src/`、`test/`。
 
-- [ ] **Step 4: 编译一次确保生成物可构建**
+- [ ] **Step 3: 核对分层结构**
 
 Run:
 ```bash
-dotnet build NightKing.Homework
+ls src
 ```
-Expected: `Build succeeded`，0 error。（首次会还原大量 NuGet 包，稍慢。）
+Expected: `Homework.Domain.Shared`、`Homework.Domain`、`Homework.Application.Contracts`、`Homework.Application`、`Homework.EntityFrameworkCore`、`Homework.HttpApi`、`Homework.HttpApi.Client`、`Homework.Web`、`Homework.DbMigrator` 九个项目。
 
-- [ ] **Step 5: 更新根 `.gitignore` 并提交脚手架**
+- [ ] **Step 4: 合并 `.gitignore`（ABP 可能覆盖了根文件）**
 
-在根 `.gitignore` 追加 .NET 忽略项（若生成的子目录已带 `.gitignore` 亦保留）：
+确认根 `.gitignore` 仍含项目原有忽略项，若被覆盖则补回：
 ```gitignore
-# .NET / ABP
-[Bb]in/
-[Oo]bj/
-*.user
-.vs/
-NightKing.Homework/**/wwwroot/libs/
-NightKing.Homework/**/logs/
+# Brainstorming visual companion sessions
+.superpowers/
+# Node
+node_modules/
+# OS
+.DS_Store
+Thumbs.db
 ```
+（ABP 自带的 `bin/obj/*.user/logs` 等忽略项保留。）
+
+- [ ] **Step 5: 编译确保生成物可构建**
+
+Run:
+```bash
+dotnet build Homework.sln
+```
+Expected: `Build succeeded`，0 error（首次还原较慢）。
+
+- [ ] **Step 6: 提交脚手架**
 
 Run:
 ```bash
 git -C /d/WorkSpaces/night-king/Homework add -A
-git -C /d/WorkSpaces/night-king/Homework commit -m "chore: scaffold ABP 10 MVC + MySQL solution (NightKing.Homework)"
+git -C /d/WorkSpaces/night-king/Homework commit -m "chore: scaffold ABP 10 MVC + MySQL solution (Homework) at repo root"
 ```
-Expected: 提交成功；`git status` 干净。
+Expected: 提交成功。
 
 ---
 
-### Task 2: 让前端库与本地化就绪（冒烟前置）
+### Task 2: 安装前端库（冒烟前置）
 
-**Files:**
-- Modify: `NightKing.Homework/src/NightKing.Homework.Web`（仅在缺库时）
+**Files:** Modify: `src/Homework.Web`（生成前端库到 `wwwroot/libs`）
 
-- [ ] **Step 1: 确认前端库已安装**
-
-Run:
-```bash
-ls NightKing.Homework/src/NightKing.Homework.Web/wwwroot/libs | head
-```
-Expected: 存在 `abp`、`bootstrap`、`jquery` 等目录。若为空，执行下一步。
-
-- [ ] **Step 2:（仅当上一步为空）手动安装前端库**
+- [ ] **Step 1: 安装前端库**
 
 Run:
 ```bash
-cd /d/WorkSpaces/night-king/Homework/NightKing.Homework/src/NightKing.Homework.Web && abp install-libs
+abp install-libs
 ```
-Expected: 库安装完成，`wwwroot/libs` 填充。
+（在仓库根运行；ABP 会为 Web 项目安装 `@abp/*`、bootstrap、jquery 等。）
+Expected: 完成后 `ls src/Homework.Web/wwwroot/libs` 有 `abp`、`bootstrap`、`jquery` 等目录。
+
+- [ ] **Step 2: 提交**
+
+Run:
+```bash
+git -C /d/WorkSpaces/night-king/Homework add -A && git -C /d/WorkSpaces/night-king/Homework commit -m "chore: install client-side libs for Web"
+```
+Expected: 提交成功（若 libs 被 .gitignore 忽略则无改动，跳过）。
 
 ---
 
 ### Task 3: 配置 MySQL 连接并运行 DbMigrator（建库+种子）
 
 **Files:**
-- Modify: `NightKing.Homework/src/NightKing.Homework.DbMigrator/appsettings.json`
-- Modify: `NightKing.Homework/src/NightKing.Homework.Web/appsettings.json`
-- （备注）可能 Modify: `NightKing.Homework/src/NightKing.Homework.EntityFrameworkCore/EntityFrameworkCore/HomeworkEntityFrameworkCoreModule.cs`
+- Modify: `src/Homework.DbMigrator/appsettings.json`
+- Modify: `src/Homework.Web/appsettings.json`
+- （备注）可能 Modify: `src/Homework.EntityFrameworkCore/EntityFrameworkCore/HomeworkEntityFrameworkCoreModule.cs`
 
-- [ ] **Step 1: 确认 MySQL 服务端可连**
+- [ ] **Step 1: 确认 MySQL 服务端可连（非交互）**
 
-Run（替换真实密码）：
+Run:
 ```bash
-"D:/Programs/mysql-9.6.0-winx64/bin/mysql.exe" -u root -p -e "SELECT VERSION();"
+"D:/Programs/mysql-9.6.0-winx64/bin/mysql.exe" -u root -p"123@abc" -e "SELECT VERSION();"
 ```
-Expected: 打印 `9.6.0`。若连不上，先启动 MySQL 服务再继续。
+Expected: 打印 `9.6.0`。连不上则先启动 MySQL 服务。
 
-- [ ] **Step 2: 写入连接串**
+- [ ] **Step 2: 写入连接串（两处一致）**
 
-把两个 `appsettings.json` 的 `ConnectionStrings:Default` 改为（替换 `YOUR_PWD`）：
+把 `src/Homework.DbMigrator/appsettings.json` 与 `src/Homework.Web/appsettings.json` 的 `ConnectionStrings:Default` 设为：
 ```json
 "ConnectionStrings": {
-  "Default": "Server=localhost;Port=3306;Database=NightKingHomework;Uid=root;Pwd=YOUR_PWD;SslMode=None;"
+  "Default": "Server=localhost;Port=3306;Database=Homework;Uid=root;Pwd=123@abc;SslMode=None;"
 }
 ```
-Expected: 两处一致。（`abp new --dbms mysql` 已默认写好 MySQL 串，此处仅替换库名与密码。）
+Expected: 两处一致。（`--dbms mysql` 已生成 MySQL 串骨架，此处替换库名/账号/密码。）
 
 - [ ] **Step 3: 运行 DbMigrator 建库、迁移、播种管理员**
 
 Run:
 ```bash
-dotnet run --project NightKing.Homework/src/NightKing.Homework.DbMigrator
+dotnet run --project src/Homework.DbMigrator
 ```
-Expected: 日志出现 `Started database migrations...` → 创建 `NightKingHomework` 库、应用初始迁移、播种 `admin` 用户与 OpenIddict 数据 → `Successfully completed ... database migrations.`。
+Expected: 日志 `Started database migrations...` → 创建 `Homework` 库、应用初始迁移、播种 `admin` + OpenIddict → `Successfully completed ... database migrations.`。
 
-- [ ] **Step 4: 核对库已建**
+- [ ] **Step 4: 核对库已建（非交互）**
 
 Run:
 ```bash
-"D:/Programs/mysql-9.6.0-winx64/bin/mysql.exe" -u root -p -e "SHOW DATABASES LIKE 'NightKingHomework'; SELECT UserName FROM NightKingHomework.AbpUsers;"
+"D:/Programs/mysql-9.6.0-winx64/bin/mysql.exe" -u root -p"123@abc" -e "SHOW DATABASES LIKE 'Homework'; SELECT UserName FROM Homework.AbpUsers;"
 ```
-Expected: 列出 `NightKingHomework`；`AbpUsers` 含 `admin`。
+Expected: 列出 `Homework`；`AbpUsers` 含 `admin`。
 
-> **备注（MySQL 9.x 兼容）**：若 Step 3 报 Pomelo 无法识别服务器版本，打开 `HomeworkEntityFrameworkCoreModule.cs`，把 `UseMySQL`/`options.UseMySql(...)` 的版本参数由 `ServerVersion.AutoDetect(connectionString)` 暂时改为固定 `new MySqlServerVersion(new Version(8, 4, 0))`，重跑 Step 3，并在 spec §12 风险处标注。
+> **备注（MySQL 9.x 兼容）**：若 Step 3 报 Pomelo 无法识别服务器版本，打开 `HomeworkEntityFrameworkCoreModule.cs`，把 `options.UseMySql(... ServerVersion.AutoDetect(...))` 暂时改为固定 `new MySqlServerVersion(new Version(8, 4, 0))`，重跑 Step 3，并在 spec §12 标注。
 
 - [ ] **Step 5: 提交配置**
 
@@ -157,13 +157,13 @@ Run:
 git -C /d/WorkSpaces/night-king/Homework add -A
 git -C /d/WorkSpaces/night-king/Homework commit -m "chore: configure MySQL connection and run initial DbMigrator"
 ```
-Expected: 提交成功。（注意：不要把真实密码提交到公共仓库——本项目为私有自部署，可接受；若担心，改用 user-secrets。）
+Expected: 提交成功。（本项目私有自部署，本地明文连接串可接受；如需可改用 user-secrets。）
 
 ---
 
 ### Task 4: 冒烟——跑起来并用 admin 登录
 
-**Files:** 无（仅运行验证）
+**Files:** Create: `RUN.md`（仓库根）
 
 - [ ] **Step 1: 信任本地 https 证书（首次）**
 
@@ -171,24 +171,23 @@ Run:
 ```bash
 dotnet dev-certs https --trust
 ```
-Expected: 证书已受信任（或提示已存在）。
+Expected: 证书受信任（或已存在）。
 
 - [ ] **Step 2: 启动 Web**
 
 Run:
 ```bash
-dotnet run --project NightKing.Homework/src/NightKing.Homework.Web
+dotnet run --project src/Homework.Web
 ```
 Expected: 控制台打印监听地址（如 `https://localhost:443xx`）；无致命异常。
 
-- [ ] **Step 3: 浏览器登录验证**
+- [ ] **Step 3: 登录验证**
 
-打开控制台给出的 URL → 用 `admin` / `1q2w3E*`（ABP 默认初始密码）登录。
-Expected: 进入 ABP 后台首页；左侧有「Administration」菜单（Identity/角色/用户）。验证后回终端 `Ctrl+C` 停服。
+打开 URL → `admin` / `1q2w3E*`（ABP 默认初始密码）登录 → 进入后台首页、有「Administration」菜单。验证后 `Ctrl+C` 停服。
 
-- [ ] **Step 4: 记一条运行说明到 README**
+- [ ] **Step 4: 写 RUN.md 并提交**
 
-Create `NightKing.Homework/RUN.md`，写清：先跑 DbMigrator，再 `dotnet run --project src/NightKing.Homework.Web`，默认 admin 账号与本地地址。
+Create `RUN.md`：写清「先 `dotnet run --project src/Homework.DbMigrator`，再 `dotnet run --project src/Homework.Web`；默认 admin 账号；本地地址」。
 Run:
 ```bash
 git -C /d/WorkSpaces/night-king/Homework add -A && git -C /d/WorkSpaces/night-king/Homework commit -m "docs: add RUN.md with local run steps"
@@ -199,18 +198,18 @@ Expected: 提交成功。
 
 ## Chunk 2: 领域地基——`ChildProfile` 与两个孩子播种
 
-> 本 chunk 起用 TDD：先写失败测试 → 跑红 → 最小实现 → 跑绿 → 提交。参考 `@superpowers:test-driven-development`、ABP 分层惯例 `@abp82`。
+> 本 chunk 起用 TDD（`@superpowers:test-driven-development`），ABP 惯例参考 `@abp82`。
 
 ### Task 5: 新增 `ChildProfile` 聚合根 + DbContext + 迁移
 
 **Files:**
-- Create: `NightKing.Homework/src/NightKing.Homework.Domain/Children/ChildProfile.cs`
-- Create: `NightKing.Homework/src/NightKing.Homework.Domain/Children/Grade.cs`
-- Modify: `NightKing.Homework/src/NightKing.Homework.EntityFrameworkCore/EntityFrameworkCore/HomeworkDbContext.cs`
-- Modify: `NightKing.Homework/src/NightKing.Homework.EntityFrameworkCore/EntityFrameworkCore/HomeworkDbContextModelCreatingExtensions.cs`
-- Test: `NightKing.Homework/test/NightKing.Homework.Domain.Tests/Children/ChildProfile_Tests.cs`
+- Create: `src/Homework.Domain/Children/ChildProfile.cs`
+- Create: `src/Homework.Domain/Children/GradeConsts.cs`
+- Modify: `src/Homework.EntityFrameworkCore/EntityFrameworkCore/HomeworkDbContext.cs`
+- Modify: `src/Homework.EntityFrameworkCore/EntityFrameworkCore/HomeworkDbContextModelCreatingExtensions.cs`
+- Test: `test/Homework.Domain.Tests/Children/ChildProfile_Tests.cs`
 
-- [ ] **Step 1: 写失败测试——创建 `ChildProfile` 会校验姓名非空、年级范围**
+- [ ] **Step 1: 写失败测试——`ChildProfile` 构造校验姓名/年级**
 
 ```csharp
 // ChildProfile_Tests.cs
@@ -218,16 +217,14 @@ using System;
 using Shouldly;
 using Xunit;
 
-namespace NightKing.Homework.Children;
+namespace Homework.Children;
 
 public class ChildProfile_Tests
 {
     [Fact]
     public void Should_Create_Valid_ChildProfile()
     {
-        var id = Guid.NewGuid();
-        var child = new ChildProfile(id, identityUserId: Guid.NewGuid(), displayName: "哥哥", grade: 3);
-
+        var child = new ChildProfile(Guid.NewGuid(), Guid.NewGuid(), "哥哥", 3);
         child.DisplayName.ShouldBe("哥哥");
         child.Grade.ShouldBe(3);
         child.Pin.ShouldBeNull();
@@ -235,19 +232,13 @@ public class ChildProfile_Tests
 
     [Fact]
     public void Should_Reject_Empty_DisplayName()
-    {
-        Should.Throw<ArgumentException>(() =>
-            new ChildProfile(Guid.NewGuid(), Guid.NewGuid(), displayName: " ", grade: 1));
-    }
+        => Should.Throw<Exception>(() => new ChildProfile(Guid.NewGuid(), Guid.NewGuid(), " ", 1));
 
     [Theory]
     [InlineData(0)]
     [InlineData(13)]
     public void Should_Reject_OutOfRange_Grade(int grade)
-    {
-        Should.Throw<ArgumentException>(() =>
-            new ChildProfile(Guid.NewGuid(), Guid.NewGuid(), displayName: "弟弟", grade: grade));
-    }
+        => Should.Throw<ArgumentException>(() => new ChildProfile(Guid.NewGuid(), Guid.NewGuid(), "弟弟", grade));
 }
 ```
 
@@ -255,23 +246,17 @@ public class ChildProfile_Tests
 
 Run:
 ```bash
-dotnet test NightKing.Homework/test/NightKing.Homework.Domain.Tests --filter ChildProfile_Tests
+dotnet test test/Homework.Domain.Tests --filter FullyQualifiedName~ChildProfile_Tests
 ```
-Expected: 编译失败 / 红——`ChildProfile` 尚不存在。
+Expected: 编译失败/红——`ChildProfile` 不存在。
 
-- [ ] **Step 3: 实现 `Grade` 常量与 `ChildProfile` 聚合根**
+- [ ] **Step 3: 实现 `GradeConsts` 与 `ChildProfile`**
 
 ```csharp
-// Grade.cs
-namespace NightKing.Homework.Children;
-
-public static class GradeConsts
-{
-    public const int Min = 1;
-    public const int Max = 12;
-}
+// GradeConsts.cs
+namespace Homework.Children;
+public static class GradeConsts { public const int Min = 1; public const int Max = 12; }
 ```
-
 ```csharp
 // ChildProfile.cs
 using System;
@@ -279,22 +264,21 @@ using JetBrains.Annotations;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 
-namespace NightKing.Homework.Children;
+namespace Homework.Children;
 
-/// <summary>孩子的游戏档案（1:1 关联一个 Child 身份用户）。</summary>
+/// <summary>孩子的游戏档案（1:1 关联一个 Child 身份用户）。CreatedByParentId 用 FullAudited 的 CreatorId 顶替（见 spec §6）。</summary>
 public class ChildProfile : FullAuditedAggregateRoot<Guid>
 {
     public Guid IdentityUserId { get; private set; }
     public string DisplayName { get; private set; }
     public int Grade { get; private set; }
     public string? AvatarKey { get; private set; }
-    public string? Pin { get; private set; }          // 可选 4 位 PIN（明文/哈希由 App 层决定，本阶段仅占位）
+    public string? Pin { get; private set; }        // 可选 4 位 PIN，登录逻辑在后续阶段
     public Guid? ActivePetId { get; private set; }
 
     protected ChildProfile() { }
 
-    public ChildProfile(Guid id, Guid identityUserId, [NotNull] string displayName, int grade)
-        : base(id)
+    public ChildProfile(Guid id, Guid identityUserId, [NotNull] string displayName, int grade) : base(id)
     {
         IdentityUserId = identityUserId;
         SetDisplayName(displayName);
@@ -310,9 +294,7 @@ public class ChildProfile : FullAuditedAggregateRoot<Guid>
     public ChildProfile SetGrade(int grade)
     {
         if (grade < GradeConsts.Min || grade > GradeConsts.Max)
-        {
             throw new ArgumentException($"grade must be within [{GradeConsts.Min},{GradeConsts.Max}]", nameof(grade));
-        }
         Grade = grade;
         return this;
     }
@@ -323,13 +305,10 @@ public class ChildProfile : FullAuditedAggregateRoot<Guid>
 }
 ```
 
-- [ ] **Step 4: 把实体加入 DbContext 并配置表映射**
+- [ ] **Step 4: 加入 DbContext 与表映射**
 
-在 `HomeworkDbContext.cs` 加：
-```csharp
-public DbSet<ChildProfile> ChildProfiles { get; set; }
-```
-在 `HomeworkDbContextModelCreatingExtensions.cs` 的 `ConfigureHomework(this ModelBuilder builder)` 内加：
+`HomeworkDbContext.cs` 加：`public DbSet<ChildProfile> ChildProfiles { get; set; }`（并 `using Homework.Children;`）。
+`HomeworkDbContextModelCreatingExtensions.cs` 的 `ConfigureHomework(...)` 内加：
 ```csharp
 builder.Entity<ChildProfile>(b =>
 {
@@ -341,34 +320,32 @@ builder.Entity<ChildProfile>(b =>
     b.HasIndex(x => x.IdentityUserId).IsUnique();
 });
 ```
-（若 `HomeworkConsts` 无 `DbTablePrefix`/`DbSchema`，用生成模板里已有的常量名；ABP 模板通常在 `Domain.Shared` 的 `*Consts` 或 EFCore 项目里定义，按实际引用。）
+（`HomeworkConsts.DbTablePrefix`/`DbSchema` 为生成模板里的常量，按实际引用；默认前缀 `App`。）
 
 - [ ] **Step 5: 跑领域测试确认通过**
 
 Run:
 ```bash
-dotnet test NightKing.Homework/test/NightKing.Homework.Domain.Tests --filter ChildProfile_Tests
+dotnet test test/Homework.Domain.Tests --filter FullyQualifiedName~ChildProfile_Tests
 ```
 Expected: 绿——3 个测试全过。
 
-- [ ] **Step 6: 生成并检视 EF 迁移**
+- [ ] **Step 6: 生成并检视迁移**
 
 Run:
 ```bash
-dotnet ef migrations add Added_ChildProfile \
-  -p NightKing.Homework/src/NightKing.Homework.EntityFrameworkCore \
-  -s NightKing.Homework/src/NightKing.Homework.EntityFrameworkCore
+dotnet ef migrations add Added_ChildProfile -p src/Homework.EntityFrameworkCore -s src/Homework.EntityFrameworkCore
 ```
-Expected: 在 `.../Migrations` 生成 `*_Added_ChildProfile.cs`，`Up()` 里 `CreateTable` 名为 `AppChildProfiles`（或按前缀），含 `DisplayName/Grade/AvatarKey/Pin/IdentityUserId` 等列。
+Expected: `.../Migrations/*_Added_ChildProfile.cs` 生成，`Up()` 建 `AppChildProfiles` 表，含 `DisplayName/Grade/AvatarKey/Pin/IdentityUserId`。
 
-- [ ] **Step 7: 应用迁移（跑 DbMigrator）并核对表**
+- [ ] **Step 7: 应用迁移并核对表（非交互）**
 
 Run:
 ```bash
-dotnet run --project NightKing.Homework/src/NightKing.Homework.DbMigrator
-"D:/Programs/mysql-9.6.0-winx64/bin/mysql.exe" -u root -p -e "SHOW COLUMNS FROM NightKingHomework.AppChildProfiles;"
+dotnet run --project src/Homework.DbMigrator
+"D:/Programs/mysql-9.6.0-winx64/bin/mysql.exe" -u root -p"123@abc" -e "SHOW COLUMNS FROM Homework.AppChildProfiles;"
 ```
-Expected: DbMigrator 成功；`AppChildProfiles` 表存在且列齐全。
+Expected: DbMigrator 成功；表存在、列齐全。
 
 - [ ] **Step 8: 提交**
 
@@ -384,9 +361,9 @@ Expected: 提交成功。
 ### Task 6: 定义 `Child` 角色并播种两个孩子
 
 **Files:**
-- Modify: `NightKing.Homework/src/NightKing.Homework.Domain/Data/HomeworkDataSeederContributor.cs`（若模板未生成则 Create）
-- Create: `NightKing.Homework/src/NightKing.Homework.Domain.Shared/HomeworkRoles.cs`
-- Test: `NightKing.Homework/test/NightKing.Homework.Domain.Tests/Data/ChildrenSeed_Tests.cs`
+- Create: `src/Homework.Domain.Shared/HomeworkRoles.cs`
+- Modify: `src/Homework.Domain/Data/HomeworkDataSeederContributor.cs`（模板通常已生成此类）
+- Test: `test/Homework.Domain.Tests/Data/ChildrenSeed_Tests.cs`
 
 - [ ] **Step 1: 写失败测试——播种后应有 `Child` 角色与 2 个 `ChildProfile`**
 
@@ -400,9 +377,9 @@ using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
 using Xunit;
 
-namespace NightKing.Homework.Data;
+namespace Homework.Data;
 
-public class ChildrenSeed_Tests : HomeworkDomainTestBase
+public class ChildrenSeed_Tests : HomeworkDomainTestBase<HomeworkDomainTestModule>
 {
     private readonly IDataSeeder _dataSeeder;
     private readonly IRepository<Children.ChildProfile, System.Guid> _childRepo;
@@ -418,7 +395,7 @@ public class ChildrenSeed_Tests : HomeworkDomainTestBase
     [Fact]
     public async Task Should_Seed_Child_Role_And_Two_Children()
     {
-        await _dataSeeder.SeedAsync();
+        await _dataSeeder.SeedAsync(new DataSeedContext());
 
         (await _roleRepo.FindByNormalizedNameAsync("CHILD")).ShouldNotBeNull();
 
@@ -428,48 +405,39 @@ public class ChildrenSeed_Tests : HomeworkDomainTestBase
     }
 }
 ```
-（`HomeworkDomainTestBase` 为 ABP 生成的领域测试基类；实际类名以生成物为准，如 `NightKingHomeworkDomainTestBase`——执行时对齐命名。）
+（基类名 `HomeworkDomainTestBase<HomeworkDomainTestModule>` 对齐生成的 `SampleDomainTests`；若生成物类名带前缀，按实际改。）
 
 - [ ] **Step 2: 跑测试确认失败**
 
 Run:
 ```bash
-dotnet test NightKing.Homework/test/NightKing.Homework.Domain.Tests --filter ChildrenSeed_Tests
+dotnet test test/Homework.Domain.Tests --filter FullyQualifiedName~ChildrenSeed_Tests
 ```
-Expected: 红——角色/孩子尚未播种（count 0 或断言失败）。
+Expected: 红——角色/孩子未播种。
 
 - [ ] **Step 3: 定义角色常量**
 
 ```csharp
 // HomeworkRoles.cs
-namespace NightKing.Homework;
-
+namespace Homework;
 public static class HomeworkRoles
 {
-    public const string Parent = "Parent"; // 家长；本项目直接复用 admin，Parent 角色留作语义/扩展
+    public const string Parent = "Parent"; // 家长；直接复用 admin，Parent 留作语义/扩展
     public const string Child = "Child";   // 孩子：仅能访问自己的游戏数据
 }
 ```
 
-- [ ] **Step 4: 实现播种器（幂等）**
+- [ ] **Step 4: 实现幂等播种**
 
-在 `HomeworkDataSeederContributor` 的 `SeedAsync` 内加入：创建 `Child` 角色（若不存在）；创建两个孩子身份用户（`gege`/`didi`，赋 `Child` 角色）并各自建 `ChildProfile`（年级 3 / 1，姓名占位「哥哥」「弟弟」，可后续在后台改）。全部先查后建，保证可重复运行。
-
+在 `HomeworkDataSeederContributor`（注入具体类型 `IdentityRoleManager`、`IdentityUserManager`、`IGuidGenerator`、`IRepository<ChildProfile,Guid>`；注意 ABP 是 `IdentityRoleManager`/`IdentityUserManager` 具体类，非 `I`-前缀接口）的 `SeedAsync` 加：
 ```csharp
-// HomeworkDataSeederContributor.cs（要点，注入 IIdentityRoleManager/IIdentityUserManager/IGuidGenerator/
-// ICurrentTenant + IRepository<ChildProfile,Guid>；命名空间与基类按生成物）
 public async Task SeedAsync(DataSeedContext context)
 {
-    // 1) Child 角色
     if (await _roleManager.FindByNameAsync(HomeworkRoles.Child) == null)
-    {
-        (await _roleManager.CreateAsync(
-            new IdentityRole(_guidGenerator.Create(), HomeworkRoles.Child))).CheckErrors();
-    }
+        (await _roleManager.CreateAsync(new IdentityRole(_guidGenerator.Create(), HomeworkRoles.Child))).CheckErrors();
 
-    // 2) 两个孩子（用户 + 档案），幂等
-    await EnsureChildAsync("gege", "哥哥", grade: 3);
-    await EnsureChildAsync("didi", "弟弟", grade: 1);
+    await EnsureChildAsync("gege", "哥哥", 3);
+    await EnsureChildAsync("didi", "弟弟", 1);
 }
 
 private async Task EnsureChildAsync(string userName, string displayName, int grade)
@@ -477,35 +445,31 @@ private async Task EnsureChildAsync(string userName, string displayName, int gra
     var user = await _userManager.FindByNameAsync(userName);
     if (user == null)
     {
-        user = new IdentityUser(_guidGenerator.Create(), userName,
-            email: $"{userName}@homework.local");
+        // 有意：Phase 1 不设密码，孩子登录在后续阶段实现；此处只需其出现在 Identity 且带 Child 角色
+        user = new IdentityUser(_guidGenerator.Create(), userName, $"{userName}@homework.local");
         (await _userManager.CreateAsync(user)).CheckErrors();
         (await _userManager.AddToRoleAsync(user, HomeworkRoles.Child)).CheckErrors();
     }
-
     if (await _childRepo.FindAsync(c => c.IdentityUserId == user.Id) == null)
-    {
-        await _childRepo.InsertAsync(
-            new ChildProfile(_guidGenerator.Create(), user.Id, displayName, grade));
-    }
+        await _childRepo.InsertAsync(new ChildProfile(_guidGenerator.Create(), user.Id, displayName, grade));
 }
 ```
-（`CheckErrors()` 为 ABP `Volo.Abp.Identity` 扩展；`.CheckErrors()` 命名空间随生成物 `using`。）
+（`CheckErrors()` 在 `Volo.Abp.Identity` 命名空间；`IdentityResult` 扩展。）
 
 - [ ] **Step 5: 跑测试确认通过**
 
 Run:
 ```bash
-dotnet test NightKing.Homework/test/NightKing.Homework.Domain.Tests --filter ChildrenSeed_Tests
+dotnet test test/Homework.Domain.Tests --filter FullyQualifiedName~ChildrenSeed_Tests
 ```
-Expected: 绿——角色存在、2 个孩子、年级 {1,3}。
+Expected: 绿——角色存在、2 孩子、年级 {1,3}。
 
-- [ ] **Step 6: 实跑 DbMigrator 落库并核对**
+- [ ] **Step 6: 实跑 DbMigrator 落库核对（非交互）**
 
 Run:
 ```bash
-dotnet run --project NightKing.Homework/src/NightKing.Homework.DbMigrator
-"D:/Programs/mysql-9.6.0-winx64/bin/mysql.exe" -u root -p -e "SELECT DisplayName,Grade FROM NightKingHomework.AppChildProfiles; SELECT Name FROM NightKingHomework.AbpRoles WHERE Name='Child';"
+dotnet run --project src/Homework.DbMigrator
+"D:/Programs/mysql-9.6.0-winx64/bin/mysql.exe" -u root -p"123@abc" -e "SELECT DisplayName,Grade FROM Homework.AppChildProfiles; SELECT Name FROM Homework.AbpRoles WHERE Name='Child';"
 ```
 Expected: 两行孩子（哥哥/3、弟弟/1）；`Child` 角色存在。
 
@@ -513,7 +477,7 @@ Expected: 两行孩子（哥哥/3、弟弟/1）；`Child` 角色存在。
 
 Run:
 ```bash
-dotnet test NightKing.Homework
+dotnet test Homework.sln
 git -C /d/WorkSpaces/night-king/Homework add -A
 git -C /d/WorkSpaces/night-king/Homework commit -m "feat(domain): seed Child role and two child profiles (idempotent)"
 ```
@@ -521,17 +485,17 @@ Expected: 测试全绿；提交成功。
 
 ---
 
-### Task 7: 收尾——Phase 1 验收清单
+### Task 7: 收尾——Phase 1 验收
 
 **Files:** 无（验收）
 
 - [ ] **Step 1: 端到端复核**
-  - `dotnet build NightKing.Homework` 成功
-  - `dotnet test NightKing.Homework` 全绿
+  - `dotnet build Homework.sln` 成功
+  - `dotnet test Homework.sln` 全绿
   - DbMigrator 可重复运行不报错（幂等）
-  - `dotnet run --project ...Web` 能起、admin 可登录、后台 Identity 里能看到 `gege`/`didi` 两个用户且带 `Child` 角色
-- [ ] **Step 2: 更新 spec §12**：若触发了「MySQL 9.x 固定版本」备注，如实记录一句。
-- [ ] **Step 3: 打 Phase 1 完成提交/标签**
+  - `dotnet run --project src/Homework.Web` 能起、admin 可登录、后台 Identity 有 `gege`/`didi` 且带 `Child` 角色
+- [ ] **Step 2: 更新 spec §12**：若触发「MySQL 9.x 固定版本」备注，如实记录。
+- [ ] **Step 3: Phase 1 完成提交**
 ```bash
 git -C /d/WorkSpaces/night-king/Homework add -A
 git -C /d/WorkSpaces/night-king/Homework commit -m "chore: Phase 1 (foundation & accounts) complete" --allow-empty
@@ -540,4 +504,4 @@ git -C /d/WorkSpaces/night-king/Homework commit -m "chore: Phase 1 (foundation &
 ---
 
 ## Phase 1 完成的产出
-一个可运行的 ABP 10 MVC + MySQL 单体：家长（admin）可登录后台；`Child` 角色与两个孩子账号 + `ChildProfile`（哥哥/三年级、弟弟/一年级）已播种、有测试护航。**下一阶段（Phase 2：任务引擎与记分账本）在此地基上做 TDD。**
+可运行的 ABP 10 MVC + MySQL 单体：家长（admin）可登录后台；`Child` 角色与两个孩子账号 + `ChildProfile`（哥哥/三年级、弟弟/一年级）已播种、有测试护航。**下一阶段（Phase 2：任务引擎与记分账本）在此地基上做 TDD。**
