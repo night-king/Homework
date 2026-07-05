@@ -1,8 +1,12 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -59,6 +63,8 @@ public class HomeworkHttpApiHostModule : AbpModule
                 options.AddDevelopmentEncryptionAndSigningCertificate = false;
             });
 
+            // TODO(deploy): 上线前把 PFX 口令移出源码（AuthServer:CertificatePassPhrase / user-secrets / 环境变量），
+            // 不要提交硬编码口令。已在 DEPLOY.md「密钥移出明文」跟踪；dev 分支不会走到这里。
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
                 serverBuilder.AddProductionEncryptionAndSigningCertificate(
@@ -82,6 +88,7 @@ public class HomeworkHttpApiHostModule : AbpModule
         });
 
         ConfigureAuthentication(context);
+        ConfigureApiChallenge(context);
         ConfigureUrls(configuration);
         ConfigureAutoApiControllers();
         ConfigureSwagger(context.Services);
@@ -100,6 +107,36 @@ public class HomeworkHttpApiHostModule : AbpModule
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
             options.IsDynamicClaimsEnabled = true;
+        });
+    }
+
+    private void ConfigureApiChallenge(ServiceConfigurationContext context)
+    {
+        // Headless：无 Bearer 头的 /api/* 请求走 cookie scheme，默认会 302 重定向到登录页。
+        // 对纯 API 而言应返回 401（未认证）/ 403（无权限），SPA 才能据此刷新/重登。
+        // 只改 /api/* 路径的挑战响应；非 /api（闲置的 ABP Account 登录页）保持原有重定向。
+        context.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Events.OnRedirectToLogin = ctx =>
+            {
+                if (ctx.Request.Path.StartsWithSegments("/api"))
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    return Task.CompletedTask;
+                }
+                ctx.Response.Redirect(ctx.RedirectUri);
+                return Task.CompletedTask;
+            };
+            options.Events.OnRedirectToAccessDenied = ctx =>
+            {
+                if (ctx.Request.Path.StartsWithSegments("/api"))
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                    return Task.CompletedTask;
+                }
+                ctx.Response.Redirect(ctx.RedirectUri);
+                return Task.CompletedTask;
+            };
         });
     }
 
