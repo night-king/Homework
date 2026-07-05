@@ -36,7 +36,7 @@ console/
     main.tsx  App.tsx  index.css(Tailwind @theme inline)
     lib/utils.ts                     # cn() = clsx + tailwind-merge
     i18n/config.ts                   # i18next + HttpBackend + LanguageDetector
-    stores/authStore.ts              # zustand：token/user/permissions + login/register/logout/refresh/initialize
+    stores/authStore.ts              # zustand：token/user/permissions + login/register/logout/initialize/loadPermissions（refresh 逻辑在 api.ts 拦截器 + initialize 里，无独立 refresh action）
     services/
       api.ts                         # axios 实例 + 请求拦截(Bearer/Accept-Language) + 401 refresh 拦截 + getErrorMessage
       authService.ts                 # /connect/token(password|refresh_token)、/api/account/register、/api/account/my-profile 等
@@ -78,9 +78,9 @@ console/
 - `FamilyGoalDto{ id, title(≤128), targetStars(≥1), rewardText?(≤256), startDate, endDate, achievedTime?, currentStars, isAchieved, progressPercent(0..100) }`
 
 ### 认证（`authService.ts` + `authStore.ts`）
-- **登录**：`POST /connect/token`（form-urlencoded：`grant_type=password`、`client_id=Homework_App`、`username`、`password`、`scope="Homework offline_access"`）→ 存 `accessToken`/`refreshToken`(localStorage) → 解 JWT 取用户名/邮箱 → `GET /api/abp/application-configuration` 取 `auth.grantedPolicies` 校验 `Homework.ParentAdmin`。
-- **注册**：`POST /api/account/register`（JSON：`userName,emailAddress,password,appName:"Homework_App"`）→ 成功后用同凭据自动登录。注册表单含**《儿童隐私与家长同意》勾选**（客户端门禁，未勾禁用提交；服务端强制留 `DEPLOY.md`）。
-- **改密/忘记/重置**：ABP account 端点 `/api/account/change-password`、`/send-password-reset-link`、`/reset-password`。
+- **登录**：`POST /connect/token`（form-urlencoded：`grant_type=password`、`client_id=Homework_App`、`username`、`password`、`scope="Homework offline_access"`）→ 存 `accessToken`/`refreshToken`(localStorage) → 从 JWT claims 解出 **`User{ id(sub), userName(unique_name), email }`**（轻量自解 base64，无需引库）→ `GET /api/abp/application-configuration` 取 `auth.grantedPolicies` 校验 `Homework.ParentAdmin`。
+- **注册**：`POST /api/account/register`（JSON：`userName,emailAddress,password,appName:"Homework_App"`）→ 成功后用同凭据自动登录。**若后端开启了邮箱确认**（dev 默认关），注册返回 200 但随后自动登录会 400/401——此时**不崩**，改提示「请查收邮件完成验证后再登录」。注册表单含**《儿童隐私与家长同意》勾选**（客户端门禁，未勾禁用提交；服务端强制留 `DEPLOY.md`）。
+- **资料/改密/忘记/重置**（ABP account 端点）：`ProfileDialog` = **可编辑**表单（`GET /api/account/my-profile` 取、`PUT /api/account/my-profile` 存，带 `concurrencyStamp`，字段 userName/email/name/surname）；`ChangePasswordDialog` → `/api/account/change-password`；忘记 → `/send-password-reset-link`，`ResetPasswordPage` 从 query 读 **`?userId=&token=`**（单租户，去掉 port-shield 的 `tenantId`）→ `/reset-password`。
 - **api.ts 401 处理**：响应拦截器遇 401（非 `/connect/token`、未重试过）→ 用 `grant_type=refresh_token` 换新 token（并发请求排队、共享一次刷新）→ 重放原请求；刷新失败 → 清 token、登出、跳 `/login`。（后端已把 `/api/*` 未认证从 302 改成 401，拦截器判定干净。）
 
 ### 路由与守卫（React Router 7）
