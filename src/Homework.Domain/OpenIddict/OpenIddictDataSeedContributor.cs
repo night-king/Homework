@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -79,51 +79,23 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
 
         var configurationSection = _configuration.GetSection("OpenIddict:Applications");
 
-        //Web Client
-        var webClientId = configurationSection["Homework_Web:ClientId"];
-        if (!webClientId.IsNullOrWhiteSpace())
+        // Homework_App —— SPA（React 家长端/孩子端）与 ConsoleTestApp 用的公共密码流(ROPC)客户端。
+        // 公共客户端（无 secret）；password 换 access_token，refresh_token + offline_access 换刷新令牌。
+        var appClientId = configurationSection["Homework_App:ClientId"];
+        if (!appClientId.IsNullOrWhiteSpace())
         {
-            var webClientRootUrl = configurationSection["Homework_Web:RootUrl"]!.EnsureEndsWith('/');
-
-            /* Homework_Web client is only needed if you created a tiered
-             * solution. Otherwise, you can delete this client. */
             await CreateApplicationAsync(
-                name: webClientId!,
-                type: OpenIddictConstants.ClientTypes.Confidential,
-                consentType: OpenIddictConstants.ConsentTypes.Implicit,
-                displayName: "Web Application",
-                secret: configurationSection["Homework_Web:ClientSecret"] ?? "1q2w3e*",
-                grantTypes: new List<string> //Hybrid flow
-                {
-                    OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.Implicit
-                },
-                scopes: commonScopes,
-                redirectUri: $"{webClientRootUrl}signin-oidc",
-                clientUri: webClientRootUrl,
-                postLogoutRedirectUri: $"{webClientRootUrl}signout-callback-oidc"
-            );
-        }
-
-
-
-
-
-        // Swagger Client
-        var swaggerClientId = configurationSection["Homework_Swagger:ClientId"];
-        if (!swaggerClientId.IsNullOrWhiteSpace())
-        {
-            var swaggerRootUrl = configurationSection["Homework_Swagger:RootUrl"]?.TrimEnd('/');
-
-            await CreateApplicationAsync(
-                name: swaggerClientId!,
+                name: appClientId!,
                 type: OpenIddictConstants.ClientTypes.Public,
                 consentType: OpenIddictConstants.ConsentTypes.Implicit,
-                displayName: "Swagger Application",
+                displayName: "Homework App (SPA)",
                 secret: null,
-                grantTypes: new List<string> { OpenIddictConstants.GrantTypes.AuthorizationCode, },
-                scopes: commonScopes,
-                redirectUri: $"{swaggerRootUrl}/swagger/oauth2-redirect.html",
-                clientUri: swaggerRootUrl
+                grantTypes: new List<string>
+                {
+                    OpenIddictConstants.GrantTypes.Password,
+                    OpenIddictConstants.GrantTypes.RefreshToken
+                },
+                scopes: new List<string>(commonScopes) { OpenIddictConstants.Scopes.OfflineAccess }
             );
         }
     }
