@@ -157,7 +157,20 @@ PGPASSWORD=postgres "/c/Program Files/PostgreSQL/17/bin/psql.exe" -h localhost -
 ```
 Expected: 一行 `Homework_App | public`。
 
-- [ ] **Step 4: 提交**
+- [ ] **Step 4: 清掉已有开发库里遗留的旧客户端行（`Homework_Web`/`Homework_Swagger`）**
+
+> 重新播种只会**新增** `Homework_App`，不会删旧行。若 `Homework` 库先前已被旧种子建过，`Homework_Web`（机密、secret `1q2w3e*`）与 `Homework_Swagger` 仍会残留——spec 要退役的机密客户端还活着。手动删除（dev；全新/生产库首次播种没有这些行，本步是幂等空操作）：
+
+Run（Bash）:
+```bash
+PGPASSWORD=postgres "/c/Program Files/PostgreSQL/17/bin/psql.exe" -h localhost -p 5433 -U postgres -d Homework \
+  -c "DELETE FROM \"OpenIddictApplications\" WHERE \"ClientId\" IN ('Homework_Web','Homework_Swagger');"
+PGPASSWORD=postgres "/c/Program Files/PostgreSQL/17/bin/psql.exe" -h localhost -p 5433 -U postgres -d Homework \
+  -c "SELECT count(*) FROM \"OpenIddictApplications\" WHERE \"ClientId\" IN ('Homework_Web','Homework_Swagger');"
+```
+Expected: 第二条 `count` 为 `0`。
+
+- [ ] **Step 5: 提交**
 
 ```bash
 git add src/Homework.DbMigrator/appsettings.json
@@ -373,6 +386,7 @@ public class Program
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -380,6 +394,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
 using OpenIddict.Validation.AspNetCore;
 using Homework.EntityFrameworkCore;
+using Homework.MultiTenancy;
 using Volo.Abp;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
@@ -548,6 +563,12 @@ public class HomeworkHttpApiHostModule : AbpModule
         app.UseCors();
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
+
+        if (MultiTenancyConsts.IsEnabled)
+        {
+            app.UseMultiTenancy();
+        }
+
         app.UseUnitOfWork();
         app.UseDynamicClaims();
         app.UseAuthorization();
@@ -565,7 +586,14 @@ public class HomeworkHttpApiHostModule : AbpModule
 }
 ```
 
-> 相比 `HomeworkWebModule`：**去掉** `ConfigureBundles`、`ConfigureVirtualFileSystem`、`ConfigureNavigationServices`（菜单）、RazorPages `AuthorizeFolder`、`AddMapperlyObjectMapper<HomeworkWebModule>`、`AbpMvcDataAnnotationsLocalizationOptions` 预配置、LeptonX/Identity/Setting/Tenant Web 模块依赖、以及 `UseMultiTenancy` 块（本项目单一全局实例、非多租户；去掉 TenantManagement.Web 后也不再传递依赖 `AbpAspNetCoreMultiTenancyModule`——保留该块会编译不过）。**保留** OpenIddict validation、生产证书分支、Bearer 转发、动态声明、`ConfigureUrls`(MVC RootUrl)、Auto API controllers、Swagger、zh-Hans 本地化。**新增** `CheckLibs=false`、antiforgery 关闭、CORS。**中间件顺序**对标 port-shield：`UseRouting()` 在 `MapAbpStaticAssets()` 之前（否则 `/api/*` 全 404）。
+> 相比 `HomeworkWebModule`：**去掉** `ConfigureBundles`、`ConfigureVirtualFileSystem`、`ConfigureNavigationServices`（菜单）、RazorPages `AuthorizeFolder`、`AddMapperlyObjectMapper<HomeworkWebModule>`、`AbpMvcDataAnnotationsLocalizationOptions` 预配置、LeptonX/Identity/Setting/Tenant Web 模块依赖。**保留** OpenIddict validation、生产证书分支、Bearer 转发、动态声明、`ConfigureUrls`(MVC RootUrl)、`if (MultiTenancyConsts.IsEnabled) UseMultiTenancy()` 块、Auto API controllers、Swagger、zh-Hans 本地化。**新增** `CheckLibs=false`、antiforgery 关闭、CORS。
+>
+> **两个易踩的点**：
+> 1. **多租户块必须保留**：`MultiTenancyConsts.IsEnabled` 当前为 `true`（现网 `Homework.Web` 就在跑 `UseMultiTenancy()`），且 `AbpAspNetCoreMultiTenancyModule` 经 `AbpAccountWebOpenIddictModule → Volo.Abp.OpenIddict.AspNetCore` **传递依赖**——所以 `app.UseMultiTenancy()` 照常编译、模块照常加载，无需在 csproj/`[DependsOn]` 显式加。删掉它属于「无理由改行为」。（单一全局实例语义由「API 请求不解析租户 → 落到 host 租户」自然满足，与保留该中间件不冲突。）
+> 2. **中间件顺序**对标 port-shield：`UseRouting()` 在 `MapAbpStaticAssets()` **之前**，否则纯 API host 的 `/api/*` 全 404。
+> 3. `.WithAbpExposedHeaders()` 需要 `using Microsoft.AspNetCore.Cors;`（已在 using 列表）。
+>
+> 去掉 `AbpMvcDataAnnotationsLocalizationOptions` 预配置（port-shield 亦无）**仅**影响 API 响应里模型校验消息的本地化（`RequestLocalization` zh-Hans 不受影响）；如需再补。
 
 ### Task 2.6: 把新宿主加入 `Homework.slnx` 并整体编译
 
@@ -612,19 +640,22 @@ curl -k -s https://localhost:44394/swagger/v1/swagger.json | grep -o "/api/app/[
 ```
 Expected: 输出包含 `/api/app/child-profile`（以及其它家长后台服务路由，如 `weekly-task-template`、`daily-task`、`family-goal`）。
 
-- [ ] **Step 3: 用 demo 家长走密码流拿 token**
+- [ ] **Step 3: 用 demo 家长走密码流拿 token，并存入 `$TOKEN`**
 
-Run:
+Run（需要 `jq`；Git-Bash 若无 jq，见下方 fallback）:
 ```bash
-curl -k -s -X POST https://localhost:44394/connect/token \
+TOKEN=$(curl -k -s -X POST https://localhost:44394/connect/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password" \
   -d "client_id=Homework_App" \
   -d "username=demo" \
   -d "password=1q2w3E*" \
-  -d "scope=Homework offline_access"
+  -d "scope=Homework offline_access" | jq -r .access_token)
+echo "${TOKEN:0:20}..."
 ```
-Expected: JSON 含 `"access_token"`、`"token_type":"Bearer"`、`"refresh_token"`（因 `offline_access`）。**若返回 `ID2083`/连接被拒**：确认用的是 `https://`（非 http）。把 `access_token` 存成 shell 变量 `TOKEN` 供下一步。
+Expected: 打印 token 前 20 字符（非空、非 `null`）。响应 JSON 本应含 `access_token`/`token_type:Bearer`/`refresh_token`（因 `offline_access`）。
+- **无 jq 的 fallback**：先不带 `| jq` 跑一遍看到 JSON，手动复制 `access_token` 值：`TOKEN=<粘贴>`。
+- **若返回 `ID2083`/连接被拒**：确认用的是 `https://`（非 http）。
 
 - [ ] **Step 4: 带 token 调受保护 API 通、不带 token 401**
 
@@ -637,7 +668,17 @@ curl -k -s -o /dev/null -w "%{http_code}\n" https://localhost:44394/api/app/chil
 ```
 Expected: 第一条返回含「哥哥」「弟弟」的 JSON（`items` 数组两条，只属于 demo）；第二条打印 `401`。
 
-- [ ] **Step 5: 停服**（Ctrl-C 结束 `dotnet run`）。冒烟无需提交（未改文件）。
+- [ ] **Step 5: 自助注册冒烟（闭合 spec 的「注册」项 + 验证 `IsSelfRegistrationEnabled`）**
+
+Run:
+```bash
+curl -k -s -o /dev/null -w "%{http_code}\n" -X POST https://localhost:44394/api/account/register \
+  -H "Content-Type: application/json" \
+  -d '{"userName":"smoketest","emailAddress":"smoketest@homework.today","password":"1q2w3E*","appName":"Homework_App"}'
+```
+Expected: 首次 `200`（建了一个新家长，得默认 `Parent` 角色 → `ParentAdmin`）。重复运行返回 `400`（用户名已存在）——同样证明端点通、注册确实落库。若返回注册被禁用相关错误，则需确认设置 `Abp.Account.IsSelfRegistrationEnabled = true`（ABP 默认 true）。
+
+- [ ] **Step 6: 停服**（Ctrl-C 结束 `dotnet run`）。冒烟无需提交（未改文件）。
 
 ---
 
@@ -707,7 +748,8 @@ git commit -m "chore: retire Homework.Web + Homework.Web.Tests (headless API is 
 cd test/Homework.HttpApi.Client.ConsoleTestApp
 dotnet run
 ```
-Expected: 进程用密码流以 `admin` 拿到 token 并通过 `HttpApi.Client` 动态代理调通 API（无 401/异常）。admin 名下无孩子，`child-profile` 返回空属正常——证明「登录→Bearer→调 API」链路通。
+Expected: 进程用密码流以 `admin` 拿到 token 并通过 `HttpApi.Client` 动态代理调通 API。`admin` 已被 `ParentPermissionDataSeedContributor` 授予 `ParentAdmin`，故 `child-profile` 返回 **200 + 空列表**（admin 名下无孩子）——证明「登录→Bearer→调 API」链路通。**若返回 403** 说明该授权回归了（需排查种子）。想直接看到哥哥/弟弟，可临时把该工程 `appsettings.json` 的 `UserName`/`UserPassword` 改为 `demo`/`1q2w3E*`（demo 有 `ParentAdmin` + 两个孩子）。
+> 注：`Homework_App` 客户端在 Chunk 1 之前并不存在，所以这个 console 工具此前从未能认证成功——这是它的**首次**可用运行。
 
 - [ ] **Step 2: 更新 `DEPLOY.md` 的「本地运行」段**
 
