@@ -20,17 +20,13 @@
     
     <Project Path="src/Homework.HttpApi/Homework.HttpApi.csproj" />
     <Project Path="src/Homework.HttpApi.Host/Homework.HttpApi.Host.csproj" />
-
-
-    <Project Path="src/Homework.Web/Homework.Web.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Homework.Application.Tests/Homework.Application.Tests.csproj" />
     <Project Path="test/Homework.Domain.Tests/Homework.Domain.Tests.csproj" />
     <Project Path="test/Homework.EntityFrameworkCore.Tests/Homework.EntityFrameworkCore.Tests.csproj" />
     <Project Path="test/Homework.HttpApi.Client.ConsoleTestApp/Homework.HttpApi.Client.ConsoleTestApp.csproj" />
-    
+
     <Project Path="test/Homework.TestBase/Homework.TestBase.csproj" />
-    <Project Path="test/Homework.Web.Tests/Homework.Web.Tests.csproj" />
   </Folder>
 </Solution>
