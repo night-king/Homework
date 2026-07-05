@@ -6,9 +6,11 @@
 1. PostgreSQL 跑在 `localhost:5433`（`postgres`/`postgres`，库 `Homework`）。
 2. 建库 + 迁移 + 播种（示例家庭 demo + 哥哥/弟弟，Parent 默认角色）：
    `cd src/Homework.DbMigrator && dotnet run`
-3. 起服：`cd src/Homework.Web && dotnet run` → https://localhost:44394
-4. 账号：运营超管 `admin` / `1q2w3E*`；示例家长 `demo`（demo@homework.today）/ `1q2w3E*`。陌生人可在 `/Account/Register` 自助注册家长号。
-> DbMigrator / Web 必须**在各自项目目录**下运行，否则读不到 `appsettings.json`（见记忆 `abp-postgres-stack`）。
+3. 起 API 宿主：`cd src/Homework.HttpApi.Host && dotnet run` → https://localhost:44394（Swagger 在 /swagger）
+   - 前端（家长端/孩子端，各自子项目）通过该 API 的 `/connect/token` 密码流登录、`/api/app/*` 调用。
+   - 后端已 headless：无 Razor 页面；注册走 `POST /api/account/register`。
+4. 账号：运营超管 `admin` / `1q2w3E*`；示例家长 `demo`（demo@homework.today）/ `1q2w3E*`。
+> DbMigrator / Homework.HttpApi.Host 必须**在各自项目目录**下运行，否则读不到 `appsettings.json`（见记忆 `abp-postgres-stack`）。
 
 ## 上线前必做（安全加固——尚未实现）
 - [ ] **HTTPS / 正式证书**：换掉 dev 证书；OpenIddict 用正式加密/签名证书（`openiddict.pfx`，已有非 dev 分支，配好口令来源）。
