@@ -8,9 +8,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 
+// 目前页面文案基本硬编码中文（产品中文优先）。English 待正文接入 i18n 后再放开，
+// 否则切到 en 只会改导航几个词、正文仍中文，是个"看着坏了"的开关。
 const LANGUAGES = [
   { code: 'zh-CN', label: '中文' },
-  { code: 'en', label: 'English' },
 ]
 
 export function LanguageSwitcher() {

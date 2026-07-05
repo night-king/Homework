@@ -23,6 +23,7 @@ export function ProfileDialog({ open, onClose }: ProfileDialogProps) {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [surname, setSurname] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('') // 不在表单显示，但回传保留，避免 PUT 把已有手机号清空
   const [concurrencyStamp, setConcurrencyStamp] = useState('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -31,11 +32,12 @@ export function ProfileDialog({ open, onClose }: ProfileDialogProps) {
     if (!open) return
     setLoading(true)
     myProfile()
-      .then((data: { userName?: string; email?: string; name?: string; surname?: string; concurrencyStamp?: string }) => {
+      .then((data: { userName?: string; email?: string; name?: string; surname?: string; phoneNumber?: string; concurrencyStamp?: string }) => {
         setUserName(data.userName ?? '')
         setEmail(data.email ?? '')
         setName(data.name ?? '')
         setSurname(data.surname ?? '')
+        setPhoneNumber(data.phoneNumber ?? '')
         setConcurrencyStamp(data.concurrencyStamp ?? '')
       })
       .catch((e: unknown) => toast.error(getErrorMessage(e, '加载资料失败')))
@@ -46,7 +48,7 @@ export function ProfileDialog({ open, onClose }: ProfileDialogProps) {
     e.preventDefault()
     setSaving(true)
     try {
-      await updateMyProfile({ userName, email, name, surname, concurrencyStamp })
+      await updateMyProfile({ userName, email, name, surname, phoneNumber, concurrencyStamp })
       toast.success('资料已更新')
       onClose()
     } catch (err) {
