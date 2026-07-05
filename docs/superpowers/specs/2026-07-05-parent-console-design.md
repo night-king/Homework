@@ -94,7 +94,11 @@ console/
 
 ### i18n / 主题
 - **i18next**：`fallbackLng:'zh-CN'`，`supportedLngs:['zh-CN','en']`，`public/locales/{lng}/translation.json`，语言存 localStorage。**zh-CN 为主**（产品中文优先），en 次。
-- **Tailwind 4 `@theme inline`**（`index.css`，无 config.js/无 PostCSS）：定义一套**温暖、亲子但对家长清爽**的调色板（与 port-shield 绿色区分；具体色值实现时定）。重视觉打磨是孩子游戏端④的事，本端保持干净利落。
+- **Tailwind 4 `@theme inline`**（`index.css`，无 config.js/无 PostCSS）。**风格 = 温暖亲和（已定）**：
+  - 主色 **珊瑚橙 `#FF7A59`**（brand，按钮/强调）+ **暖蓝绿 `#2BB3A3`**（accent/次要动作）；底色 **暖米白 `#FAF6F0`**（paper），文字 **深棕灰 `#3A3230`**（ink）；**星星 金黄 `#FFC24B`**（star/成就）；成功/危险用暖调绿/红。
+  - **大圆角 + 柔和阴影**，圆润友好无衬线字体（Latin 如 Nunito/Quicksand 一类；CJK 用系统 PingFang/微软雅黑）。
+  - `@theme` 里定义 `--color-brand/accent/paper/ink/star/...` + 圆角(`--radius-*`)/阴影 token，`components/ui/*` 与页面统一取用。
+  - 气质：温馨、鼓励、亲子（贴合星星/奖励激励），但家长管理界面保持高效清晰。**重视觉打磨（插画/动效/角色）留给孩子游戏端④**，本端克制。
 
 ### 配置 / 环境
 - `VITE_API_BASE_URL`：dev 留空（走 vite 代理），prod 由构建/运行时注入。
