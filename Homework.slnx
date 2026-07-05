@@ -19,8 +19,9 @@
     
     
     <Project Path="src/Homework.HttpApi/Homework.HttpApi.csproj" />
-    
-    
+    <Project Path="src/Homework.HttpApi.Host/Homework.HttpApi.Host.csproj" />
+
+
     <Project Path="src/Homework.Web/Homework.Web.csproj" />
   </Folder>
   <Folder Name="/test/">
