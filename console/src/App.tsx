@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
+import { ConfirmProvider } from '@/components/ConfirmDialog'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { RegisterPage } from '@/features/auth/RegisterPage'
@@ -17,6 +18,7 @@ export default function App() {
   useEffect(() => { useAuthStore.getState().initialize() }, [])
   return (
     <BrowserRouter>
+      <ConfirmProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -33,6 +35,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
       <Toaster position="top-center" richColors />
+      </ConfirmProvider>
     </BrowserRouter>
   )
 }
