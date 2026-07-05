@@ -22,7 +22,8 @@ export const updateWeeklyTemplate = (id: string, dto: UpdateWeeklyTaskTemplateIt
 export const deleteWeeklyTemplate = (id: string) => api.delete(`/api/app/weekly-task-template/${id}`)
 
 // ---- daily-task ----
-export const getDailyBoard = (input: GetDailyBoardInput) => api.post<DailyBoardDto>('/api/app/daily-task/get-board', input).then((r) => r.data)
+// ABP 约定路由：GetBoardAsync → GET /api/app/daily-task/board（"Get" 前缀映射成 GET，input 走 query）。不是 POST /get-board。
+export const getDailyBoard = (input: GetDailyBoardInput) => api.get<DailyBoardDto>('/api/app/daily-task/board', { params: input }).then((r) => r.data)
 export const createDailyTask = (dto: CreateDailyTaskDto) => api.post<DailyTaskDto>('/api/app/daily-task', dto).then((r) => r.data)
 export const updateDailyTask = (id: string, dto: UpdateDailyTaskDto) => api.put<DailyTaskDto>(`/api/app/daily-task/${id}`, dto).then((r) => r.data)
 export const deleteDailyTask = (id: string) => api.delete(`/api/app/daily-task/${id}`)
