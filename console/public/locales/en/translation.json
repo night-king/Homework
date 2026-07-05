@@ -1,0 +1,1 @@
+{ "app": { "name": "Homework · Parent Console" }, "common": { "save": "Save", "cancel": "Cancel", "delete": "Delete", "edit": "Edit", "create": "New", "confirm": "OK" }, "auth": { "login": "Log in", "register": "Sign up", "logout": "Log out" } }
