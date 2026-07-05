@@ -168,7 +168,11 @@
       border-radius: 18px;
       background: rgba(255, 255, 255, 0.76);
       color: var(--ink);
-      padding: 10px 8px 12px;
+      padding: 12px 8px 12px;
+      display: grid;
+      justify-items: center;
+      align-content: start;
+      gap: 4px;
       text-align: center;
       cursor: pointer;
       transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
@@ -189,16 +193,38 @@
       transform: translateY(-2px);
     }
 
-    .day-chip.is-today::after {
-      content: "Today";
+    .day-top-slot {
+      width: 100%;
+      min-height: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      position: relative;
+      overflow: visible;
+      margin-bottom: 2px;
+    }
+
+    .day-today-tag {
       position: absolute;
-      top: 6px;
-      right: 8px;
-      font-size: 0.62rem;
+      left: 50%;
+      top: -10px;
+      transform: translateX(-50%);
+      min-width: 38px;
+      padding: 3px 6px 3px;
+      border-radius: 0 0 8px 8px;
+      background: linear-gradient(180deg, rgba(255, 245, 210, 0.98), rgba(255, 229, 170, 0.96));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        0 6px 10px rgba(215, 153, 49, 0.12);
+      font-size: 0.42rem;
       font-weight: 900;
-      color: var(--brand-deep);
+      color: #9a5f10;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      text-align: center;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .day-name {
@@ -207,16 +233,53 @@
     }
 
     .day-date {
-      margin-top: 3px;
       font-size: 0.82rem;
       color: var(--muted);
     }
 
     .day-state {
-      margin-top: 8px;
-      font-size: 0.82rem;
-      font-weight: 800;
-      color: var(--brand-deep);
+      margin-top: 4px;
+      min-width: 54px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.74rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .day-state.is-pending {
+      background: rgba(255, 236, 193, 0.95);
+      color: #9a6717;
+    }
+
+    .day-state.is-active {
+      background: rgba(206, 245, 242, 0.98);
+      color: #0f6f73;
+    }
+
+    .day-state.is-complete {
+      background: rgba(255, 225, 186, 0.96);
+      color: #ae5517;
+    }
+
+    .day-state.is-future {
+      background: rgba(225, 233, 244, 0.96);
+      color: #52698c;
+    }
+
+    .day-state.is-locked {
+      background: rgba(236, 232, 224, 0.94);
+      color: #7c705f;
+    }
+
+    .day-state.is-rest {
+      background: rgba(220, 241, 228, 0.96);
+      color: #477463;
     }
 
     .main-grid {
@@ -260,7 +323,6 @@
       gap: 8px;
     }
 
-    .world-chip,
     .season-chip {
       display: inline-flex;
       align-items: center;
@@ -275,32 +337,8 @@
       box-shadow: 0 10px 20px rgba(36, 28, 18, 0.07);
     }
 
-    .world-chip {
-      color: #2d4e93;
-    }
-
-    .stage-copy {
-      max-width: 430px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .stage-copy h2 {
-      margin: 16px 0 8px;
-      font-size: clamp(2rem, 3vw, 3rem);
-      line-height: 0.98;
-      letter-spacing: -0.04em;
-    }
-
-    .stage-copy p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.6;
-    }
-
     .pet-stage {
-      margin-top: 16px;
+      margin-top: 6px;
       display: grid;
       grid-template-columns: 1fr;
       gap: 12px;
@@ -309,6 +347,28 @@
     }
 
     .pet-wrap {
+      --element-main: #ffb85e;
+      --element-mid: #ff7c37;
+      --element-deep: #d94c18;
+      --element-soft: #fff0cb;
+      --element-accent: #ffd35d;
+      --element-glow: rgba(255, 196, 82, 0.54);
+      --element-glow-soft: rgba(255, 196, 82, 0.08);
+      --element-ring: rgba(255, 226, 164, 0.34);
+      --element-ring-shadow: rgba(255, 193, 84, 0.08);
+      --element-ring-bloom: rgba(255, 169, 54, 0.12);
+      --element-disc: rgba(73, 45, 18, 0.24);
+      --spark-light: rgba(255, 250, 199, 0.95);
+      --spark-deep: rgba(255, 193, 56, 0.85);
+      --spark-shadow: rgba(255, 196, 82, 0.4);
+      --wing-light: rgba(255, 236, 195, 0.9);
+      --wing-mid: rgba(255, 176, 71, 0.96);
+      --wing-deep: rgba(231, 90, 29, 0.98);
+      --armor-light: rgba(255, 240, 205, 0.96);
+      --armor-mid: rgba(255, 197, 77, 0.92);
+      --armor-deep: rgba(248, 103, 47, 0.94);
+      --element-ring-style: solid;
+      --element-ring-width: 2px;
       position: relative;
       display: grid;
       justify-items: center;
@@ -326,7 +386,7 @@
       aspect-ratio: 1;
       border-radius: 50%;
       background:
-        radial-gradient(circle, rgba(255, 196, 82, 0.54), rgba(255, 196, 82, 0.08) 58%, transparent 72%);
+        radial-gradient(circle, var(--element-glow), var(--element-glow-soft) 58%, transparent 72%);
       filter: blur(10px);
       opacity: 0.9;
       animation: aura-pulse 4.6s ease-in-out infinite;
@@ -338,7 +398,7 @@
       width: 76%;
       height: 42px;
       border-radius: 999px;
-      background: radial-gradient(circle, rgba(73, 45, 18, 0.24), transparent 72%);
+      background: radial-gradient(circle, var(--element-disc), transparent 72%);
       filter: blur(8px);
     }
 
@@ -346,14 +406,15 @@
       position: absolute;
       inset: 88px 50px 44px;
       border-radius: 50%;
-      border: 2px solid rgba(255, 226, 164, 0.34);
+      border: var(--element-ring-width) var(--element-ring-style) var(--element-ring);
       box-shadow:
-        0 0 0 10px rgba(255, 193, 84, 0.08),
-        0 0 28px rgba(255, 169, 54, 0.12);
+        0 0 0 10px var(--element-ring-shadow),
+        0 0 28px var(--element-ring-bloom);
       opacity: 0.28;
       transform: scale(0.94);
       animation: ring-spin 10s linear infinite;
       pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease, border-color 180ms ease;
     }
 
     .pet-stage-tag {
@@ -410,6 +471,12 @@
       background: linear-gradient(180deg, rgba(72, 40, 159, 0.96), rgba(32, 112, 214, 0.94));
     }
 
+    .pet-feedback[data-tone="element"] {
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--element-accent) 78%, white 22%), color-mix(in srgb, var(--element-mid) 86%, #17355d 14%));
+      color: #fffaf0;
+    }
+
     .pet-feedback[data-tone="warn"] {
       background: linear-gradient(180deg, rgba(53, 43, 35, 0.96), rgba(27, 20, 16, 0.94));
     }
@@ -458,26 +525,80 @@
     }
 
     .pet-core {
+      --stage-zoom: 1;
       --body-scale: 1;
+      --body-lift: 0px;
+      --head-scale: 1;
+      --head-y: 0px;
       --horn-scale: 0.7;
       --horn-opacity: 1;
       --wing-scale: 0;
       --wing-opacity: 0;
+      --wing-top: 112px;
       --armor-opacity: 0;
       --crown-opacity: 0;
       --spark-opacity: 0.24;
       --tail-scale: 1;
+      --tail-rotate: 26deg;
       width: clamp(270px, 30vw, 360px);
       height: clamp(270px, 30vw, 360px);
       position: relative;
-      transform: translateY(0);
+      transform: translateY(0) scale(var(--stage-zoom));
+      transform-origin: center bottom;
       transition: transform 220ms ease, filter 220ms ease;
       animation: pet-bob 3.6s ease-in-out infinite;
       filter: drop-shadow(0 28px 42px rgba(226, 90, 22, 0.22));
     }
 
+    .pet-core::before,
+    .pet-core::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .pet-core::before {
+      inset: 30px;
+      border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--element-glow) 78%, white 22%), transparent 70%);
+      filter: blur(18px);
+    }
+
+    .pet-core::after {
+      inset: 28px 18px 62px;
+      border-radius: 48px;
+      background:
+        linear-gradient(
+          115deg,
+          transparent 0 18%,
+          color-mix(in srgb, var(--element-accent) 88%, white 12%) 40%,
+          color-mix(in srgb, var(--element-mid) 86%, white 14%) 52%,
+          transparent 76%
+        );
+      mix-blend-mode: screen;
+      transform: translateX(-28%) rotate(-12deg) scale(0.82);
+    }
+
+    .pet-core.is-element-shifting::before {
+      animation: element-shift-flash 860ms ease-out;
+    }
+
+    .pet-core.is-element-shifting::after {
+      animation: element-shift-sweep 860ms ease-out;
+    }
+
+    .pet-wrap.is-element-shifting .pet-energy-ring {
+      opacity: 0.68;
+      transform: scale(1.05);
+    }
+
+    .pet-wrap.is-element-shifting .pet-tail-flame {
+      filter: brightness(1.16);
+    }
+
     .pet-core.is-happy {
-      transform: translateY(-8px) scale(1.03);
+      transform: translateY(-8px) scale(calc(var(--stage-zoom) * 1.03));
       filter: drop-shadow(0 34px 50px rgba(226, 90, 22, 0.3));
     }
 
@@ -486,58 +607,93 @@
     }
 
     .pet-core[data-stage="1"] {
-      --body-scale: 0.92;
+      --stage-zoom: 0.76;
+      --body-scale: 0.9;
+      --body-lift: 8px;
+      --head-scale: 1.1;
+      --head-y: -2px;
       --horn-scale: 0;
       --horn-opacity: 0;
       --wing-scale: 0;
       --wing-opacity: 0;
+      --wing-top: 126px;
       --armor-opacity: 0;
       --crown-opacity: 0;
       --spark-opacity: 0.14;
+      --tail-scale: 0.86;
+      --tail-rotate: 20deg;
     }
 
     .pet-core[data-stage="2"] {
-      --body-scale: 1;
+      --stage-zoom: 0.92;
+      --body-scale: 0.98;
+      --body-lift: 2px;
+      --head-scale: 1.04;
+      --head-y: -1px;
       --horn-scale: 0.62;
       --horn-opacity: 0.9;
       --wing-scale: 0;
       --wing-opacity: 0;
+      --wing-top: 118px;
       --armor-opacity: 0;
       --crown-opacity: 0;
       --spark-opacity: 0.26;
+      --tail-scale: 0.98;
+      --tail-rotate: 24deg;
     }
 
     .pet-core[data-stage="3"] {
-      --body-scale: 1.04;
-      --horn-scale: 0.88;
+      --stage-zoom: 1.08;
+      --body-scale: 1.06;
+      --body-lift: -4px;
+      --head-scale: 0.98;
+      --head-y: -4px;
+      --horn-scale: 0.96;
       --horn-opacity: 1;
-      --wing-scale: 0.82;
-      --wing-opacity: 0.82;
-      --armor-opacity: 0.22;
+      --wing-scale: 0.98;
+      --wing-opacity: 0.9;
+      --wing-top: 98px;
+      --armor-opacity: 0.28;
       --crown-opacity: 0;
       --spark-opacity: 0.4;
+      --tail-scale: 1.08;
+      --tail-rotate: 28deg;
     }
 
     .pet-core[data-stage="4"] {
-      --body-scale: 1.08;
-      --horn-scale: 1;
+      --stage-zoom: 1.22;
+      --body-scale: 1.12;
+      --body-lift: -10px;
+      --head-scale: 0.95;
+      --head-y: -6px;
+      --horn-scale: 1.08;
       --horn-opacity: 1;
-      --wing-scale: 1;
+      --wing-scale: 1.16;
       --wing-opacity: 0.94;
-      --armor-opacity: 0.7;
+      --wing-top: 86px;
+      --armor-opacity: 0.78;
       --crown-opacity: 0;
       --spark-opacity: 0.56;
+      --tail-scale: 1.18;
+      --tail-rotate: 30deg;
     }
 
     .pet-core[data-stage="5"] {
-      --body-scale: 1.12;
-      --horn-scale: 1.12;
+      --stage-zoom: 1.36;
+      --body-scale: 1.18;
+      --body-lift: -18px;
+      --head-scale: 0.92;
+      --head-y: -10px;
+      --horn-scale: 1.18;
       --horn-opacity: 1;
-      --wing-scale: 1.14;
+      --wing-scale: 1.28;
       --wing-opacity: 1;
+      --wing-top: 74px;
       --armor-opacity: 1;
       --crown-opacity: 1;
       --spark-opacity: 0.78;
+      --tail-scale: 1.28;
+      --tail-rotate: 34deg;
     }
 
     .pet-core[data-mode="rest"] .pet-eye {
@@ -546,7 +702,7 @@
 
     .pet-core[data-mode="hungry"] .pet-head,
     .pet-core[data-mode="evolve"] .pet-head {
-      transform: translateX(-50%) translateY(-4px) rotate(-2deg);
+      transform: translateX(-50%) translateY(calc(var(--head-y) - 4px)) scale(var(--head-scale)) rotate(-2deg);
     }
 
     .pet-core[data-mode="complete"] .pet-wing,
@@ -593,7 +749,7 @@
 
     .pet-wrap[data-mode="ready"] .pet-tail-flame {
       animation-duration: 0.96s;
-      box-shadow: 0 0 34px rgba(255, 170, 42, 0.56);
+      box-shadow: 0 0 34px color-mix(in srgb, var(--element-ring-bloom) 85%, white 15%);
     }
 
     .pet-wrap[data-mode="ready"] .pet-energy-ring {
@@ -607,7 +763,7 @@
     }
 
     .pet-wrap[data-mode="hungry"] .pet-head {
-      transform: translateX(-50%) translateY(-8px) rotate(-4deg);
+      transform: translateX(-50%) translateY(calc(var(--head-y) - 8px)) scale(var(--head-scale)) rotate(-4deg);
     }
 
     .pet-wrap[data-mode="hungry"] .pet-tail {
@@ -623,8 +779,8 @@
       opacity: 0.62;
       transform: scale(1.02);
       box-shadow:
-        0 0 0 12px rgba(255, 193, 84, 0.1),
-        0 0 36px rgba(255, 123, 53, 0.18);
+        0 0 0 12px color-mix(in srgb, var(--element-ring-shadow) 90%, transparent),
+        0 0 36px color-mix(in srgb, var(--element-ring-bloom) 88%, transparent);
     }
 
     .pet-wrap[data-mode="evolve"] .pet-core {
@@ -641,8 +797,8 @@
       opacity: 1;
       transform: scale(1.08);
       box-shadow:
-        0 0 0 14px rgba(79, 170, 255, 0.14),
-        0 0 42px rgba(107, 196, 255, 0.32);
+        0 0 0 14px color-mix(in srgb, var(--element-ring-shadow) 95%, transparent),
+        0 0 42px color-mix(in srgb, var(--element-ring-bloom) 94%, white 6%);
       animation-duration: 2s;
     }
 
@@ -674,9 +830,9 @@
       width: 18px;
       height: 18px;
       border-radius: 4px 50% 50% 50%;
-      background: linear-gradient(160deg, rgba(255, 250, 199, 0.95), rgba(255, 193, 56, 0.85));
+      background: linear-gradient(160deg, var(--spark-light), var(--spark-deep));
       opacity: var(--spark-opacity);
-      box-shadow: 0 0 16px rgba(255, 196, 82, 0.4);
+      box-shadow: 0 0 16px var(--spark-shadow);
       animation: spark-float 3s ease-in-out infinite;
     }
 
@@ -704,7 +860,7 @@
       bottom: 62px;
       width: 108px;
       height: 52px;
-      transform: rotate(26deg) scaleX(var(--tail-scale));
+      transform: rotate(var(--tail-rotate)) scaleX(var(--tail-scale));
       transform-origin: left center;
       animation: tail-sway 3s ease-in-out infinite;
     }
@@ -713,7 +869,7 @@
       position: absolute;
       inset: 0;
       border-radius: 0 999px 999px 999px;
-      background: linear-gradient(180deg, #f06629, #b93b12);
+      background: linear-gradient(180deg, var(--element-mid), var(--element-deep));
     }
 
     .pet-tail-flame {
@@ -725,19 +881,19 @@
       border-radius: 50% 50% 50% 0;
       transform: rotate(24deg);
       background:
-        radial-gradient(circle at 38% 38%, #fff6cf, transparent 24%),
-        linear-gradient(180deg, #ffd45e, #ff8c2d 56%, #ef4c16);
-      box-shadow: 0 0 26px rgba(255, 170, 42, 0.48);
+        radial-gradient(circle at 38% 38%, rgba(255, 255, 255, 0.9), transparent 24%),
+        linear-gradient(180deg, var(--element-accent), var(--element-mid) 56%, var(--element-deep));
+      box-shadow: 0 0 26px var(--element-ring-bloom);
       animation: flame-flicker 1.3s ease-in-out infinite;
     }
 
     .pet-wing {
       position: absolute;
-      top: 112px;
+      top: var(--wing-top);
       width: 110px;
       height: 146px;
       background:
-        linear-gradient(180deg, rgba(255, 236, 195, 0.9), rgba(255, 176, 71, 0.96) 52%, rgba(231, 90, 29, 0.98));
+        linear-gradient(180deg, var(--wing-light), var(--wing-mid) 52%, var(--wing-deep));
       clip-path: polygon(0 0, 100% 22%, 86% 100%, 18% 78%, 0 42%);
       opacity: var(--wing-opacity);
       box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.24);
@@ -762,11 +918,11 @@
       bottom: 48px;
       width: 178px;
       height: 182px;
-      transform: translateX(-50%) scale(var(--body-scale));
+      transform: translateX(-50%) translateY(var(--body-lift)) scale(var(--body-scale));
       border-radius: 48% 48% 40% 40%;
       background:
         radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.5), transparent 18%),
-        linear-gradient(180deg, #ffba58, #ff7b35 55%, #d94c18);
+        linear-gradient(180deg, var(--element-main), var(--element-mid) 55%, var(--element-deep));
       box-shadow:
         inset 0 10px 18px rgba(255, 255, 255, 0.22),
         0 20px 34px rgba(175, 58, 12, 0.16);
@@ -793,7 +949,7 @@
       transform: translateX(-50%);
       border-radius: 44% 44% 52% 52%;
       background:
-        linear-gradient(180deg, rgba(255, 240, 205, 0.96), rgba(255, 197, 77, 0.92) 52%, rgba(248, 103, 47, 0.94));
+        linear-gradient(180deg, var(--armor-light), var(--armor-mid) 52%, var(--armor-deep));
       border: 2px solid rgba(255, 255, 255, 0.34);
       box-shadow: 0 10px 16px rgba(126, 60, 8, 0.12);
       opacity: var(--armor-opacity);
@@ -825,11 +981,11 @@
       top: -28px;
       width: 136px;
       height: 120px;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateY(var(--head-y)) scale(var(--head-scale));
       border-radius: 50% 50% 44% 44%;
       background:
         radial-gradient(circle at 36% 24%, rgba(255, 255, 255, 0.54), transparent 18%),
-        linear-gradient(180deg, #ffb85e, #ff7c37 60%, #e25521);
+        linear-gradient(180deg, var(--element-main), var(--element-mid) 60%, var(--element-deep));
       box-shadow:
         inset 0 8px 14px rgba(255, 255, 255, 0.2),
         0 12px 22px rgba(174, 60, 11, 0.16);
@@ -895,7 +1051,7 @@
       width: 10px;
       height: 14px;
       border-radius: 999px;
-      background: linear-gradient(180deg, #3a2417, #1f1410);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--element-deep) 60%, #3a2417), #1f1410);
     }
 
     .pet-eye::after {
@@ -940,7 +1096,7 @@
       width: 24px;
       height: 38px;
       border-radius: 70% 70% 0 100%;
-      background: linear-gradient(180deg, #ffeeb8, #ffc44d 64%, #f47c22);
+      background: linear-gradient(180deg, #fff4d8, var(--element-accent) 64%, var(--element-mid));
       box-shadow: inset 0 4px 6px rgba(255, 255, 255, 0.22);
       opacity: var(--horn-opacity);
     }
@@ -975,8 +1131,211 @@
       bottom: 0;
       width: 14px;
       height: 22px;
-      background: linear-gradient(180deg, #fff6c5, #ffc85c 68%, #f26f20);
+      background: linear-gradient(180deg, #fff6c5, var(--element-accent) 68%, var(--element-mid));
       clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    }
+
+    .pet-wrap[data-element="fire"] {
+      --element-main: #ffb85e;
+      --element-mid: #ff7c37;
+      --element-deep: #d94c18;
+      --element-soft: #fff0cb;
+      --element-accent: #ffd35d;
+      --element-glow: rgba(255, 196, 82, 0.54);
+      --element-glow-soft: rgba(255, 196, 82, 0.08);
+      --element-ring: rgba(255, 226, 164, 0.34);
+      --element-ring-shadow: rgba(255, 193, 84, 0.08);
+      --element-ring-bloom: rgba(255, 169, 54, 0.18);
+      --element-disc: rgba(73, 45, 18, 0.24);
+      --spark-light: rgba(255, 250, 199, 0.95);
+      --spark-deep: rgba(255, 193, 56, 0.85);
+      --spark-shadow: rgba(255, 196, 82, 0.4);
+      --wing-light: rgba(255, 236, 195, 0.9);
+      --wing-mid: rgba(255, 176, 71, 0.96);
+      --wing-deep: rgba(231, 90, 29, 0.98);
+      --armor-light: rgba(255, 240, 205, 0.96);
+      --armor-mid: rgba(255, 197, 77, 0.92);
+      --armor-deep: rgba(248, 103, 47, 0.94);
+    }
+
+    .pet-wrap[data-element="fire"] .pet-tail-flame {
+      animation-duration: 1.1s;
+    }
+
+    .pet-wrap[data-element="water"] {
+      --element-main: #9dd7ff;
+      --element-mid: #55b8ff;
+      --element-deep: #2c6dca;
+      --element-soft: #eff8ff;
+      --element-accent: #d7f4ff;
+      --element-glow: rgba(122, 216, 255, 0.52);
+      --element-glow-soft: rgba(122, 216, 255, 0.08);
+      --element-ring: rgba(182, 232, 255, 0.38);
+      --element-ring-shadow: rgba(107, 196, 255, 0.12);
+      --element-ring-bloom: rgba(87, 180, 255, 0.18);
+      --element-disc: rgba(34, 74, 138, 0.24);
+      --spark-light: rgba(241, 252, 255, 0.96);
+      --spark-deep: rgba(115, 214, 255, 0.86);
+      --spark-shadow: rgba(93, 186, 255, 0.34);
+      --wing-light: rgba(239, 250, 255, 0.94);
+      --wing-mid: rgba(140, 218, 255, 0.94);
+      --wing-deep: rgba(63, 136, 237, 0.96);
+      --armor-light: rgba(233, 247, 255, 0.96);
+      --armor-mid: rgba(141, 214, 255, 0.92);
+      --armor-deep: rgba(84, 144, 230, 0.94);
+    }
+
+    .pet-wrap[data-element="water"] {
+      --element-ring-style: dashed;
+    }
+
+    .pet-wrap[data-element="water"] .pet-tail-flame {
+      border-radius: 60% 60% 68% 68%;
+      transform: rotate(14deg) scale(1.08);
+      background:
+        radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.94), transparent 22%),
+        linear-gradient(180deg, #effcff, #97e2ff 56%, #2d80da);
+      box-shadow: 0 0 24px rgba(93, 186, 255, 0.26);
+    }
+
+    .pet-wrap[data-element="water"] .pet-spark {
+      border-radius: 999px;
+      filter: blur(0.35px);
+    }
+
+    .pet-wrap[data-element="wood"] {
+      --element-main: #a4d66d;
+      --element-mid: #59ae58;
+      --element-deep: #247748;
+      --element-soft: #eff8dc;
+      --element-accent: #d9ec9a;
+      --element-glow: rgba(127, 223, 122, 0.48);
+      --element-glow-soft: rgba(127, 223, 122, 0.08);
+      --element-ring: rgba(192, 241, 177, 0.38);
+      --element-ring-shadow: rgba(126, 212, 121, 0.12);
+      --element-ring-bloom: rgba(87, 182, 108, 0.16);
+      --element-disc: rgba(34, 82, 52, 0.22);
+      --spark-light: rgba(247, 255, 232, 0.96);
+      --spark-deep: rgba(142, 223, 102, 0.88);
+      --spark-shadow: rgba(89, 176, 92, 0.3);
+      --wing-light: rgba(244, 255, 231, 0.92);
+      --wing-mid: rgba(154, 227, 128, 0.94);
+      --wing-deep: rgba(63, 158, 89, 0.96);
+      --armor-light: rgba(239, 252, 227, 0.96);
+      --armor-mid: rgba(164, 222, 131, 0.92);
+      --armor-deep: rgba(91, 158, 93, 0.94);
+    }
+
+    .pet-wrap[data-element="wood"] .pet-tail-flame {
+      border-radius: 0;
+      clip-path: polygon(50% 0, 88% 18%, 100% 68%, 54% 100%, 0 74%, 16% 22%);
+      transform: rotate(18deg) scale(1.08);
+      background:
+        radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.9), transparent 18%),
+        linear-gradient(180deg, #f1ffd9, #7fd56d 54%, #2b8a50);
+      box-shadow: 0 0 24px rgba(87, 182, 108, 0.24);
+    }
+
+    .pet-wrap[data-element="wood"] .pet-spark {
+      border-radius: 0 70% 0 70%;
+    }
+
+    .pet-wrap[data-element="wood"] .pet-wing {
+      box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, 0.24),
+        0 0 0 1px rgba(126, 212, 121, 0.2);
+    }
+
+    .pet-wrap[data-element="earth"] {
+      --element-main: #d2a261;
+      --element-mid: #aa6d35;
+      --element-deep: #6f4221;
+      --element-soft: #f5ead3;
+      --element-accent: #efd18e;
+      --element-glow: rgba(214, 165, 99, 0.44);
+      --element-glow-soft: rgba(214, 165, 99, 0.08);
+      --element-ring: rgba(238, 204, 141, 0.32);
+      --element-ring-shadow: rgba(179, 131, 72, 0.1);
+      --element-ring-bloom: rgba(161, 101, 49, 0.16);
+      --element-disc: rgba(66, 44, 22, 0.26);
+      --spark-light: rgba(255, 244, 215, 0.94);
+      --spark-deep: rgba(212, 154, 82, 0.84);
+      --spark-shadow: rgba(153, 102, 45, 0.3);
+      --wing-light: rgba(244, 225, 190, 0.9);
+      --wing-mid: rgba(194, 141, 78, 0.94);
+      --wing-deep: rgba(122, 74, 38, 0.96);
+      --armor-light: rgba(242, 227, 198, 0.96);
+      --armor-mid: rgba(201, 149, 91, 0.92);
+      --armor-deep: rgba(136, 82, 43, 0.94);
+    }
+
+    .pet-wrap[data-element="earth"] {
+      --element-ring-width: 3px;
+    }
+
+    .pet-wrap[data-element="earth"] .pet-tail-flame {
+      border-radius: 12px 12px 8px 8px;
+      clip-path: polygon(50% 0, 86% 22%, 100% 100%, 0 100%, 14% 22%);
+      transform: rotate(10deg) scale(1.04);
+      background:
+        radial-gradient(circle at 38% 24%, rgba(255, 246, 223, 0.88), transparent 16%),
+        linear-gradient(180deg, #f4dfb7, #c58547 52%, #794727);
+      box-shadow: 0 0 18px rgba(153, 102, 45, 0.22);
+    }
+
+    .pet-wrap[data-element="earth"] .pet-spark {
+      border-radius: 6px;
+    }
+
+    .pet-wrap[data-element="earth"] .pet-armor {
+      border-width: 3px;
+      box-shadow: 0 12px 22px rgba(98, 58, 24, 0.18);
+    }
+
+    .pet-wrap[data-element="metal"] {
+      --element-main: #f5f9ff;
+      --element-mid: #aebbd3;
+      --element-deep: #5e6786;
+      --element-soft: #f7fbff;
+      --element-accent: #ffe88f;
+      --element-glow: rgba(167, 204, 255, 0.48);
+      --element-glow-soft: rgba(167, 204, 255, 0.08);
+      --element-ring: rgba(210, 227, 255, 0.38);
+      --element-ring-shadow: rgba(113, 175, 255, 0.12);
+      --element-ring-bloom: rgba(99, 151, 255, 0.18);
+      --element-disc: rgba(42, 56, 82, 0.24);
+      --spark-light: rgba(255, 252, 227, 0.96);
+      --spark-deep: rgba(124, 185, 255, 0.88);
+      --spark-shadow: rgba(95, 137, 255, 0.34);
+      --wing-light: rgba(255, 252, 226, 0.94);
+      --wing-mid: rgba(213, 224, 245, 0.94);
+      --wing-deep: rgba(109, 123, 173, 0.96);
+      --armor-light: rgba(255, 248, 214, 0.96);
+      --armor-mid: rgba(207, 220, 244, 0.92);
+      --armor-deep: rgba(103, 119, 174, 0.94);
+    }
+
+    .pet-wrap[data-element="metal"] {
+      --element-ring-style: double;
+      --element-ring-width: 3px;
+    }
+
+    .pet-wrap[data-element="metal"] .pet-tail-flame {
+      border-radius: 0;
+      clip-path: polygon(50% 0, 92% 18%, 68% 100%, 32% 100%, 8% 18%);
+      transform: rotate(8deg) scale(1.12);
+      background:
+        radial-gradient(circle at 40% 24%, rgba(255, 255, 255, 0.96), transparent 18%),
+        linear-gradient(180deg, #fff8c8, #dce7ff 52%, #7b94d7);
+      box-shadow: 0 0 24px rgba(99, 151, 255, 0.28);
+    }
+
+    .pet-wrap[data-element="metal"] .pet-spark {
+      border-radius: 999px 4px 999px 4px;
+    }
+
+    .pet-wrap[data-element="metal"] .pet-horn {
+      clip-path: polygon(50% 0, 100% 100%, 28% 100%, 0 34%);
     }
 
     .pet-crown::before {
@@ -1028,18 +1387,29 @@
       position: absolute;
       left: 0;
       bottom: calc(100% + 12px);
-      width: 250px;
+      width: 276px;
       padding: 14px;
       border-radius: 22px;
       background: rgba(255, 252, 243, 0.94);
       border: 1px solid rgba(255, 255, 255, 0.96);
       box-shadow: 0 16px 30px rgba(41, 31, 17, 0.1);
       backdrop-filter: blur(12px);
+      display: grid;
+      gap: 10px;
       opacity: 0;
       pointer-events: none;
       transform: translateY(10px) scale(0.98);
       transform-origin: bottom left;
       transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .pet-evolution-card::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -12px;
+      height: 12px;
     }
 
     .pet-evolution-shell:hover .pet-evolution-card,
@@ -1062,6 +1432,141 @@
       color: var(--muted);
       font-size: 0.88rem;
       line-height: 1.45;
+    }
+
+    .pet-dex-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      align-items: start;
+    }
+
+    .pet-dex-node {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+    }
+
+    .pet-dex-stage {
+      font-size: 0.66rem;
+      font-weight: 900;
+      color: #927040;
+      letter-spacing: 0.04em;
+    }
+
+    .evolution-avatar.is-mini,
+    .evolution-lock.is-mini {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      margin: 0;
+    }
+
+    .evolution-avatar.is-mini {
+      box-shadow:
+        inset 0 6px 10px rgba(255, 255, 255, 0.2),
+        0 10px 18px rgba(226, 90, 22, 0.12);
+    }
+
+    .evolution-avatar.is-mini::before,
+    .evolution-avatar.is-mini::after {
+      top: 7px;
+      width: 10px;
+      height: 16px;
+    }
+
+    .evolution-avatar.is-mini::before {
+      left: 12px;
+    }
+
+    .evolution-avatar.is-mini::after {
+      right: 12px;
+    }
+
+    .evolution-avatar.is-mini.stage-1::before,
+    .evolution-avatar.is-mini.stage-1::after {
+      transform: scale(0.62) rotate(-26deg);
+    }
+
+    .evolution-avatar.is-mini .evolution-face {
+      width: 34px;
+      height: 32px;
+      box-shadow: inset 0 4px 7px rgba(255, 255, 255, 0.18);
+    }
+
+    .evolution-avatar.is-mini .evolution-face::before,
+    .evolution-avatar.is-mini .evolution-face::after {
+      top: 10px;
+      width: 7px;
+      height: 9px;
+    }
+
+    .evolution-avatar.is-mini .evolution-face::before {
+      left: 8px;
+    }
+
+    .evolution-avatar.is-mini .evolution-face::after {
+      right: 8px;
+    }
+
+    .evolution-avatar.is-mini .evolution-face .evo-eye-core {
+      top: 12px;
+      left: 10px;
+      width: 14px;
+      height: 8px;
+    }
+
+    .evolution-avatar.is-mini .evolution-face .evo-eye-core::before,
+    .evolution-avatar.is-mini .evolution-face .evo-eye-core::after {
+      width: 4px;
+      height: 6px;
+    }
+
+    .pet-dex-node .is-current {
+      box-shadow:
+        inset 0 6px 10px rgba(255, 255, 255, 0.2),
+        0 10px 18px rgba(226, 90, 22, 0.12),
+        0 0 0 2px rgba(255, 208, 114, 0.34);
+    }
+
+    .pet-dex-copy {
+      margin: 0;
+      color: #7b6752;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .growth-gallery-link {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: #7a531a;
+      font-size: 0.84rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 160ms ease, color 160ms ease, opacity 160ms ease;
+    }
+
+    .growth-gallery-link::after {
+      content: "→";
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    .growth-gallery-link:hover,
+    .growth-gallery-link:focus-visible {
+      transform: translateX(2px);
+      color: #28447f;
+    }
+
+    .growth-gallery-link:focus-visible {
+      outline: 2px solid rgba(255, 217, 112, 0.9);
+      outline-offset: 3px;
+      border-radius: 8px;
     }
 
     .crystal-row {
@@ -1108,32 +1613,245 @@
       filter: brightness(1.03);
     }
 
-    .pet-gallery-trigger {
+    .pet-feed-shortcut {
       position: absolute;
       right: 6px;
       bottom: 0;
       z-index: 2;
-      min-width: 118px;
+      width: auto;
+      min-width: 84px;
       border-radius: 14px;
-      border: 1px solid rgba(44, 81, 156, 0.16);
-      padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.78);
-      color: #28447f;
-      font-weight: 900;
-      letter-spacing: 0.02em;
-      cursor: pointer;
-      transition: transform 160ms ease, background 160ms ease;
+      padding: 10px 10px;
+      white-space: nowrap;
+      letter-spacing: 0;
+      background: linear-gradient(180deg, rgba(30, 205, 184, 0.98), rgba(14, 164, 146, 0.96));
+      box-shadow: 0 14px 24px rgba(14, 164, 146, 0.24);
     }
 
-    .pet-gallery-trigger:hover,
-    .pet-gallery-trigger:focus-visible {
-      transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.9);
+    .pet-feed-shortcut:disabled {
+      box-shadow: none;
     }
 
-    .pet-gallery-trigger:focus-visible {
+    .pet-feed-shortcut:not(:disabled) {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .pet-feed-shortcut.is-empty {
+      background: linear-gradient(180deg, rgba(155, 172, 166, 0.94), rgba(109, 128, 124, 0.92));
+    }
+
+    .pet-feed-shortcut.is-empty:hover,
+    .pet-feed-shortcut.is-empty:focus-visible {
+      filter: none;
+      transform: none;
+    }
+
+    .pet-feed-shortcut:focus-visible {
       outline: 2px solid rgba(255, 217, 112, 0.9);
       outline-offset: 3px;
+    }
+
+    .element-switcher {
+      position: absolute;
+      right: 14px;
+      top: 54px;
+      z-index: 4;
+      width: 116px;
+      min-height: 52px;
+    }
+
+    .element-core-button {
+      min-width: 112px;
+      border: 0;
+      border-radius: 18px;
+      padding: 10px 14px;
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 232, 211, 0.92));
+      color: #38435e;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      box-shadow: 0 16px 28px rgba(43, 30, 18, 0.14);
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+    }
+
+    .element-core-button:hover,
+    .element-core-button:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 30px rgba(43, 30, 18, 0.18);
+      filter: brightness(1.03);
+    }
+
+    .element-core-button:focus-visible {
+      outline: 2px solid rgba(255, 217, 112, 0.9);
+      outline-offset: 3px;
+    }
+
+    .element-core-button::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--element-accent), var(--element-mid));
+      box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--element-ring-bloom) 65%, transparent),
+        0 0 18px var(--element-ring-bloom);
+    }
+
+    .element-orbit {
+      position: absolute;
+      right: -8px;
+      top: 34px;
+      width: 228px;
+      height: 238px;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.94);
+      transform-origin: top right;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .element-switcher.is-open .element-orbit,
+    .element-switcher:focus-within .element-orbit {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .element-chip {
+      position: absolute;
+      min-width: 78px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
+      padding: 9px 10px 8px;
+      display: grid;
+      justify-items: center;
+      gap: 3px;
+      background: rgba(255, 255, 255, 0.88);
+      color: #44506a;
+      font-weight: 900;
+      text-align: center;
+      box-shadow: 0 12px 20px rgba(45, 31, 15, 0.08);
+      cursor: pointer;
+      transition: transform 160ms ease, background 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+    }
+
+    .element-chip:hover,
+    .element-chip:focus-visible {
+      transform: translateY(-2px) scale(1.03);
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 15px 24px rgba(45, 31, 15, 0.12);
+    }
+
+    .element-chip:focus-visible {
+      outline: 2px solid rgba(255, 217, 112, 0.9);
+      outline-offset: 3px;
+    }
+
+    .element-chip::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--element-accent), var(--element-mid));
+      box-shadow: 0 0 12px var(--element-ring-bloom);
+      flex: 0 0 auto;
+    }
+
+    .element-chip[data-element="fire"]::before {
+      background: linear-gradient(180deg, #ffe687, #ff7c37);
+      box-shadow: 0 0 12px rgba(255, 131, 51, 0.34);
+    }
+
+    .element-chip[data-element="water"]::before {
+      background: linear-gradient(180deg, #e8fbff, #4eb8ff);
+      box-shadow: 0 0 12px rgba(98, 197, 255, 0.34);
+    }
+
+    .element-chip[data-element="wood"]::before {
+      background: linear-gradient(180deg, #f1ffd4, #4dab63);
+      box-shadow: 0 0 12px rgba(90, 183, 101, 0.3);
+    }
+
+    .element-chip[data-element="earth"]::before {
+      background: linear-gradient(180deg, #f7e4bc, #9d6330);
+      box-shadow: 0 0 12px rgba(164, 108, 53, 0.3);
+    }
+
+    .element-chip[data-element="metal"]::before {
+      background: linear-gradient(180deg, #fff3ba, #7ba6ff);
+      box-shadow: 0 0 12px rgba(110, 160, 255, 0.34);
+    }
+
+    .element-chip.is-active,
+    .element-chip[data-state="active"] {
+      background: linear-gradient(180deg, rgba(255, 249, 231, 0.98), rgba(245, 237, 221, 0.96));
+      color: #1e2f58;
+      box-shadow:
+        0 14px 26px rgba(45, 31, 15, 0.14),
+        0 0 0 2px rgba(255, 214, 114, 0.26);
+    }
+
+    .element-chip.is-locked,
+    .element-chip[disabled],
+    .element-chip[data-state="locked"] {
+      opacity: 0.66;
+      filter: saturate(0.55);
+      cursor: default;
+    }
+
+    .element-chip.is-locked:hover,
+    .element-chip[disabled]:hover,
+    .element-chip[data-state="locked"]:hover {
+      transform: none;
+      box-shadow: 0 12px 20px rgba(45, 31, 15, 0.08);
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .element-chip-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      line-height: 1;
+    }
+
+    .element-lock-note {
+      font-size: 0.7rem;
+      color: #8b7a63;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    .element-orbit .element-chip:nth-child(1) {
+      right: 20px;
+      top: 6px;
+    }
+
+    .element-orbit .element-chip:nth-child(2) {
+      right: 104px;
+      top: 26px;
+    }
+
+    .element-orbit .element-chip:nth-child(3) {
+      right: 144px;
+      top: 86px;
+    }
+
+    .element-orbit .element-chip:nth-child(4) {
+      right: 124px;
+      top: 150px;
+    }
+
+    .element-orbit .element-chip:nth-child(5) {
+      right: 52px;
+      top: 194px;
     }
 
     .bottom-growth-panel {
@@ -1302,6 +2020,35 @@
       100% {
         transform: translateY(0) scale(1);
         filter: drop-shadow(0 28px 42px rgba(226, 90, 22, 0.22));
+      }
+    }
+
+    @keyframes element-shift-flash {
+      0% {
+        opacity: 0;
+        transform: scale(0.72);
+      }
+      28% {
+        opacity: 0.78;
+        transform: scale(1.02);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.22);
+      }
+    }
+
+    @keyframes element-shift-sweep {
+      0% {
+        opacity: 0;
+        transform: translateX(-28%) rotate(-12deg) scale(0.82);
+      }
+      24% {
+        opacity: 0.92;
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(32%) rotate(-12deg) scale(1.08);
       }
     }
 
@@ -1718,6 +2465,11 @@
       box-shadow: 0 14px 24px rgba(14, 164, 146, 0.24);
     }
 
+    .feed-button.pet-feed-shortcut {
+      width: auto;
+      padding: 10px 10px;
+    }
+
     .growth-track {
       height: 22px;
       border-radius: 999px;
@@ -1791,7 +2543,8 @@
     .bottom-growth-side {
       display: grid;
       justify-items: end;
-      align-content: center;
+      align-content: start;
+      gap: 12px;
       position: relative;
       z-index: 1;
     }
@@ -1944,9 +2697,9 @@
       border: 1px solid rgba(255, 255, 255, 0.92);
       box-shadow: 0 12px 22px rgba(50, 34, 17, 0.07);
       text-align: center;
-      min-height: 290px;
+      min-height: 330px;
       display: grid;
-      grid-template-rows: auto auto auto 1fr;
+      grid-template-rows: auto auto auto 1fr auto;
       gap: 10px;
     }
 
@@ -2127,6 +2880,81 @@
       line-height: 1.45;
     }
 
+    .element-unlock-row {
+      margin-top: 2px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      justify-items: center;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(150, 122, 82, 0.2);
+    }
+
+    .element-unlock-title {
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #8f6a2c;
+    }
+
+    .element-badge {
+      min-width: 76px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.96);
+      color: #354a72;
+      font-size: 0.78rem;
+      font-weight: 900;
+      box-shadow: 0 10px 16px rgba(45, 31, 15, 0.06);
+    }
+
+    .element-badge-icon {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #ffe687, #ff7c37);
+      box-shadow: 0 0 10px rgba(255, 131, 51, 0.28);
+      flex: 0 0 auto;
+    }
+
+    .element-badge[data-element="water"] .element-badge-icon {
+      background: linear-gradient(180deg, #e8fbff, #4eb8ff);
+      box-shadow: 0 0 10px rgba(98, 197, 255, 0.28);
+    }
+
+    .element-badge[data-element="wood"] .element-badge-icon {
+      background: linear-gradient(180deg, #f1ffd4, #4dab63);
+      box-shadow: 0 0 10px rgba(90, 183, 101, 0.24);
+    }
+
+    .element-badge[data-element="earth"] .element-badge-icon {
+      background: linear-gradient(180deg, #f7e4bc, #9d6330);
+      box-shadow: 0 0 10px rgba(164, 108, 53, 0.24);
+    }
+
+    .element-badge[data-element="metal"] .element-badge-icon {
+      background: linear-gradient(180deg, #fff3ba, #7ba6ff);
+      box-shadow: 0 0 10px rgba(110, 160, 255, 0.28);
+    }
+
+    .element-badge.is-active {
+      color: #1f3663;
+      box-shadow:
+        0 12px 18px rgba(45, 31, 15, 0.1),
+        0 0 0 2px rgba(255, 214, 114, 0.24);
+    }
+
+    .element-badge.is-locked {
+      opacity: 0.58;
+      filter: saturate(0.4);
+    }
+
     .evolution-modal-summary {
       margin-top: 18px;
       display: grid;
@@ -2201,8 +3029,15 @@
         justify-items: start;
       }
 
-      .pet-gallery-trigger {
+      .element-switcher {
         position: static;
+        width: 100%;
+        margin-bottom: 8px;
+      }
+
+      .pet-feed-shortcut {
+        position: static;
+        width: auto;
         justify-self: end;
       }
 
@@ -2217,6 +3052,40 @@
 
       .pet-wrap {
         gap: 12px;
+      }
+
+      .element-orbit {
+        position: static;
+        right: auto;
+        top: auto;
+        width: min(100%, 320px);
+        height: auto;
+        max-height: 0;
+        margin-top: 0;
+        overflow: hidden;
+        display: grid;
+        gap: 8px;
+        justify-items: stretch;
+      }
+
+      .element-switcher.is-open .element-orbit,
+      .element-switcher:focus-within .element-orbit {
+        max-height: 320px;
+        margin-top: 10px;
+      }
+
+      .element-chip,
+      .element-core-button {
+        width: 100%;
+      }
+
+      .element-chip {
+        position: static;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left;
       }
 
       .evolution-rail {
@@ -2257,10 +3126,6 @@
         padding: 16px;
       }
 
-      .stage-copy h2 {
-        font-size: 1.8rem;
-      }
-
       .task-foot {
         flex-direction: column;
         align-items: stretch;
@@ -2282,6 +3147,14 @@
         padding: 8px 12px;
       }
 
+      .element-switcher {
+        min-height: 0;
+      }
+
+      .pet-feed-shortcut {
+        width: auto;
+      }
+
       .evolution-modal-panel {
         padding: 18px 16px 16px;
       }
@@ -2297,6 +3170,10 @@
       .task-button,
       .feed-button {
         width: 100%;
+      }
+
+      .feed-button.pet-feed-shortcut {
+        width: auto;
       }
     }
   </style>
@@ -2336,22 +3213,16 @@
         <div class="stage-top">
           <div class="badge-stack">
             <div class="season-chip" id="selectedDayLabel">周一作战日</div>
-            <div class="world-chip">PK 世界</div>
           </div>
         </div>
 
-        <div class="stage-copy">
-          <h2 id="stageTitle">今日出征</h2>
-          <p class="is-helper-copy" id="stageDescription">先挑一项做，不用按顺序。每完成一个委托，就能拿到能量食物喂给伙伴。</p>
-        </div>
-
         <div class="pet-stage">
-          <div class="pet-wrap">
+          <div class="pet-wrap" data-element="fire">
             <div class="pet-stage-tag" id="petMoodTag">待命</div>
             <div class="pet-aura"></div>
             <div class="pet-disc"></div>
             <div class="pet-energy-ring" aria-hidden="true"></div>
-            <div class="pet-core" id="petCore" data-stage="2" data-mode="idle" aria-label="可进化龙伙伴">
+            <div class="pet-core" id="petCore" data-stage="2" data-mode="idle" data-element="fire" aria-label="可进化龙伙伴">
               <div class="pet-spark pet-spark-one"></div>
               <div class="pet-spark pet-spark-two"></div>
               <div class="pet-spark pet-spark-three"></div>
@@ -2379,6 +3250,39 @@
                 </div>
               </div>
             </div>
+            <div class="element-switcher" id="elementSwitcher">
+              <button
+                class="element-core-button"
+                id="elementCoreButton"
+                type="button"
+                aria-expanded="false"
+                aria-controls="elementOrbit"
+              >
+                <span id="elementCoreLabel">火系核心</span>
+              </button>
+              <div class="element-orbit" id="elementOrbit">
+                <button class="element-chip is-active" type="button" data-element="fire" data-state="active">
+                  <span class="element-chip-label">火系</span>
+                  <span class="element-lock-note">火系激活</span>
+                </button>
+                <button class="element-chip" type="button" data-element="water" data-state="unlocked">
+                  <span class="element-chip-label">水系</span>
+                  <span class="element-lock-note">免费切换</span>
+                </button>
+                <button class="element-chip" type="button" data-element="wood" data-state="locked">
+                  <span class="element-chip-label">木系</span>
+                  <span class="element-lock-note">3阶解锁</span>
+                </button>
+                <button class="element-chip" type="button" data-element="earth" data-state="locked">
+                  <span class="element-chip-label">土系</span>
+                  <span class="element-lock-note">4阶解锁</span>
+                </button>
+                <button class="element-chip" type="button" data-element="metal" data-state="locked">
+                  <span class="element-chip-label">金系</span>
+                  <span class="element-lock-note">5阶解锁</span>
+                </button>
+              </div>
+            </div>
             <div class="pet-feedback" id="petFeedback" aria-live="polite"></div>
             <div class="pet-confetti" aria-hidden="true">
               <span></span>
@@ -2394,17 +3298,17 @@
                 aria-expanded="false"
                 aria-controls="petEvolutionCard"
               >
-                进化路线
+                进化
               </button>
               <div class="pet-evolution-card" id="petEvolutionCard">
-                <div class="overline">进化路线</div>
+                <div class="overline">伙伴成长</div>
                 <strong id="petStageName">炽角小龙</strong>
                 <p id="petEvolutionHint">差 10 成长 / 1 晶核</p>
                 <div class="crystal-row" id="crystalRow" aria-label="进化晶核进度"></div>
                 <button class="evolve-button" id="evolveButton" type="button" hidden>立即进化</button>
               </div>
             </div>
-            <button class="pet-gallery-trigger" id="openEvolutionGalleryButton" type="button">伙伴图鉴</button>
+            <button class="feed-button pet-feed-shortcut" id="petFeedShortcut" type="button">喂给伙伴</button>
           </div>
         </div>
         <section class="bottom-growth-panel">
@@ -2423,6 +3327,7 @@
           </div>
 
           <div class="bottom-growth-side">
+            <button class="growth-gallery-link" id="openEvolutionGalleryButton" type="button">伙伴图鉴</button>
             <div class="mini-badges">
               <span class="mini-badge">
                 <span class="mini-badge-label">Lv</span>
@@ -2595,6 +3500,7 @@
         level: 1,
         name: "火苗幼龙",
         description: "圆眼小火苗",
+        unlockElement: "fire",
         nextGrowth: 36,
         nextCrystals: 1
       },
@@ -2602,6 +3508,7 @@
         level: 2,
         name: "炽角小龙",
         description: "小角战宠",
+        unlockElement: "water",
         nextGrowth: 68,
         nextCrystals: 2
       },
@@ -2609,6 +3516,7 @@
         level: 3,
         name: "翼焰飞龙",
         description: "展开双翼",
+        unlockElement: "wood",
         nextGrowth: 84,
         nextCrystals: 3
       },
@@ -2616,6 +3524,7 @@
         level: 4,
         name: "烈焰守护龙",
         description: "披甲守护",
+        unlockElement: "earth",
         nextGrowth: 100,
         nextCrystals: 4
       },
@@ -2623,16 +3532,59 @@
         level: 5,
         name: "星焰龙王",
         description: "终极形态",
+        unlockElement: "metal",
         nextGrowth: null,
         nextCrystals: null
       }
     ];
+
+    const elementOrder = ["fire", "water", "wood", "earth", "metal"];
+
+    const elementMeta = {
+      fire: {
+        key: "fire",
+        name: "火系",
+        coreLabel: "火系核心",
+        activeCue: "火系激活",
+        unlockStage: 1
+      },
+      water: {
+        key: "water",
+        name: "水系",
+        coreLabel: "水系核心",
+        activeCue: "水系激活",
+        unlockStage: 2
+      },
+      wood: {
+        key: "wood",
+        name: "木系",
+        coreLabel: "木系核心",
+        activeCue: "木系激活",
+        unlockStage: 3
+      },
+      earth: {
+        key: "earth",
+        name: "土系",
+        coreLabel: "土系核心",
+        activeCue: "土系激活",
+        unlockStage: 4
+      },
+      metal: {
+        key: "metal",
+        name: "金系",
+        coreLabel: "金系核心",
+        activeCue: "金系激活",
+        unlockStage: 5
+      }
+    };
 
     const state = {
       selectedIndex: 2,
       rewardQueue: ["\u7559\u5B58\u679C\u5B9E"],
       growth: 58,
       level: 2,
+      activeElement: "fire",
+      unlockedElements: ["fire", "water"],
       streak: 4,
       crystals: 1,
       lastReward: "\u6628\u5929\u7559\u4E0B\u4E00\u4EFD\u8865\u7ED9",
@@ -2643,11 +3595,13 @@
 
     const dayStrip = document.getElementById("dayStrip");
     const selectedDayLabel = document.getElementById("selectedDayLabel");
-    const stageTitle = document.getElementById("stageTitle");
-    const stageDescription = document.getElementById("stageDescription");
     const petMoodTag = document.getElementById("petMoodTag");
     const petWrap = document.querySelector(".pet-wrap");
     const petCore = document.getElementById("petCore");
+    const elementSwitcher = document.getElementById("elementSwitcher");
+    const elementCoreButton = document.getElementById("elementCoreButton");
+    const elementCoreLabel = document.getElementById("elementCoreLabel");
+    const elementOrbit = document.getElementById("elementOrbit");
     const petFeedback = document.getElementById("petFeedback");
     const petEvolutionShell = document.getElementById("petEvolutionShell");
     const petEvolutionTrigger = document.getElementById("petEvolutionTrigger");
@@ -2656,6 +3610,7 @@
     const crystalRow = document.getElementById("crystalRow");
     const evolveButton = document.getElementById("evolveButton");
     const openEvolutionGalleryButton = document.getElementById("openEvolutionGalleryButton");
+    const petFeedShortcut = document.getElementById("petFeedShortcut");
     const evolutionModal = document.getElementById("evolutionModal");
     const closeEvolutionModalButton = document.getElementById("closeEvolutionModalButton");
     const evolutionRail = document.getElementById("evolutionRail");
@@ -2680,6 +3635,12 @@
     const progressValue = document.getElementById("progressValue");
     let petFeedbackTimer = 0;
     let evolutionCueTimer = 0;
+    let elementShiftTimer = 0;
+
+    function setElementSwitcherOpen(isOpen) {
+      elementSwitcher.classList.toggle("is-open", isOpen);
+      elementCoreButton.setAttribute("aria-expanded", String(isOpen));
+    }
 
     function setEvolutionOpen(isOpen) {
       petEvolutionShell.classList.toggle("is-open", isOpen);
@@ -2697,6 +3658,21 @@
 
     function getNextStageMeta(level = state.level) {
       return petStages.find((stage) => stage.level === level + 1) ?? null;
+    }
+
+    function getElementMeta(elementKey = state.activeElement) {
+      return elementMeta[elementKey] ?? elementMeta.fire;
+    }
+
+    function getUnlockedElements(level = state.level) {
+      return elementOrder.filter((elementKey) => elementMeta[elementKey].unlockStage <= level);
+    }
+
+    function syncUnlockedElements() {
+      state.unlockedElements = getUnlockedElements();
+      if (!state.unlockedElements.includes(state.activeElement)) {
+        state.activeElement = state.unlockedElements[0];
+      }
     }
 
     function canEvolve() {
@@ -2733,6 +3709,7 @@
     }
 
     function showPetFeedback(message, tone = "growth") {
+      const duration = tone === "element" ? 920 : tone === "warn" ? 1080 : 1450;
       window.clearTimeout(petFeedbackTimer);
       petFeedback.textContent = message;
       petFeedback.dataset.tone = tone;
@@ -2741,7 +3718,7 @@
       petFeedback.classList.add("is-visible");
       petFeedbackTimer = window.setTimeout(() => {
         petFeedback.classList.remove("is-visible");
-      }, 1450);
+      }, duration);
     }
 
     function scheduleEvolutionCue() {
@@ -2749,6 +3726,19 @@
       evolutionCueTimer = window.setTimeout(() => {
         showPetFeedback("\u53EF\u8FDB\u5316", "evolve");
       }, 760);
+    }
+
+    function triggerElementShift() {
+      window.clearTimeout(elementShiftTimer);
+      petWrap.classList.remove("is-element-shifting");
+      petCore.classList.remove("is-element-shifting");
+      void petCore.offsetWidth;
+      petWrap.classList.add("is-element-shifting");
+      petCore.classList.add("is-element-shifting");
+      elementShiftTimer = window.setTimeout(() => {
+        petWrap.classList.remove("is-element-shifting");
+        petCore.classList.remove("is-element-shifting");
+      }, 920);
     }
 
     function pulseGrowthRail() {
@@ -2837,6 +3827,86 @@
       return avatar;
     }
 
+    function createLockedDexAvatar(isNext) {
+      const lock = document.createElement("div");
+      lock.className = "evolution-lock is-mini";
+      lock.textContent = isNext ? "?" : "???";
+      return lock;
+    }
+
+    function createElementBadge(elementKey, isUnlocked, isActive = false) {
+      const meta = elementMeta[elementKey];
+      const badge = document.createElement("span");
+      badge.className = "element-badge";
+      badge.dataset.element = elementKey;
+      if (!isUnlocked) {
+        badge.classList.add("is-locked");
+      }
+      if (isActive) {
+        badge.classList.add("is-active");
+      }
+
+      const icon = document.createElement("span");
+      icon.className = "element-badge-icon";
+      const label = document.createElement("span");
+      label.textContent = isUnlocked ? meta.name : "???";
+
+      badge.append(icon, label);
+      return badge;
+    }
+
+    function renderElementSwitcher() {
+      syncUnlockedElements();
+      const activeMeta = getElementMeta();
+      elementCoreLabel.textContent = activeMeta.coreLabel;
+      elementCoreButton.dataset.element = state.activeElement;
+      elementCoreButton.setAttribute("aria-label", `切换属性，当前${activeMeta.name}`);
+
+      elementOrbit.querySelectorAll(".element-chip").forEach((chip) => {
+        const elementKey = chip.dataset.element;
+        const meta = elementMeta[elementKey];
+        const unlocked = state.unlockedElements.includes(elementKey);
+        const active = state.activeElement === elementKey;
+        const label = chip.querySelector(".element-chip-label");
+        const note = chip.querySelector(".element-lock-note");
+
+        chip.dataset.state = active ? "active" : unlocked ? "unlocked" : "locked";
+        chip.classList.toggle("is-active", active);
+        chip.classList.toggle("is-locked", !unlocked);
+        chip.setAttribute("aria-pressed", String(active));
+        chip.setAttribute("aria-disabled", String(!unlocked));
+
+        if (label) {
+          label.textContent = unlocked ? meta.name : "???";
+        }
+
+        if (note) {
+          note.textContent = active ? "激活" : unlocked ? "可切" : `${meta.unlockStage}阶`;
+        }
+      });
+    }
+
+    function activateElement(elementKey) {
+      const meta = elementMeta[elementKey];
+      if (!meta) return;
+
+      if (!state.unlockedElements.includes(elementKey)) {
+        showPetFeedback(`${meta.unlockStage}阶解锁`, "warn");
+        setElementSwitcherOpen(false);
+        return;
+      }
+
+      const changed = state.activeElement !== elementKey;
+      state.activeElement = elementKey;
+      setElementSwitcherOpen(false);
+      renderStage(false);
+
+      if (changed) {
+        triggerElementShift();
+        showPetFeedback(meta.activeCue, "element");
+      }
+    }
+
     function renderEvolutionGallery() {
       evolutionRail.innerHTML = "";
 
@@ -2887,35 +3957,58 @@
           card.appendChild(lock);
         }
 
+        const unlockRow = document.createElement("div");
+        unlockRow.className = "element-unlock-row";
+        const unlockTitle = document.createElement("div");
+        unlockTitle.className = "element-unlock-title";
+        unlockTitle.textContent = "本阶新增";
+        unlockRow.appendChild(unlockTitle);
+        unlockRow.appendChild(
+          createElementBadge(
+            stage.unlockElement,
+            stage.level <= state.level,
+            state.activeElement === stage.unlockElement && stage.level <= state.level
+          )
+        );
+
         card.appendChild(title);
         card.appendChild(copy);
+        card.appendChild(unlockRow);
         evolutionRail.appendChild(card);
       });
 
       evolutionSummaryTitle.textContent = `当前：${currentStage.name}`;
-      evolutionSummaryCopy.textContent = `已解锁 ${state.level} 阶`;
+      evolutionSummaryCopy.textContent = `已解锁 ${state.level} 阶 / ${state.unlockedElements.length} 元素`;
 
       if (!nextStage) {
         evolutionGoalTitle.textContent = "已满级";
-        evolutionGoalCopy.textContent = "继续连打卡";
+        evolutionGoalCopy.textContent = `当前属性：${getElementMeta().name}`;
       } else {
         const growthLeft = Math.max(currentStage.nextGrowth - state.growth, 0);
         const crystalLeft = Math.max(currentStage.nextCrystals - state.crystals, 0);
         evolutionGoalTitle.textContent = `下一阶：${nextStage.name}`;
-        evolutionGoalCopy.textContent = `差 ${growthLeft} 成长 / ${crystalLeft} 晶核`;
+        evolutionGoalCopy.textContent = `差 ${growthLeft} 成长 / ${crystalLeft} 晶核 · 解锁${elementMeta[nextStage.unlockElement].name}`;
       }
     }
 
-    function getDayStatus(day, index) {
-      if (day.restDay) return "休息";
+    function getDayStatusMeta(day, index) {
+      if (day.restDay) return { label: "休息", tone: "rest" };
       const doneCount = day.tasks.filter((task) => task.done).length;
       if (index === todayIndex) {
-        if (doneCount === day.tasks.length && day.tasks.length > 0) return "已完成";
-        return doneCount > 0 ? "进行中" : "待开始";
+        if (doneCount === day.tasks.length && day.tasks.length > 0) {
+          return { label: "已完成", tone: "complete" };
+        }
+        return doneCount > 0
+          ? { label: "进行中", tone: "active" }
+          : { label: "待开始", tone: "pending" };
       }
-      if (doneCount === 0) return index < todayIndex ? "未开" : "待战";
-      if (doneCount === day.tasks.length) return "已攻克";
-      return "进行中";
+      if (doneCount === 0) {
+        return index < todayIndex
+          ? { label: "未开", tone: "locked" }
+          : { label: "待战", tone: "future" };
+      }
+      if (doneCount === day.tasks.length) return { label: "已攻克", tone: "complete" };
+      return { label: "进行中", tone: "active" };
     }
 
     function getStars(doneCount, totalCount, isRestDay) {
@@ -2939,11 +4032,13 @@
           button.classList.add("is-today");
         }
 
-        const status = getDayStatus(day, index);
+        const status = getDayStatusMeta(day, index);
+        button.dataset.status = status.tone;
         button.innerHTML = `
+          <div class="day-top-slot">${index === todayIndex ? '<span class="day-today-tag">TODAY</span>' : ""}</div>
           <div class="day-name">周${day.label}</div>
           <div class="day-date">${day.date}</div>
-          <div class="day-state">${status}</div>
+          <div class="day-state is-${status.tone}">${status.label}</div>
         `;
 
         button.addEventListener("click", () => {
@@ -3070,14 +4165,24 @@
 
       const currentStage = getStageMeta();
       const nextStage = getNextStageMeta();
+      const previousUnlockCount = state.unlockedElements.length;
 
       state.crystals -= currentStage.nextCrystals;
       state.growth = 18;
       state.level += 1;
+      syncUnlockedElements();
       state.lastReward = "";
       state.lastFeed = `${currentStage.name} -> ${nextStage.name}`;
       pulseGrowthRail();
       showPetFeedback("\u8FDB\u5316\uFF01", "evolve");
+
+      if (state.unlockedElements.length > previousUnlockCount) {
+        const unlockedMeta = elementMeta[nextStage.unlockElement];
+        state.lastFeed = `${currentStage.name} -> ${nextStage.name} / 解锁${unlockedMeta.name}`;
+        window.setTimeout(() => {
+          showPetFeedback(`${unlockedMeta.name}解锁`, "element");
+        }, 520);
+      }
 
       petCore.classList.add("is-evolving");
       window.setTimeout(() => {
@@ -3092,6 +4197,7 @@
     }
 
     function renderStage(animateHappy) {
+      syncUnlockedElements();
       const selectedDay = getSelectedDay();
       const doneCount = selectedDay.tasks.filter((task) => task.done).length;
       const totalCount = selectedDay.tasks.length;
@@ -3114,7 +4220,9 @@
       growthFill.style.width = `${state.growth}%`;
       growthPercent.textContent = `${state.growth}%`;
       growthPoints.textContent = `\u6210\u957F\u503C ${state.growth} / 100`;
+      petWrap.dataset.element = state.activeElement;
       petCore.dataset.stage = String(state.level);
+      petCore.dataset.element = state.activeElement;
       petStageName.textContent = currentStageName;
 
       if (currentStage.level === 5) {
@@ -3134,39 +4242,30 @@
         const growthLeft = Math.max(currentStage.nextGrowth - state.growth, 0);
         const crystalLeft = Math.max(currentStage.nextCrystals - state.crystals, 0);
         petEvolutionHint.textContent = `\u5DEE ${growthLeft} \u6210\u957F / ${crystalLeft} \u6676\u6838`;
-        petEvolutionTrigger.textContent = "\u8FDB\u5316\u8DEF\u7EBF";
+        petEvolutionTrigger.textContent = "\u8FDB\u5316";
         growthHint.textContent = "\u6BCF\u6B21\u6295\u5582 +12";
         renderCrystalRow(currentStage.nextCrystals);
         evolveButton.hidden = true;
       }
 
       renderEvolutionGallery();
+      renderElementSwitcher();
       petCore.classList.toggle("is-happy", Boolean(animateHappy || hasQueue));
 
       if (isRestDay) {
         petMode = "rest";
-        stageTitle.textContent = "\u81EA\u7531\u4FEE\u6574\u65E5";
-        stageDescription.textContent = "\u4ECA\u5929\u8F7B\u677E\u4E00\u4E0B\u3002";
         petMoodTag.textContent = "\u4FEE\u6574";
       } else if (evolutionReady) {
         petMode = "evolve";
-        stageTitle.textContent = "\u51C6\u5907\u8FDB\u5316";
-        stageDescription.textContent = `\u73B0\u5728\u53EF\u8FDB\u5316\u6210 ${nextStage.name}\u3002`;
         petMoodTag.textContent = "\u53EF\u8FDB\u5316";
       } else if (doneCount === 0) {
         petMode = "idle";
-        stageTitle.textContent = "\u4ECA\u65E5\u51FA\u5F81";
-        stageDescription.textContent = "\u5148\u6311\u4E00\u9879\u5F00\u7EC3\u3002";
         petMoodTag.textContent = "\u5F85\u547D";
       } else if (doneCount < totalCount) {
         petMode = hasQueue ? "hungry" : "ready";
-        stageTitle.textContent = hasQueue ? "\u8865\u7ED9\u5C31\u7EEA" : `\u5DF2\u653B\u514B ${doneCount} \u9879`;
-        stageDescription.textContent = hasQueue ? "\u5148\u5582\u4F19\u4F34\uFF0C\u518D\u7EE7\u7EED\u63A8\u8FDB\u3002" : `\u8FD8\u5DEE ${totalCount - doneCount} \u9879\u3002`;
         petMoodTag.textContent = hasQueue ? "\u5F85\u5582" : "\u8FDB\u884C\u4E2D";
       } else {
         petMode = "complete";
-        stageTitle.textContent = "\u4ECA\u65E5\u5168\u6E05";
-        stageDescription.textContent = hasQueue ? "\u5148\u628A\u8865\u7ED9\u5582\u7ED9\u4F19\u4F34\u3002" : "\u4ECA\u5929\u62FF\u4E0B\u4E86\u3002";
         petMoodTag.textContent = hasQueue ? "\u5F85\u5582" : "\u6EE1\u72B6\u6001";
       }
 
@@ -3186,6 +4285,9 @@
 
       feedButton.textContent = queueCount > 1 ? `\u5582\u7ED9\u4F19\u4F34 x${queueCount}` : "\u5582\u7ED9\u4F19\u4F34";
       feedButton.disabled = queueCount === 0;
+      petFeedShortcut.textContent = queueCount === 0 ? "\u5F85\u8865\u7ED9" : queueCount > 1 ? `\u5582\u98DFx${queueCount}` : "\u5582\u98DF";
+      petFeedShortcut.disabled = queueCount === 0;
+      petFeedShortcut.classList.toggle("is-empty", queueCount === 0);
     }
 
     function render(animateHappy = false) {
@@ -3195,9 +4297,26 @@
     }
 
     feedButton.addEventListener("click", feedPet);
+    petFeedShortcut.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setEvolutionOpen(false);
+      feedPet();
+    });
     evolveButton.addEventListener("click", evolvePet);
+    elementCoreButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const nextOpen = !elementSwitcher.classList.contains("is-open");
+      setElementSwitcherOpen(nextOpen);
+    });
+    elementOrbit.querySelectorAll(".element-chip").forEach((chip) => {
+      chip.addEventListener("click", (event) => {
+        event.stopPropagation();
+        activateElement(chip.dataset.element);
+      });
+    });
     openEvolutionGalleryButton.addEventListener("click", (event) => {
       event.stopPropagation();
+      setElementSwitcherOpen(false);
       setEvolutionOpen(false);
       setEvolutionModalOpen(true);
     });
@@ -3212,7 +4331,13 @@
     petEvolutionShell.addEventListener("mouseleave", () => {
       setEvolutionOpen(false);
     });
+    elementSwitcher.addEventListener("mouseleave", () => {
+      setElementSwitcherOpen(false);
+    });
     document.addEventListener("click", (event) => {
+      if (!elementSwitcher.contains(event.target)) {
+        setElementSwitcherOpen(false);
+      }
       if (!petEvolutionShell.contains(event.target)) {
         setEvolutionOpen(false);
       }
@@ -3222,6 +4347,7 @@
     });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
+        setElementSwitcherOpen(false);
         setEvolutionOpen(false);
         setEvolutionModalOpen(false);
       }
