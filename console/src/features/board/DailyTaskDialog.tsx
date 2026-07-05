@@ -89,6 +89,7 @@ export function DailyTaskDialog({
               id="task-subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
+              maxLength={64}
               placeholder="例如：数学"
             />
           </div>

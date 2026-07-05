@@ -1,1 +1,63 @@
-{ "app": { "name": "学习小伙伴 · 家长后台" }, "common": { "save": "保存", "cancel": "取消", "delete": "删除", "edit": "编辑", "create": "新建", "confirm": "确定" }, "auth": { "login": "登录", "register": "注册", "logout": "退出" } }
+{
+  "app": { "name": "学习小伙伴 · 家长后台" },
+  "nav": {
+    "home": "首页",
+    "children": "孩子",
+    "schedule": "每周模板",
+    "board": "每日看板",
+    "goals": "家庭目标"
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "新建",
+    "confirm": "确定",
+    "loading": "加载中…",
+    "add": "添加",
+    "close": "关闭"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出"
+  },
+  "children": {
+    "title": "孩子",
+    "add": "添加孩子",
+    "empty": "还没有孩子档案，先添加一个孩子",
+    "grade": "年级",
+    "hasPin": "已设 PIN",
+    "noPin": "未设 PIN"
+  },
+  "schedule": {
+    "title": "每周任务模板",
+    "addItem": "添加",
+    "empty": "暂无模板任务",
+    "noChildren": "请先在「孩子」页面添加孩子档案"
+  },
+  "board": {
+    "title": "每日看板",
+    "addTask": "手动添加任务",
+    "revoke": "撤销",
+    "restore": "恢复",
+    "completed": "已完成",
+    "revoked": "已撤销",
+    "notCompleted": "未完成",
+    "restDay": "休息日",
+    "fullAttendance": "满勤 🎉"
+  },
+  "goals": {
+    "title": "家庭目标",
+    "add": "新建目标",
+    "empty": "还没有家庭目标，建一个吧",
+    "achieved": "已达成 🎉",
+    "stars": "星星"
+  },
+  "account": {
+    "profile": "个人资料",
+    "changePassword": "修改密码",
+    "logout": "退出登录"
+  }
+}

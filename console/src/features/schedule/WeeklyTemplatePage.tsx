@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useChildren } from '@/hooks/useChildren'
 import { useWeeklyTemplates, useWeeklyMutations } from '@/hooks/useWeeklyTemplates'
+import { updateWeeklyTemplate } from '@/services/homeworkService'
+import { getErrorMessage } from '@/services/api'
 import { useConfirm } from '@/components/ConfirmDialog'
 import { TemplateItemDialog } from './TemplateItemDialog'
 import type { TemplateFormValues } from './TemplateItemDialog'
@@ -45,6 +49,7 @@ export function WeeklyTemplatePage() {
   const { data: templates = [], isLoading: templatesLoading } = useWeeklyTemplates(effectiveChildId)
   const m = useWeeklyMutations(effectiveChildId)
   const confirm = useConfirm()
+  const qc = useQueryClient()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogState, setDialogState] = useState<DialogState | null>(null)
@@ -99,7 +104,7 @@ export function WeeklyTemplatePage() {
     m.update.mutate({ id: item.id, dto })
   }
 
-  const moveItem = (
+  const moveItem = async (
     dayItems: WeeklyTaskTemplateItemDto[],
     index: number,
     direction: 'up' | 'down',
@@ -109,26 +114,26 @@ export function WeeklyTemplatePage() {
     const target = dayItems[targetIndex]
     if (!current || !target) return
 
-    m.update.mutate({
-      id: current.id,
-      dto: {
+    try {
+      await updateWeeklyTemplate(current.id, {
         title: current.title,
         subject: current.subject ?? null,
         order: target.order,
         estimatedMinutes: current.estimatedMinutes ?? null,
         isActive: current.isActive,
-      },
-    })
-    m.update.mutate({
-      id: target.id,
-      dto: {
+      })
+      await updateWeeklyTemplate(target.id, {
         title: target.title,
         subject: target.subject ?? null,
         order: current.order,
         estimatedMinutes: target.estimatedMinutes ?? null,
         isActive: target.isActive,
-      },
-    })
+      })
+      void qc.invalidateQueries({ queryKey: ['weekly', effectiveChildId] })
+      toast.success('已保存')
+    } catch (e) {
+      toast.error(getErrorMessage(e))
+    }
   }
 
   return (
@@ -226,7 +231,7 @@ export function WeeklyTemplatePage() {
                               variant="ghost"
                               className="h-7 w-7"
                               disabled={idx === 0}
-                              onClick={() => moveItem(dayItems, idx, 'up')}
+                              onClick={() => void moveItem(dayItems, idx, 'up')}
                               title="上移"
                             >
                               <ArrowUp className="h-3.5 w-3.5" />
@@ -236,7 +241,7 @@ export function WeeklyTemplatePage() {
                               variant="ghost"
                               className="h-7 w-7"
                               disabled={idx === dayItems.length - 1}
-                              onClick={() => moveItem(dayItems, idx, 'down')}
+                              onClick={() => void moveItem(dayItems, idx, 'down')}
                               title="下移"
                             >
                               <ArrowDown className="h-3.5 w-3.5" />

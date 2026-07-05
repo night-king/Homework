@@ -1,1 +1,63 @@
-{ "app": { "name": "Homework · Parent Console" }, "common": { "save": "Save", "cancel": "Cancel", "delete": "Delete", "edit": "Edit", "create": "New", "confirm": "OK" }, "auth": { "login": "Log in", "register": "Sign up", "logout": "Log out" } }
+{
+  "app": { "name": "Homework · Parent Console" },
+  "nav": {
+    "home": "Home",
+    "children": "Children",
+    "schedule": "Weekly Template",
+    "board": "Daily Board",
+    "goals": "Family Goals"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "New",
+    "confirm": "OK",
+    "loading": "Loading…",
+    "add": "Add",
+    "close": "Close"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out"
+  },
+  "children": {
+    "title": "Children",
+    "add": "Add child",
+    "empty": "No children yet. Add one to get started.",
+    "grade": "Grade",
+    "hasPin": "PIN set",
+    "noPin": "No PIN"
+  },
+  "schedule": {
+    "title": "Weekly Template",
+    "addItem": "Add",
+    "empty": "No template tasks",
+    "noChildren": "Please add a child first"
+  },
+  "board": {
+    "title": "Daily Board",
+    "addTask": "Add task",
+    "revoke": "Revoke",
+    "restore": "Restore",
+    "completed": "Done",
+    "revoked": "Revoked",
+    "notCompleted": "Not done",
+    "restDay": "Rest day",
+    "fullAttendance": "Full attendance 🎉"
+  },
+  "goals": {
+    "title": "Family Goals",
+    "add": "New goal",
+    "empty": "No family goals yet",
+    "achieved": "Achieved 🎉",
+    "stars": "Stars"
+  },
+  "account": {
+    "profile": "Profile",
+    "changePassword": "Change Password",
+    "logout": "Log out"
+  }
+}
