@@ -88,8 +88,10 @@ console/
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-dropdown-menu": "^2.1.6",
     "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-scroll-area": "^1.2.6",
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-separator": "^1.1.2",
+    "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-switch": "^1.1.3",
     "@tanstack/react-query": "^5.66.0",
     "axios": "^1.7.9",
@@ -108,6 +110,7 @@ console/
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.20.0",
     "@tailwindcss/vite": "^4.0.6",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -117,6 +120,7 @@ console/
     "eslint": "^9.20.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^15.14.0",
     "jsdom": "^26.0.0",
     "tailwindcss": "^4.0.6",
     "typescript": "~5.7.3",
@@ -283,14 +287,17 @@ export default tseslint.config(
   },
 )
 ```
-> 若 `globals`/`@eslint/js` 未在 deps，`npm i -D globals @eslint/js` 或简化为 port-shield 的等价配置。
+> `globals` 与 `@eslint/js` 已在 devDependencies（见 Task 1.1 Step 1）。若解析冲突，就近取 port-shield 已验证的等价版本。
 
 - [ ] **Step 8: `src/index.css`**（Tailwind 4 + 温暖亲和 @theme）
 
 ```css
 @import "tailwindcss";
 
-@theme inline {
+/* 用普通 @theme（非 inline）：既注册工具类（bg-brand-500/text-ink/...），
+   又把 token 作为 :root 自定义属性 emit，故下方 body 里的 var(--color-*) 运行时可用。
+   @theme inline 会把值内联进工具类、不 emit :root 变量，导致 var() 为空——不要用 inline。 */
+@theme {
   --color-brand-50:  #fff2ee;
   --color-brand-500: #ff7a59;
   --color-brand-600: #ef5f3b;
@@ -310,8 +317,10 @@ export default tseslint.config(
   --font-sans: "Nunito", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 
-html, body, #root { height: 100%; }
-body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); }
+@layer base {
+  html, body, #root { height: 100%; }
+  body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); }
+}
 ```
 
 - [ ] **Step 9: `src/lib/utils.ts`**
@@ -349,7 +358,12 @@ export default function App() {
   return <div className="p-8 text-2xl font-bold text-brand-600">学习小伙伴 · 家长后台</div>
 }
 ```
-> `main.tsx` import 了 `./i18n/config`——该文件在 Task 2.5 创建；本 chunk 可先建一个空的 `src/i18n/config.ts`（`export default {}` 占位）再在 2.5 替换，或把 Chunk 1 Step 10 的 i18n import 留到 Chunk 2 后加。**为让 Chunk 1 独立可跑，先建占位 `src/i18n/config.ts`：`export {}`，并暂不 import 它**（Chunk 2.5 再接入 main.tsx）。
+> `main.tsx`（及 Chunk 2 的 `api.ts`）都会 `import i18n from '@/i18n/config'` 并读 `i18n.language`。**本 chunk 先建带类型的占位** `src/i18n/config.ts`：
+> ```ts
+> const i18n = { language: 'zh-CN' as string }
+> export default i18n
+> ```
+> 这样 `main.tsx` 的 `import './i18n/config'` 与 `api.ts` 的 `i18n.language` 在 Chunk 2 之前也能编译通过。Task 2.5 再把它替换成真正的 i18next 实例（同样 `export default`、同样有 `.language`）。**`main.tsx` 里的 `import './i18n/config'` 全程保留不动。**
 
 - [ ] **Step 11: 安装依赖并验证起服 + typecheck**
 
@@ -474,6 +488,11 @@ async function doRefresh(): Promise<string> {
   tokenStore.set(resp.data.access_token, resp.data.refresh_token)
   return resp.data.access_token
 }
+// 共享同一次在途刷新（并发 401 只刷一次）；authStore.initialize() 也用它做过期静默刷新。
+export function refreshAccessToken(): Promise<string> {
+  refreshing ??= doRefresh().finally(() => { refreshing = null })
+  return refreshing
+}
 
 api.interceptors.response.use(
   (r) => r,
@@ -483,8 +502,7 @@ api.interceptors.response.use(
     if (status === 401 && original && !original._retry && !original.url?.includes('/connect/token')) {
       original._retry = true
       try {
-        refreshing ??= doRefresh().finally(() => { refreshing = null })
-        const newToken = await refreshing
+        const newToken = await refreshAccessToken()
         original.headers.Authorization = `Bearer ${newToken}`
         return api(original)
       } catch {
@@ -561,9 +579,25 @@ export async function getApplicationConfiguration(): Promise<GrantedPolicies> {
   return resp.data?.auth?.grantedPolicies ?? {}
 }
 
+// JWT 是 base64url（-/_，可能无 padding），必须先转普通 base64 再 atob，并按 UTF-8 解码。atob 不认 -/_。
+function parseJwt(token: string): Record<string, string | number> {
+  const seg = token.split('.')[1] ?? ''
+  const b64 = seg.replace(/-/g, '+').replace(/_/g, '/')
+  const json = decodeURIComponent(
+    atob(b64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''),
+  )
+  return JSON.parse(json)
+}
 export function decodeUser(accessToken: string): AppUser {
-  const payload = JSON.parse(atob(accessToken.split('.')[1] ?? '')) as Record<string, string>
-  return { id: payload.sub, userName: payload.unique_name ?? payload.preferred_username ?? payload.name, email: payload.email }
+  const p = parseJwt(accessToken)
+  return {
+    id: String(p.sub ?? ''),
+    userName: String(p.unique_name ?? p.preferred_username ?? p.name ?? ''),
+    email: p.email != null ? String(p.email) : undefined,
+  }
+}
+export function isTokenExpired(accessToken: string): boolean {
+  try { const exp = Number(parseJwt(accessToken).exp); return !exp || Date.now() >= exp * 1000 } catch { return true }
 }
 
 // ABP account endpoints
@@ -580,16 +614,22 @@ export const resetPassword = (userId: string, resetToken: string, password: stri
 - [ ] **Step 2: 测 `decodeUser`**（纯函数，可测）— Create `authService.test.ts`:
 ```ts
 import { describe, it, expect } from 'vitest'
-import { decodeUser } from './authService'
-describe('decodeUser', () => {
+import { decodeUser, isTokenExpired } from './authService'
+describe('decodeUser / isTokenExpired', () => {
   it('extracts id/userName/email from JWT payload', () => {
     const payload = { sub: 'abc', unique_name: 'demo', email: 'demo@homework.today' }
     const jwt = `x.${btoa(JSON.stringify(payload))}.y`
     expect(decodeUser(jwt)).toEqual({ id: 'abc', userName: 'demo', email: 'demo@homework.today' })
   })
+  it('isTokenExpired: true when exp in past, false when future', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const mk = (exp: number) => `x.${btoa(JSON.stringify({ sub: 'a', exp }))}.y`
+    expect(isTokenExpired(mk(now - 60))).toBe(true)
+    expect(isTokenExpired(mk(now + 3600))).toBe(false)
+  })
 })
 ```
-Run `npx vitest run src/services/authService.test.ts` → 1 passed（先改名看 red 再改回）。
+Run `npx vitest run src/services/authService.test.ts` → 2 passed（先改名看 red 再改回）。
 - [ ] **Step 3: commit** — `git commit -m "feat(console): authService (token/register/profile/reset + JWT decode)"`
 
 ### Task 2.4: `src/stores/authStore.ts`（zustand，TDD 关键路径）
@@ -600,8 +640,8 @@ Run `npx vitest run src/services/authService.test.ts` → 1 passed（先改名�
 
 ```ts
 import { create } from 'zustand'
-import { tokenStore } from '@/services/api'
-import { passwordLogin, register as registerApi, getApplicationConfiguration, decodeUser, type RegisterInput } from '@/services/authService'
+import { tokenStore, refreshAccessToken } from '@/services/api'
+import { passwordLogin, register as registerApi, getApplicationConfiguration, decodeUser, isTokenExpired, type RegisterInput } from '@/services/authService'
 import type { AppUser } from '@/types/homework'
 
 interface AuthState {
@@ -614,7 +654,7 @@ interface AuthState {
   logout: () => void
   hasPermission: (name: string) => boolean
   loadPermissions: () => Promise<void>
-  initialize: () => void
+  initialize: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -634,9 +674,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => { tokenStore.clear(); set({ user: null, permissions: {}, isAuthenticated: false }) },
   hasPermission: (name) => !!get().permissions[name],
   loadPermissions: async () => { try { set({ permissions: await getApplicationConfiguration() }) } catch { /* ignore */ } },
-  initialize: () => {
+  initialize: async () => {
     const token = tokenStore.access
-    if (token) { try { set({ user: decodeUser(token), isAuthenticated: true }); void get().loadPermissions() } catch { tokenStore.clear() } }
+    if (token) {
+      try {
+        let active = token
+        if (isTokenExpired(token)) {
+          if (tokenStore.refresh) active = await refreshAccessToken()
+          else throw new Error('expired_no_refresh')
+        }
+        set({ user: decodeUser(active), isAuthenticated: true })
+        void get().loadPermissions()
+      } catch { tokenStore.clear(); set({ user: null, isAuthenticated: false }) }
+    }
     set({ isInitializing: false })
   },
 }))
@@ -653,6 +703,7 @@ vi.mock('@/services/authService', () => ({
   register: vi.fn(async () => {}),
   getApplicationConfiguration: vi.fn(async () => ({ 'Homework.ParentAdmin': true })),
   decodeUser: (t: string) => JSON.parse(atob(t.split('.')[1])),
+  isTokenExpired: () => false,
 }))
 import { useAuthStore } from './authStore'
 
