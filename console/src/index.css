@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* 用普通 @theme（非 inline）：既注册工具类（bg-brand-500/text-ink/...），
+   又把 token 作为 :root 自定义属性 emit，故下方 body 里的 var(--color-*) 运行时可用。
+   @theme inline 会把值内联进工具类、不 emit :root 变量，导致 var() 为空——不要用 inline。 */
+@theme {
+  --color-brand-50:  #fff2ee;
+  --color-brand-500: #ff7a59;
+  --color-brand-600: #ef5f3b;
+  --color-accent-500: #2bb3a3;
+  --color-accent-600: #1f9488;
+  --color-paper: #faf6f0;
+  --color-ink: #3a3230;
+  --color-muted: #8a807a;
+  --color-star: #ffc24b;
+  --color-success-500: #3fa66a;
+  --color-error-500: #e5533d;
+
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --shadow-soft: 0 6px 20px -8px rgba(58, 50, 48, 0.18);
+
+  --font-sans: "Nunito", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); }
+}
