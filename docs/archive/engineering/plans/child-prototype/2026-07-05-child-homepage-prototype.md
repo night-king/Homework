@@ -4,7 +4,7 @@
 
 **Goal:** Build a standalone HTML prototype for the child homepage so the product can review layout, visual tone, day switching, and task-to-pet feedback in a browser.
 
-**Architecture:** Create a self-contained HTML file under `docs/prototypes/` with embedded CSS and vanilla JavaScript. Use mocked weekly schedule data to drive the Day switcher, homepage task board, pet stage, and reward interactions without any backend dependency.
+**Architecture:** Create a self-contained HTML file under `frontend/child-web-prototype/` with embedded CSS and vanilla JavaScript. Use mocked weekly schedule data to drive the Day switcher, homepage task board, pet stage, and reward interactions without any backend dependency.
 
 **Tech Stack:** HTML, CSS, vanilla JavaScript
 
@@ -18,7 +18,7 @@
 ### Task 1: Save the approved homepage design context
 
 **Files:**
-- Create: `docs/plans/2026-07-05-child-homepage-design.md`
+- Create: `docs/engineering/specs/frontend/2026-07-05-child-homepage-design.md`
 - Modify: none
 - Test: manual read-through
 
@@ -34,7 +34,7 @@ Expected: the doc reflects the current “child homepage only” scope and inclu
 ### Task 2: Build the standalone child homepage prototype
 
 **Files:**
-- Create: `docs/prototypes/child-homepage.html`
+- Create: `frontend/child-web-prototype/child-homepage.html`
 - Modify: none
 - Test: manual browser review
 
@@ -87,7 +87,7 @@ Expected: the doc reflects the current “child homepage only” scope and inclu
 
 **Step 1: Open the prototype in a browser**
 
-Run: open `docs/prototypes/child-homepage.html`
+Run: open `frontend/child-web-prototype/child-homepage.html`
 Expected: the standalone page renders without a build step.
 
 **Step 2: Verify the primary product flows**

@@ -13,11 +13,11 @@
 ### Task 1: Align pet data and copy with the sacred dragon line
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Rename the five stage entries**
 
-- Update the `petStages` array in `docs/prototypes/child-homepage.html`
+- Update the `petStages` array in `frontend/child-web-prototype/child-homepage.html`
 - Replace the current placeholder dragon names with:
   - `焰尾幼龙`
   - `角焰迅龙`
@@ -36,7 +36,7 @@
 
 **Step 3: Update pet-facing copy strings**
 
-- Update short UI copy in `docs/prototypes/child-homepage.html` that references evolution state so it matches the sacred dragon line
+- Update short UI copy in `frontend/child-web-prototype/child-homepage.html` that references evolution state so it matches the sacred dragon line
 - Keep copy short and child-friendly
 
 **Step 4: Run script validation**
@@ -46,7 +46,7 @@ Run:
 ```powershell
 @'
 const fs = require('fs');
-const html = fs.readFileSync('docs/prototypes/child-homepage.html', 'utf8');
+const html = fs.readFileSync('frontend/child-web-prototype/child-homepage.html', 'utf8');
 const ids = [...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]);
 const dupes = ids.filter((id, idx) => ids.indexOf(id) !== idx);
 if (dupes.length) throw new Error('Duplicate ids: ' + [...new Set(dupes)].join(', '));
@@ -64,7 +64,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 2: Extend the pet markup with sacred dragon anatomy hooks
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Add a neck node**
 
@@ -85,7 +85,7 @@ Expected: `HTML ids ok; JS parse ok`
 
 **Step 4: Add minimal base styles**
 
-- Add neutral default CSS for the new nodes in `docs/prototypes/child-homepage.html`
+- Add neutral default CSS for the new nodes in `frontend/child-web-prototype/child-homepage.html`
 - Make them safe for all stages before per-stage tuning
 
 **Step 5: Run script validation**
@@ -99,7 +99,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 3: Refactor stage variables so each stage changes silhouette, not just accessories
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Add new stage-scale variables**
 
@@ -153,7 +153,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 4: Turn existing horn, wing, armor, and crown parts into sacred-dragon landmarks
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Rework horn progression**
 
@@ -192,7 +192,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 5: Keep elemental identity while preventing visual overload
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Keep the dragon body consistent across elements**
 
@@ -223,7 +223,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 6: Tune state animations and verify the three hero checkpoints
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Tune idle, hungry, and evolve motion by stage**
 
@@ -253,7 +253,7 @@ Expected: `HTML ids ok; JS parse ok`
 **Step 5: Commit**
 
 ```bash
-git add docs/prototypes/child-homepage.html docs/plans/2026-07-05-child-homepage-sacred-dragon-design.md docs/plans/2026-07-05-child-homepage-sacred-dragon-plan.md
+git add frontend/child-web-prototype/child-homepage.html docs/engineering/specs/frontend/2026-07-05-child-homepage-sacred-dragon-design.md docs/engineering/plans/child-prototype/2026-07-05-child-homepage-sacred-dragon-plan.md
 git commit -m "feat: redesign homepage pet into sacred dragon line"
 ```
 

@@ -253,17 +253,22 @@ paket-files/
 *.sln.iml
 
 # Homework
-src/Homework.Web/Logs/*
-src/Homework.Web.Host/Logs/*
-src/Homework.AuthServer/Logs/*
-src/Homework.HttpApi.Host/Logs/*
-src/Homework.HttpApi.HostWithIds/Logs/*
-src/Homework.DbMigrator/Logs/*
-src/Homework.Blazor.Server/Logs/*
-src/Homework.Blazor.Server.Tiered/Logs/*
+backend/src/Homework.Web/Logs/*
+backend/src/Homework.Web.Host/Logs/*
+backend/src/Homework.AuthServer/Logs/*
+backend/src/Homework.HttpApi.Host/Logs/*
+backend/src/Homework.HttpApi.HostWithIds/Logs/*
+backend/src/Homework.DbMigrator/Logs/*
+backend/src/Homework.Blazor.Server/Logs/*
+backend/src/Homework.Blazor.Server.Tiered/Logs/*
 
 # Use abp install-libs to restore.
 **/wwwroot/libs/*
 
 # Brainstorming visual companion sessions
 .superpowers/
+
+.dotnet-cli/
+backend/.runtime/
+
+

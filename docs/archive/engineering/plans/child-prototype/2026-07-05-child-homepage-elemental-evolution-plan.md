@@ -13,11 +13,11 @@
 ### Task 1: Extend the pet data model for elemental forms
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Expand stage metadata**
 
-- Update the `petStages` data in `docs/prototypes/child-homepage.html`
+- Update the `petStages` data in `frontend/child-web-prototype/child-homepage.html`
 - Add stage-level metadata for:
   - stronger size tier
   - silhouette emphasis
@@ -25,7 +25,7 @@
 
 **Step 2: Add elemental metadata**
 
-- Add a new element configuration object in `docs/prototypes/child-homepage.html`
+- Add a new element configuration object in `frontend/child-web-prototype/child-homepage.html`
 - Include:
   - `metal`
   - `wood`
@@ -42,7 +42,7 @@ Each element definition should include:
 
 **Step 3: Add element state to runtime data**
 
-- Extend the `state` object in `docs/prototypes/child-homepage.html`
+- Extend the `state` object in `frontend/child-web-prototype/child-homepage.html`
 - Track:
   - current active element
   - unlocked element list
@@ -55,7 +55,7 @@ Run:
 ```powershell
 @'
 const fs = require('fs');
-const html = fs.readFileSync('docs/prototypes/child-homepage.html', 'utf8');
+const html = fs.readFileSync('frontend/child-web-prototype/child-homepage.html', 'utf8');
 const ids = [...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]);
 const dupes = ids.filter((id, idx) => ids.indexOf(id) !== idx);
 if (dupes.length) throw new Error('Duplicate ids: ' + [...new Set(dupes)].join(', '));
@@ -73,11 +73,11 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 2: Make stage evolution visibly grow the dragon
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Refactor stage-based pet CSS**
 
-- Update the stage selectors in `docs/prototypes/child-homepage.html` for:
+- Update the stage selectors in `frontend/child-web-prototype/child-homepage.html` for:
   - `data-stage="1"`
   - `data-stage="2"`
   - `data-stage="3"`
@@ -114,7 +114,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 3: Add the elemental switcher to the pet stage
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Add homepage element switcher markup**
 
@@ -151,7 +151,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 4: Apply element-driven visual identity to the dragon
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Add an element attribute to the pet**
 
@@ -190,7 +190,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 5: Add short elemental transformation feedback
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Add element switch interaction in script**
 
@@ -224,7 +224,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 6: Show element unlocks in the evolution gallery
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Extend each evolution card**
 
@@ -260,7 +260,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 7: Manual browser review of the full elemental loop
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Open the prototype locally**
 

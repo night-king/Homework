@@ -2,7 +2,7 @@
 
 - 日期：2026-07-05
 - 状态：设计确认完成，待进入首页宠物造型改造
-- 范围：仅覆盖 `docs/prototypes/child-homepage.html` 中首页主舞台宠物形象，不扩展登录、家长端或其他二级页面
+- 范围：仅覆盖 `frontend/child-web-prototype/child-homepage.html` 中首页主舞台宠物形象，不扩展登录、家长端或其他二级页面
 
 ## 目标
 
@@ -185,7 +185,7 @@
 
 ## 对当前首页骨架的映射
 
-当前 `docs/prototypes/child-homepage.html` 已有一套可继续利用的宠物结构：
+当前 `frontend/child-web-prototype/child-homepage.html` 已有一套可继续利用的宠物结构：
 
 - `pet-head`
 - `pet-body`

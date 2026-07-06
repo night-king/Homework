@@ -13,17 +13,17 @@
 ### Task 1: Remove redundant homepage cards
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Simplify the left stage markup**
 
-- Remove the standalone `伙伴状态` card from `docs/prototypes/child-homepage.html`
-- Remove the four-item `今日战力` grid from `docs/prototypes/child-homepage.html`
+- Remove the standalone `伙伴状态` card from `frontend/child-web-prototype/child-homepage.html`
+- Remove the four-item `今日战力` grid from `frontend/child-web-prototype/child-homepage.html`
 - Keep the pet stage, evolution controls, gallery trigger, and bottom growth panel
 
 **Step 2: Add compact hard-info badges**
 
-- Add two small badges near the growth rail in `docs/prototypes/child-homepage.html`
+- Add two small badges near the growth rail in `frontend/child-web-prototype/child-homepage.html`
 - Badge content:
   - `Lv`
   - `晶核`
@@ -40,7 +40,7 @@ Run:
 ```powershell
 @'
 const fs = require('fs');
-const html = fs.readFileSync('docs/prototypes/child-homepage.html', 'utf8');
+const html = fs.readFileSync('frontend/child-web-prototype/child-homepage.html', 'utf8');
 const ids = [...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]);
 const dupes = ids.filter((id, idx) => ids.indexOf(id) !== idx);
 if (dupes.length) throw new Error('Duplicate ids: ' + [...new Set(dupes)].join(', '));
@@ -58,7 +58,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 2: Turn pet state into animation-first feedback
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Keep only one visible state label**
 
@@ -71,7 +71,7 @@ Expected: `HTML ids ok; JS parse ok`
 
 **Step 2: Extend CSS for state-driven motion**
 
-- Update the pet CSS in `docs/prototypes/child-homepage.html` so each `data-mode` reads differently
+- Update the pet CSS in `frontend/child-web-prototype/child-homepage.html` so each `data-mode` reads differently
 - Add or refine:
   - idle breathing
   - more active flame / stance for progress
@@ -89,7 +89,7 @@ Expected: `HTML ids ok; JS parse ok`
 
 **Step 4: Verify visual state mapping in script**
 
-- Update the render logic in `docs/prototypes/child-homepage.html` so pet mode and top label still match each daily state
+- Update the render logic in `frontend/child-web-prototype/child-homepage.html` so pet mode and top label still match each daily state
 - Manually check:
   - rest day
   - not started
@@ -103,7 +103,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 3: Rebuild the reward area into a single `补给台`
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Rename and simplify the reward panel**
 
@@ -112,7 +112,7 @@ Expected: `HTML ids ok; JS parse ok`
 
 **Step 2: Make reward inventory visual**
 
-- Show up to 3 visible food drops in `docs/prototypes/child-homepage.html`
+- Show up to 3 visible food drops in `frontend/child-web-prototype/child-homepage.html`
 - Add a compact overflow marker like `+2` if queue size exceeds visible items
 - Empty state should use a short prompt such as `去拿补给`
 
@@ -142,7 +142,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 4: Clean script state ownership after UI consolidation
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Remove references to deleted DOM nodes**
 
@@ -177,7 +177,7 @@ Expected: `HTML ids ok; JS parse ok`
 ### Task 5: Manual browser review
 
 **Files:**
-- Modify: `docs/prototypes/child-homepage.html`
+- Modify: `frontend/child-web-prototype/child-homepage.html`
 
 **Step 1: Open the prototype locally**
 

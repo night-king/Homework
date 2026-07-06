@@ -30,7 +30,7 @@
 
 ## Architecture
 
-### 新增 `src/Homework.HttpApi.Host`
+### 新增 `backend/src/Homework.HttpApi.Host`
 - `Program.cs` + `HomeworkHttpApiHostModule`：`DependsOn` **对标 port-shield `PortShieldHttpApiHostModule`**（照抄架构、删部署）——含 `HomeworkHttpApiModule` + `HomeworkApplicationModule` + `HomeworkEntityFrameworkCoreModule` + `AbpAutofacModule` + **`AbpAccountWebOpenIddictModule`**（提供 `/connect/token` 认证服务；捆绑的 Account Razor 页保留但闲置）+ **`AbpAspNetCoreMvcUiThemeSharedModule`**（前者的依赖，必须留）+ `AbpSwashbuckleModule`(Swagger) + `AbpAspNetCoreSerilogModule` 等。**关键：不能为了"去 Razor"而排除 `AbpAccountWebOpenIddictModule` 或 `Theme.Shared`——会把 token 端点删掉或启动失败。** 不含的是我们自建的 `HomeworkWebModule`、家长后台/注册页、菜单、branding。**"照抄 port-shield" 仅指认证/API/主题-Shared 这套骨架**——port-shield 还带的 **Hangfire、Redis、多租户、ForwardedHeaders、一堆外部 HttpClient、健康检查**等**一律不引**（那些是它的业务/基础设施，不是本项目所需，也不算"部署项"）。本 spec 上面枚举的 `DependsOn` 就是完整清单。
 - 配置（多数迁自 `HomeworkWebModule`）：
   - **OpenIddict 认证服务**：托管 `/connect/token`（密码流）、发 JWT。
@@ -45,14 +45,14 @@
   - 可选 `/health` 健康检查。
 
 ### OpenIddict 密码流客户端
-- 种子代码在 **`src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs`**，配置在 **`src/Homework.DbMigrator/appsettings.json`** 的 `OpenIddict:Applications`（**不是** Web 的 appsettings）。新增一个**公共客户端** `Homework_App`（`GrantTypes.Password` + `RefreshToken`，**无 secret**）+ 授予 `password` grant 相关 permission + scope 含 **`offline_access`**（否则 RefreshToken grant 不会真的下发 refresh token）。**对标 port-shield `OpenIddictDataSeedContributor` 的 `PortShield_App`**（Public/Password 客户端，含 `offline_access`）。React 用它换 token。
+- 种子代码在 **`backend/src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs`**，配置在 **`backend/src/Homework.DbMigrator/appsettings.json`** 的 `OpenIddict:Applications`（**不是** Web 的 appsettings）。新增一个**公共客户端** `Homework_App`（`GrantTypes.Password` + `RefreshToken`，**无 secret**）+ 授予 `password` grant 相关 permission + scope 含 **`offline_access`**（否则 RefreshToken grant 不会真的下发 refresh token）。**对标 port-shield `OpenIddictDataSeedContributor` 的 `PortShield_App`**（Public/Password 客户端，含 `offline_access`）。React 用它换 token。
 - **删除陈旧的 `Homework_Web` 机密客户端**（评审补）：它是给已删的 Razor host 用的授权码/cookie 流客户端，headless 不再需要——从种子里移除，避免留下无用的机密客户端。
 - ⚠ **dev 必须走 HTTPS**（评审补）：OpenIddict 对 `/connect/token` 在非 HTTPS 下会抛 **ID2083** 拒绝请求。`Homework.HttpApi.Host` dev 用 `https://localhost:44xxx`（`launchSettings` + dev 证书），CORS 与前端联调按 HTTPS 配。
 - **自助注册配置核对**（评审补）：`/api/account/register` 依赖 ABP `Account` 设置——确认 `Abp.Account.IsSelfRegistrationEnabled = true`（现有种子/设置若已开则沿用），`Parent` 默认角色 + `ParentAdmin` 授权链照旧（`ChildrenDataSeedContributor` / `ParentPermissionDataSeedContributor` 不动）。
 
 ### 删除 `Homework.Web`
 - 从 `Homework.slnx` 移除并删除项目目录（`Pages/ParentAdmin/*`、`Pages/Account/Register.*`、`Menus/*`、`HomeworkWebModule`、`HomeworkBrandingProvider`、`HomeworkWebMappers`、`wwwroot`/前端库 / 主题依赖）。
-- **同时删除 `test/Homework.Web.Tests`（评审补）**：它 `ProjectReference` 了 `Homework.Web` 且在 `Homework.slnx` 注册——不删则 `dotnet build Homework.slnx` **失败**。连同从 `Homework.slnx` 移除。（`Homework.Application.Tests` 只依赖 Application/Domain.Tests，**保留**。）
+- **同时删除 `backend/test/Homework.Web.Tests`（评审补）**：它 `ProjectReference` 了 `Homework.Web` 且在 `Homework.slnx` 注册——不删则 `dotnet build Homework.slnx` **失败**。连同从 `Homework.slnx` 移除。（`Homework.Application.Tests` 只依赖 Application/Domain.Tests，**保留**。）
 - 检查并清理对 Web 的引用（`Homework.slnx`、CI 若有）；DbMigrator 现依赖 `Homework.Application`（Phase 4 加的）——**保留**。
 - 把 Web 里仍需要的配置（auth / auto-api / localization）迁进 HttpApi.Host。
 
@@ -85,4 +85,4 @@ React 登录表单 → `POST /connect/token`（`grant_type=password` + username 
 - CORS 允许的前端源（dev 端口）+ 配置化方式。
 - HttpApi.Host `appsettings.json`（连接串 / SelfUrl / 证书）与 DbMigrator 对齐；dev 证书生成。
 - 删 `Homework.Web` 后，确认没有别处（测试 / CI / DbMigrator）残留引用。
-- `test/Homework.HttpApi.Client.ConsoleTestApp`（引用 `HttpApi.Client`、不引 Web，故不阻塞 build）的 `appsettings.json` 现指向旧 host `https://localhost:44394` + `Homework_App`/`admin`——换 host 端口后其 BaseUrl/Authority 会失效；实现时**更新为新 host** 或标注为"未维护的 dev 工具"。
+- `backend/test/Homework.HttpApi.Client.ConsoleTestApp`（引用 `HttpApi.Client`、不引 Web，故不阻塞 build）的 `appsettings.json` 现指向旧 host `https://localhost:44394` + `Homework_App`/`admin`——换 host 端口后其 BaseUrl/Authority 会失效；实现时**更新为新 host** 或标注为"未维护的 dev 工具"。

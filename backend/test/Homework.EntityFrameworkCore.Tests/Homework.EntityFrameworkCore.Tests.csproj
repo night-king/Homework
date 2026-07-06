@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Homework.EntityFrameworkCore\Homework.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\Homework.Application.Tests\Homework.Application.Tests.csproj" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
     <PackageReference Include="Volo.Abp.EntityFrameworkCore.Sqlite" Version="10.5.0" />
   </ItemGroup>
 

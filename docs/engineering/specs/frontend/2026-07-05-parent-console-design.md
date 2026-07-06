@@ -17,7 +17,7 @@
 1. **只做家长端**：不含运营 admin 分析面板（后端目前无任何分析/埋点端点；admin 面板作为后续独立工作，需先补后端聚合 API）。
 2. **v1 不做多日历史/日历视图**：后端无批量评分 API（只有单日 `get-board` + 家庭目标周期累计 `CurrentStars`）。首页用**今日看板 + 家庭目标进度条**替代。多日趋势留后续（届时先给后端加批量评分端点）。
 3. **取法 A**：Vite 新建脚手架，**移植** port-shield 的通用骨架（`api.ts` 401-refresh 拦截器、`authStore` 结构、`components/ui/*` shadcn 原语、`AppLayout` 守卫、i18n），**简化**掉租户/2FA/workspace/billing，领域功能自建。
-4. **位置**：`console/` 建在**仓库根**（与 `src/ test/ docs/` 平级，monorepo）。独立 `package.json`，不进 .NET 构建/`Homework.slnx`。
+4. **位置**：`frontend/parent-web/` 建在**仓库根**（与 `backend/src/ backend/test/ docs/` 平级，monorepo）。独立 `package.json`，不进 .NET 构建/`Homework.slnx`。
 5. **dev 端口 5173**；vite 代理 `/api`+`/connect` → `https://localhost:44394`（`secure:false`，自签证书）。
 6. **认证 = OpenIddict 密码流(ROPC)**：`client_id=Homework_App`、`scope="Homework offline_access"`；`refresh_token` 续期。
 7. **本 spec 只覆盖家长 console**；官网(③)、孩子游戏端(④)各自子项目。部署不在范围。
@@ -28,7 +28,7 @@
 
 ### 目录结构（feature-folders，对标 port-shield）
 ```
-console/
+frontend/parent-web/
   package.json  vite.config.ts  tsconfig*.json  index.html  eslint.config.js
   public/
     favicon.*  locales/{zh-CN,en}/translation.json
@@ -111,7 +111,7 @@ console/
 - **冒烟**：起 vite dev + 后端（44394），脚本或手动跑通关键链路「注册→登录→建孩子→建每周模板→每日看板撤销/恢复→建家庭目标看进度」。不追求全组件 TDD（低 ROI）。
 
 ## Acceptance criteria
-- `console/` 独立可 `npm run dev` 起在 5173，`tsc -b` + `eslint` 绿。
+- `frontend/parent-web/` 独立可 `npm run dev` 起在 5173，`tsc -b` + `eslint` 绿。
 - 未登录访问受保护路由 → 跳 `/login`；能**注册**新家长（含同意勾选门禁）并自动登录；能**登录**既有家长（demo/`1q2w3E*`）。
 - 登录后：**孩子** 增删改 + 设/清 PIN；**每周模板** 按孩子按星期 CRUD；**每日看板** 选日期、撤销/恢复、手动增删改、显示星星/满勤/休息日；**家庭目标** CRUD + 进度条；**首页** 汇总今日看板 + 目标进度。
 - 401 触发 refresh 自动续期、对家长透明；登出清 token。

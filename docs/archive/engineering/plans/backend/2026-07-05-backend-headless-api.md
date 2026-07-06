@@ -4,19 +4,19 @@
 
 **Goal:** 用无界面的 `Homework.HttpApi.Host`（REST API + OpenIddict `/connect/token` + Swagger + CORS）替换 Razor MVC 宿主 `Homework.Web`，原样复用已测的 Phase 1–4 各层，并删除 `Homework.Web`。
 
-**Architecture:** 新建 `src/Homework.HttpApi.Host`，架构对标 `D:\WorkSpaces\lehmansoft\port-shield` 的 `HttpApi.Host`——**一个宿主同时托管业务 API 和 OpenIddict token 端点**（token 端点来自 `AbpAccountWebOpenIddictModule`，它捆绑的 ABP 自带 Account Razor 页保留但闲置），无任何自建 Razor UI。认证走 OpenIddict 密码流(ROPC)：前端 `POST /connect/token` 拿 JWT，API 校验 Bearer。`Domain / Application / HttpApi / EntityFrameworkCore / DbMigrator` 及**全部测试原样不动**。
+**Architecture:** 新建 `backend/src/Homework.HttpApi.Host`，架构对标 `D:\WorkSpaces\lehmansoft\port-shield` 的 `HttpApi.Host`——**一个宿主同时托管业务 API 和 OpenIddict token 端点**（token 端点来自 `AbpAccountWebOpenIddictModule`，它捆绑的 ABP 自带 Account Razor 页保留但闲置），无任何自建 Razor UI。认证走 OpenIddict 密码流(ROPC)：前端 `POST /connect/token` 拿 JWT，API 校验 Bearer。`Domain / Application / HttpApi / EntityFrameworkCore / DbMigrator` 及**全部测试原样不动**。
 
 **Tech Stack:** ABP 10.5 · .NET 10 · PostgreSQL/Npgsql · OpenIddict · Swashbuckle · 现有 xUnit/Shouldly 测试（SQLite in-memory）· curl 冒烟。
 
-**Spec:** `docs/superpowers/specs/2026-07-04-backend-headless-api-design.md`
+**Spec:** `docs/engineering/specs/backend/2026-07-04-backend-headless-api-design.md`
 
 ---
 
 ## Context & invariants（零上下文实现者必读）
 
 - **直接提交到 `main`**：本仓库是单人项目，所有 Phase 1–4 都直接落 `main`，不开 feature 分支/worktree。每个 Task 末尾 `git commit`；本计划**不 push**（用户会自己决定何时 push）。
-- **必须在各自项目目录下运行** `dotnet run`：`DbMigrator` 和宿主都靠**当前工作目录**读 `appsettings.json`。务必 `cd src/<Proj>` 再 `dotnet run`，否则读不到配置、连不上库。
-- **测试不需要数据库**：`test/Homework.Domain.Tests`、`test/Homework.EntityFrameworkCore.Tests`、`test/Homework.Application.Tests` 全是 SQLite in-memory。一次只测一个项目：`dotnet test test/<Proj>/<Proj>.csproj`（一条命令传两个 `.csproj` 会 MSB1008 失败）。
+- **必须在各自项目目录下运行** `dotnet run`：`DbMigrator` 和宿主都靠**当前工作目录**读 `appsettings.json`。务必 `cd backend/src/<Proj>` 再 `dotnet run`，否则读不到配置、连不上库。
+- **测试不需要数据库**：`backend/test/Homework.Domain.Tests`、`backend/test/Homework.EntityFrameworkCore.Tests`、`backend/test/Homework.Application.Tests` 全是 SQLite in-memory。一次只测一个项目：`dotnet test test/<Proj>/<Proj>.csproj`（一条命令传两个 `.csproj` 会 MSB1008 失败）。
 - **本地 PostgreSQL**：`localhost:5433`，`postgres`/`postgres`，库 `Homework`。冒烟需要真库（`dotnet run` 起 `DbMigrator` 建库+播种）。
 - **dev 复用端口 `https://localhost:44394`**：新宿主沿用旧 `Homework.Web` 的 dev URL——这样 `DbMigrator` 的 `RootUrl`、`ConsoleTestApp` 的 `BaseUrl/Authority`（都指向 44394）无需改动。**dev 必须 HTTPS**：OpenIddict 对 `/connect/token` 在非 HTTPS 下抛 `ID2083` 拒绝。
 - **demo 家庭**（`ChildrenDataSeedContributor` 已播种）：家长 `demo` / `1q2w3E*`（demo@homework.today），名下有「哥哥」「弟弟」两个 `ChildProfile`。运营超管 `admin` / `1q2w3E*`。
@@ -30,7 +30,7 @@
 
 ## File structure
 
-**新建**（`src/Homework.HttpApi.Host/`）：
+**新建**（`backend/src/Homework.HttpApi.Host/`）：
 - `Homework.HttpApi.Host.csproj` — Web SDK 宿主工程；引 `Application`/`HttpApi`/`EntityFrameworkCore` + Autofac/Swashbuckle/Serilog/Account.Web.OpenIddict。
 - `Program.cs` — Serilog 引导 + `AddApplicationAsync<HomeworkHttpApiHostModule>()`。
 - `HomeworkHttpApiHostModule.cs` — 宿主 ABP 模块：OpenIddict validation、Bearer 转发、Auto API controllers、Swagger、CORS、本地化 + headless 必配（CheckLibs/antiforgery）。
@@ -38,15 +38,15 @@
 - `Properties/launchSettings.json` — dev `https://localhost:44394`。
 
 **修改**：
-- `src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs` — 换成只建 `Homework_App` 公共密码客户端。
-- `src/Homework.DbMigrator/appsettings.json` — `OpenIddict:Applications` 改为 `Homework_App`。
+- `backend/src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs` — 换成只建 `Homework_App` 公共密码客户端。
+- `backend/src/Homework.DbMigrator/appsettings.json` — `OpenIddict:Applications` 改为 `Homework_App`。
 - `Homework.slnx` — 加入新宿主工程；删除 `Homework.Web`、`Homework.Web.Tests`。
 
 **删除**：
-- `src/Homework.Web/`（整目录）
-- `test/Homework.Web.Tests/`（整目录）
+- `backend/src/Homework.Web/`（整目录）
+- `backend/test/Homework.Web.Tests/`（整目录）
 
-**保留不动**：`Domain(.Shared)`、`Application(.Contracts)`、`HttpApi(.Client)`、`EntityFrameworkCore`、`DbMigrator`、`test/Homework.{Domain,EntityFrameworkCore,Application}.Tests`、`test/Homework.TestBase`、`test/Homework.HttpApi.Client.ConsoleTestApp`。
+**保留不动**：`Domain(.Shared)`、`Application(.Contracts)`、`HttpApi(.Client)`、`EntityFrameworkCore`、`DbMigrator`、`backend/test/Homework.{Domain,EntityFrameworkCore,Application}.Tests`、`backend/test/Homework.TestBase`、`backend/test/Homework.HttpApi.Client.ConsoleTestApp`。
 
 ---
 
@@ -57,7 +57,7 @@
 ### Task 1.1: 重写 `CreateApplicationsAsync` → 只建 `Homework_App`
 
 **Files:**
-- Modify: `src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs`（替换 `CreateApplicationsAsync` 方法体，当前约 69–129 行；`using` 已含 `OpenIddict.Abstractions`）
+- Modify: `backend/src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs`（替换 `CreateApplicationsAsync` 方法体，当前约 69–129 行；`using` 已含 `OpenIddict.Abstractions`）
 
 - [ ] **Step 1: 替换 `CreateApplicationsAsync` 方法**
 
@@ -103,20 +103,20 @@ private async Task CreateApplicationsAsync()
 
 - [ ] **Step 2: 编译 Domain 确认无语法错误**
 
-Run: `dotnet build src/Homework.Domain/Homework.Domain.csproj`
+Run: `dotnet build backend/src/Homework.Domain/Homework.Domain.csproj`
 Expected: `Build succeeded`（0 error）。
 
 - [ ] **Step 3: 提交**
 
 ```bash
-git add src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs
+git add backend/src/Homework.Domain/OpenIddict/OpenIddictDataSeedContributor.cs
 git commit -m "feat(auth): seed Homework_App public password client; drop Homework_Web/Swagger clients"
 ```
 
 ### Task 1.2: 更新 `DbMigrator` 的 OpenIddict 配置
 
 **Files:**
-- Modify: `src/Homework.DbMigrator/appsettings.json`
+- Modify: `backend/src/Homework.DbMigrator/appsettings.json`
 
 - [ ] **Step 1: 把 `OpenIddict:Applications` 改为只含 `Homework_App`**
 
@@ -143,7 +143,7 @@ git commit -m "feat(auth): seed Homework_App public password client; drop Homewo
 
 Run:
 ```bash
-cd src/Homework.DbMigrator
+cd backend/src/Homework.DbMigrator
 dotnet run
 ```
 Expected: 进程正常退出、日志出现类似 `Successfully completed ... database migrations.`（无异常）。
@@ -173,7 +173,7 @@ Expected: 第二条 `count` 为 `0`。
 - [ ] **Step 5: 提交**
 
 ```bash
-git add src/Homework.DbMigrator/appsettings.json
+git add backend/src/Homework.DbMigrator/appsettings.json
 git commit -m "chore(dbmigrator): OpenIddict:Applications -> Homework_App only"
 ```
 
@@ -181,14 +181,14 @@ git commit -m "chore(dbmigrator): OpenIddict:Applications -> Homework_App only"
 
 ## Chunk 2: `Homework.HttpApi.Host` 宿主工程
 
-新建无界面宿主。模块内容以现有 `src/Homework.Web/HomeworkWebModule.cs` 为蓝本**去掉全部 UI**（LeptonX 主题、菜单、bundles、虚拟文件系统、RazorPages 授权、Web 层 Mapperly），**保留** token 端点与 API 相关配置，**新增** CORS + headless 两必配。骨架对标 port-shield `PortShieldHttpApiHostModule`。
+新建无界面宿主。模块内容以现有 `backend/src/Homework.Web/HomeworkWebModule.cs` 为蓝本**去掉全部 UI**（LeptonX 主题、菜单、bundles、虚拟文件系统、RazorPages 授权、Web 层 Mapperly），**保留** token 端点与 API 相关配置，**新增** CORS + headless 两必配。骨架对标 port-shield `PortShieldHttpApiHostModule`。
 
 > **实现者注意**：以下代码里的 `AbpMvcLibsOptions.CheckLibs`、`AbpAntiForgeryOptions.AutoValidateFilter`、CORS 辅助方法、`OnApplicationInitialization` 中间件顺序，若与 `D:\WorkSpaces\lehmansoft\port-shield\backend` 里 `PortShieldHttpApiHostModule.cs` 有出入，**以 port-shield 为准**（本项目就是照抄其 headless 骨架）。
 
 ### Task 2.1: 新建宿主 `.csproj`
 
 **Files:**
-- Create: `src/Homework.HttpApi.Host/Homework.HttpApi.Host.csproj`
+- Create: `backend/src/Homework.HttpApi.Host/Homework.HttpApi.Host.csproj`
 
 - [ ] **Step 1: 写 csproj**
 
@@ -243,8 +243,8 @@ git commit -m "chore(dbmigrator): OpenIddict:Applications -> Homework_App only"
 ### Task 2.2: 写 `appsettings.json` + `appsettings.Development.json`
 
 **Files:**
-- Create: `src/Homework.HttpApi.Host/appsettings.json`
-- Create: `src/Homework.HttpApi.Host/appsettings.Development.json`
+- Create: `backend/src/Homework.HttpApi.Host/appsettings.json`
+- Create: `backend/src/Homework.HttpApi.Host/appsettings.Development.json`
 
 - [ ] **Step 1: `appsettings.json`**
 
@@ -281,7 +281,7 @@ git commit -m "chore(dbmigrator): OpenIddict:Applications -> Homework_App only"
 ### Task 2.3: 写 `Properties/launchSettings.json`
 
 **Files:**
-- Create: `src/Homework.HttpApi.Host/Properties/launchSettings.json`
+- Create: `backend/src/Homework.HttpApi.Host/Properties/launchSettings.json`
 
 - [ ] **Step 1: 写 launchSettings（dev HTTPS 44394，浏览器直开 swagger）**
 
@@ -312,7 +312,7 @@ git commit -m "chore(dbmigrator): OpenIddict:Applications -> Homework_App only"
 ### Task 2.4: 写 `Program.cs`
 
 **Files:**
-- Create: `src/Homework.HttpApi.Host/Program.cs`
+- Create: `backend/src/Homework.HttpApi.Host/Program.cs`
 
 - [ ] **Step 1: 写 Program（照搬 `Homework.Web/Program.cs`，仅换模块类型与日志文案）**
 
@@ -378,7 +378,7 @@ public class Program
 ### Task 2.5: 写 `HomeworkHttpApiHostModule.cs`
 
 **Files:**
-- Create: `src/Homework.HttpApi.Host/HomeworkHttpApiHostModule.cs`
+- Create: `backend/src/Homework.HttpApi.Host/HomeworkHttpApiHostModule.cs`
 
 - [ ] **Step 1: 写宿主模块**
 
@@ -602,9 +602,9 @@ public class HomeworkHttpApiHostModule : AbpModule
 
 - [ ] **Step 1: 在 slnx 的 `/src/` 内加入宿主工程**
 
-在 `<Project Path="src/Homework.HttpApi/Homework.HttpApi.csproj" />` 之后加：
+在 `<Project Path="backend/src/Homework.HttpApi/Homework.HttpApi.csproj" />` 之后加：
 ```xml
-    <Project Path="src/Homework.HttpApi.Host/Homework.HttpApi.Host.csproj" />
+    <Project Path="backend/src/Homework.HttpApi.Host/Homework.HttpApi.Host.csproj" />
 ```
 
 - [ ] **Step 2: 整体编译（Web 与新宿主此时共存，均应编译通过）**
@@ -615,7 +615,7 @@ Expected: `Build succeeded`，0 error（可能有既有 warning，忽略）。
 - [ ] **Step 3: 提交**
 
 ```bash
-git add src/Homework.HttpApi.Host Homework.slnx
+git add backend/src/Homework.HttpApi.Host Homework.slnx
 git commit -m "feat(host): add headless Homework.HttpApi.Host (API + /connect/token + swagger + cors)"
 ```
 
@@ -627,7 +627,7 @@ git commit -m "feat(host): add headless Homework.HttpApi.Host (API + /connect/to
 
 Run（**必须在项目目录**）:
 ```bash
-cd src/Homework.HttpApi.Host
+cd backend/src/Homework.HttpApi.Host
 dotnet run
 ```
 Expected: 日志出现 `Starting Homework.HttpApi.Host.` 且无致命异常，最终监听 `https://localhost:44394`。**保持运行**，另开一个终端做下面的 curl。
@@ -689,30 +689,30 @@ Expected: 首次 `200`（建了一个新家长，得默认 `Parent` 角色 → `
 ### Task 3.1: 删除 `Homework.Web` 与 `Homework.Web.Tests`，从 slnx 移除
 
 **Files:**
-- Delete: `src/Homework.Web/`（整目录）
-- Delete: `test/Homework.Web.Tests/`（整目录）
+- Delete: `backend/src/Homework.Web/`（整目录）
+- Delete: `backend/test/Homework.Web.Tests/`（整目录）
 - Modify: `Homework.slnx`（移除两个工程行）
 
 - [ ] **Step 1: 从 `Homework.slnx` 删除这两行**
 
 删除：
 ```xml
-    <Project Path="src/Homework.Web/Homework.Web.csproj" />
+    <Project Path="backend/src/Homework.Web/Homework.Web.csproj" />
 ```
 和：
 ```xml
-    <Project Path="test/Homework.Web.Tests/Homework.Web.Tests.csproj" />
+    <Project Path="backend/test/Homework.Web.Tests/Homework.Web.Tests.csproj" />
 ```
 
 - [ ] **Step 2: 删除目录**
 
 Run（Bash）:
 ```bash
-git rm -r src/Homework.Web test/Homework.Web.Tests
+git rm -r backend/src/Homework.Web backend/test/Homework.Web.Tests
 ```
 Expected: git 暂存两个目录的删除。
 
-> `test/Homework.Web.Tests` 的 `.csproj` 是**唯一** `ProjectReference` 了 `Homework.Web` 的工程；不一并删，`dotnet build Homework.slnx` 会因缺少被引用工程而失败。`Homework.Application.Tests`（只依赖 Application/Domain）与 `ConsoleTestApp`（依赖 `HttpApi.Client`）**不受影响**。
+> `backend/test/Homework.Web.Tests` 的 `.csproj` 是**唯一** `ProjectReference` 了 `Homework.Web` 的工程；不一并删，`dotnet build Homework.slnx` 会因缺少被引用工程而失败。`Homework.Application.Tests`（只依赖 Application/Domain）与 `ConsoleTestApp`（依赖 `HttpApi.Client`）**不受影响**。
 
 - [ ] **Step 3: 整体编译确认无残留引用**
 
@@ -723,9 +723,9 @@ Expected: `Build succeeded`，0 error（不再有 `Homework.Web`）。
 
 Run（逐工程；SQLite in-memory，无需库）:
 ```bash
-dotnet test test/Homework.Domain.Tests/Homework.Domain.Tests.csproj
-dotnet test test/Homework.EntityFrameworkCore.Tests/Homework.EntityFrameworkCore.Tests.csproj
-dotnet test test/Homework.Application.Tests/Homework.Application.Tests.csproj
+dotnet test backend/test/Homework.Domain.Tests/Homework.Domain.Tests.csproj
+dotnet test backend/test/Homework.EntityFrameworkCore.Tests/Homework.EntityFrameworkCore.Tests.csproj
+dotnet test backend/test/Homework.Application.Tests/Homework.Application.Tests.csproj
 ```
 Expected: 三个工程 `Passed!`，Failed = 0。
 
@@ -743,9 +743,9 @@ git commit -m "chore: retire Homework.Web + Homework.Web.Tests (headless API is 
 
 - [ ] **Step 1:（可选但推荐）用 ConsoleTestApp 做端到端密码流冒烟**
 
-`test/Homework.HttpApi.Client.ConsoleTestApp/appsettings.json` 已配 `BaseUrl/Authority = https://localhost:44394`、`ClientId = Homework_App`、`admin`/`1q2w3E*`、`scope = Homework`——复用 44394 端口后**无需改动**。先起宿主（`cd src/Homework.HttpApi.Host && dotnet run`），另开终端：
+`backend/test/Homework.HttpApi.Client.ConsoleTestApp/appsettings.json` 已配 `BaseUrl/Authority = https://localhost:44394`、`ClientId = Homework_App`、`admin`/`1q2w3E*`、`scope = Homework`——复用 44394 端口后**无需改动**。先起宿主（`cd backend/src/Homework.HttpApi.Host && dotnet run`），另开终端：
 ```bash
-cd test/Homework.HttpApi.Client.ConsoleTestApp
+cd backend/test/Homework.HttpApi.Client.ConsoleTestApp
 dotnet run
 ```
 Expected: 进程用密码流以 `admin` 拿到 token 并通过 `HttpApi.Client` 动态代理调通 API。`admin` 已被 `ParentPermissionDataSeedContributor` 授予 `ParentAdmin`，故 `child-profile` 返回 **200 + 空列表**（admin 名下无孩子）——证明「登录→Bearer→调 API」链路通。**若返回 403** 说明该授权回归了（需排查种子）。想直接看到哥哥/弟弟，可临时把该工程 `appsettings.json` 的 `UserName`/`UserPassword` 改为 `demo`/`1q2w3E*`（demo 有 `ParentAdmin` + 两个孩子）。
@@ -753,9 +753,9 @@ Expected: 进程用密码流以 `admin` 拿到 token 并通过 `HttpApi.Client` 
 
 - [ ] **Step 2: 更新 `DEPLOY.md` 的「本地运行」段**
 
-把「起服：`cd src/Homework.Web && dotnet run` → https://localhost:44394」改为：
+把「起服：`cd backend/src/Homework.Web && dotnet run` → https://localhost:44394」改为：
 ```
-3. 起 API 宿主：`cd src/Homework.HttpApi.Host && dotnet run` → https://localhost:44394（Swagger 在 /swagger）
+3. 起 API 宿主：`cd backend/src/Homework.HttpApi.Host && dotnet run` → https://localhost:44394（Swagger 在 /swagger）
    - 前端（家长端/孩子端，各自子项目）通过该 API 的 `/connect/token` 密码流登录、`/api/app/*` 调用。
    - 后端已 headless：无 Razor 页面；注册走 `POST /api/account/register`。
 ```
