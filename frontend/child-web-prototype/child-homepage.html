@@ -6287,8 +6287,11 @@
       }
     }());
 
-    if (petStageMount) {
-      petStageMount.addEventListener("click", () => {
+    // Tap the pet stage area — handler on pet3dStage (the visual container that
+    // covers petStageMount) so the click always reaches the listener on mobile.
+    const pet3dStage = document.getElementById("pet3dStage");
+    if (pet3dStage) {
+      pet3dStage.addEventListener("click", () => {
         const bankKey = state.rewardQueue.length > 0 ? "hungry" : state.petMode === "complete" ? "complete" : state.petMode === "evolve" ? "evolve" : state.petMode === "rest" ? "rest" : "pet";
         showSpeechBubble(pick(dragonVoiceBank[bankKey] ?? dragonVoiceBank.pet), "pet");
       });
