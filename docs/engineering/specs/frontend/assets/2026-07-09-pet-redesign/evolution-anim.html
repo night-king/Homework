@@ -1,0 +1,110 @@
+<h2>进化过渡动画 · demo（循环播放）</h2>
+<p class="subtitle">举例：④ 展翼幼龙 → ⑤ 喷火成龙。经典"发光→蓄力→光爆→新形态亮相"的进化演出。下面这个是真的在动、循环播放。</p>
+
+<style>
+.ev-stage{background:radial-gradient(circle at 50% 40%,#1C3A4A 0%,#0B1824 100%);border-radius:16px;overflow:hidden;max-width:360px;margin:0 auto}
+.ev-old{animation:evOld 5s ease-in-out infinite}
+.ev-new{transform-box:fill-box;transform-origin:center;animation:evNew 5s ease-out infinite}
+.ev-glow{animation:evGlow 5s ease-in-out infinite}
+.ev-ring{transform-box:fill-box;transform-origin:center;animation:evRing 5s ease-in-out infinite}
+.ev-rays{transform-box:fill-box;transform-origin:center;animation:evRays 5s ease-out infinite}
+.ev-flash{animation:evFlash 5s ease-in-out infinite}
+.ev-spark{transform-box:fill-box;transform-origin:center;animation:evSpark 5s ease-out infinite}
+@keyframes evOld{0%{opacity:1;transform:translateX(0)}10%{transform:translateX(-2px)}16%{transform:translateX(2px)}22%{transform:translateX(-2px)}28%{transform:translateX(3px)}34%{transform:translateX(-3px)}38%{opacity:1;transform:translateX(0)}46%{opacity:0}100%{opacity:0}}
+@keyframes evNew{0%,50%{opacity:0;transform:scale(.45)}59%{opacity:1;transform:scale(1.1)}67%{transform:scale(.97)}74%{transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+@keyframes evGlow{0%{opacity:0}40%{opacity:.95}48%{opacity:0}100%{opacity:0}}
+@keyframes evRing{0%{opacity:.25;transform:scale(1.15)}40%{opacity:.7;transform:scale(.7)}49%{opacity:0}100%{opacity:0}}
+@keyframes evRays{0%,42%{opacity:0;transform:scale(.3) rotate(0deg)}53%{opacity:.85}72%{opacity:0;transform:scale(1.5) rotate(20deg)}100%{opacity:0}}
+@keyframes evFlash{0%,42%{opacity:0}49%{opacity:1}64%{opacity:0}100%{opacity:0}}
+@keyframes evSpark{0%,60%{opacity:0;transform:scale(.5)}70%{opacity:1;transform:scale(1)}90%{opacity:.9}97%,100%{opacity:0}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <radialGradient id="eBody" cx="40%" cy="30%" r="80%"><stop offset="0%" stop-color="#FF7A45"/><stop offset="60%" stop-color="#E8461F"/><stop offset="100%" stop-color="#9E240E"/></radialGradient>
+  <linearGradient id="eHorn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFE8C4"/><stop offset="100%" stop-color="#C9A06A"/></linearGradient>
+  <radialGradient id="eFlame" cx="50%" cy="80%" r="80%"><stop offset="0%" stop-color="#FFF0A0"/><stop offset="55%" stop-color="#FF9B2E"/><stop offset="100%" stop-color="#FF3D2E"/></radialGradient>
+  <radialGradient id="eCore" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#FFF0A8"/><stop offset="70%" stop-color="#FFB020"/><stop offset="100%" stop-color="#FF7A1F"/></radialGradient>
+  <radialGradient id="eWhite" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#FFFFFF"/><stop offset="55%" stop-color="#FFF3D0"/><stop offset="100%" stop-color="#FFF3D0" stop-opacity="0"/></radialGradient>
+  <radialGradient id="eGlowG" cx="50%" cy="50%" r="55%"><stop offset="0%" stop-color="#FFE7A0"/><stop offset="100%" stop-color="#FFE7A0" stop-opacity="0"/></radialGradient>
+  <filter id="eGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs></svg>
+
+<div class="ev-stage">
+  <svg viewBox="0 0 260 250" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <!-- energy ring -->
+    <ellipse class="ev-ring" cx="130" cy="205" rx="86" ry="20" fill="none" stroke="#5FE0FF" stroke-width="3" opacity="0.5"/>
+    <ellipse cx="130" cy="214" rx="60" ry="9" fill="#000" opacity="0.22"/>
+    <!-- glow behind old form -->
+    <ellipse class="ev-glow" cx="130" cy="120" rx="95" ry="110" fill="url(#eGlowG)"/>
+
+    <!-- OLD form ④ -->
+    <g class="ev-old"><g transform="translate(55,40) scale(1.5)">
+      <path d="M34 78 Q6 60 4 92 Q22 86 30 100 Q22 106 36 108 Z" fill="#C13A1C"/>
+      <path d="M66 78 Q94 60 96 92 Q78 86 70 100 Q78 106 64 108 Z" fill="#C13A1C"/>
+      <path d="M64 106 Q84 110 80 92" stroke="#C0330F" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M80 94 Q74 80 88 74 Q88 88 95 84 Q96 100 80 94 Z" fill="url(#eFlame)" filter="url(#eGlow)"/>
+      <g fill="#7C1D0C"><path d="M50 48 l4 -11 l4 11 Z"/><path d="M58 58 l4 -9 l4 9 Z"/></g>
+      <path d="M34 100 Q32 68 50 66 Q68 68 66 100 Q66 114 50 116 Q34 114 34 100 Z" fill="url(#eBody)"/>
+      <path d="M42 100 Q42 80 50 78 Q58 80 58 100 Q58 112 50 114 Q42 112 42 100 Z" fill="#FFD9A0"/>
+      <circle cx="50" cy="92" r="5" fill="url(#eCore)" filter="url(#eGlow)"/>
+      <path d="M42 66 Q40 56 44 48 L56 48 Q60 56 58 66 Z" fill="url(#eBody)"/>
+      <ellipse cx="50" cy="40" rx="19" ry="21" fill="url(#eBody)"/>
+      <path d="M50 46 Q68 44 70 55 Q68 64 54 62 Q47 58 48 50 Z" fill="url(#eBody)"/>
+      <circle cx="66" cy="53" r="1.5" fill="#7C1D0C"/>
+      <path d="M41 22 Q26 6 15 12 Q30 16 38 32 Z" fill="url(#eHorn)"/><path d="M59 22 Q74 6 85 12 Q70 16 62 32 Z" fill="url(#eHorn)"/>
+      <path d="M36 33 Q45 27 53 32" stroke="#8E2410" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M38 37 l13 -3 l-2 8 l-12 1 Z" fill="#0E2130"/><circle cx="45" cy="39" r="2.6" fill="#FFE45C"/>
+      <path d="M56 39 l8 -1 l-1 5 l-7 0 Z" fill="#0E2130"/><circle cx="60" cy="41" r="1.8" fill="#FFE45C"/>
+    </g></g>
+
+    <!-- NEW form ⑤ -->
+    <g class="ev-new"><g transform="translate(40,2) scale(1.8)">
+      <path d="M32 70 Q2 44 -2 84 Q18 78 26 96 Q16 104 34 106 Z" fill="#C13A1C"/>
+      <path d="M68 70 Q98 44 102 84 Q82 78 74 96 Q84 104 66 106 Z" fill="#C13A1C"/>
+      <g fill="#7C1D0C"><path d="M50 46 l5 -13 l5 13 Z"/><path d="M60 58 l4 -10 l5 10 Z"/><path d="M68 72 l4 -9 l4 9 Z"/></g>
+      <path d="M34 100 Q32 66 50 64 Q68 66 66 100 Q66 116 50 118 Q34 116 34 100 Z" fill="url(#eBody)"/>
+      <path d="M42 100 Q42 78 50 76 Q58 78 58 100 Q58 114 50 116 Q42 114 42 100 Z" fill="#FFD9A0"/>
+      <circle cx="50" cy="90" r="6" fill="url(#eCore)" filter="url(#eGlow)"/>
+      <path d="M35 96 q-10 5 -8 15 q5 -2 8 -7" fill="#D83E1A"/><path d="M65 96 q10 5 8 15 q-5 -2 -8 -7" fill="#D83E1A"/>
+      <path d="M40 66 Q34 52 42 40 L58 40 Q66 52 60 66 Z" fill="url(#eBody)"/>
+      <ellipse cx="45" cy="33" rx="16" ry="14" fill="url(#eBody)"/>
+      <path d="M55 26 Q80 26 85 40 Q86 50 68 51 Q56 49 54 40 Z" fill="url(#eBody)"/>
+      <circle cx="80" cy="35" r="1.8" fill="#7C1D0C"/>
+      <path d="M60 44 Q80 47 88 42 Q80 56 63 50 Z" fill="#5A1408"/>
+      <path d="M63 45 l2 5 l3 -4 Z" fill="#fff"/><path d="M72 46 l2 5 l3 -4 Z" fill="#fff"/>
+      <path d="M38 18 Q20 -2 8 6 Q24 10 33 28 Z" fill="url(#eHorn)"/>
+      <path d="M52 20 Q66 6 78 8 Q64 14 56 28 Z" fill="url(#eHorn)"/>
+      <path d="M32 27 Q44 19 55 25" stroke="#8E2410" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M35 29 l15 -4 l-2 8 l-14 1 Z" fill="#0E2130"/><circle cx="44" cy="31" r="2.8" fill="#FFE45C"/>
+      <path d="M85 40 Q102 34 118 40 Q104 50 86 46 Z" fill="url(#eFlame)" filter="url(#eGlow)"/>
+    </g></g>
+
+    <!-- burst rays -->
+    <g class="ev-rays" stroke="#FFDE7A" stroke-width="4" stroke-linecap="round" opacity="0.9">
+      <line x1="130" y1="120" x2="280" y2="120"/><line x1="130" y1="120" x2="255" y2="195"/>
+      <line x1="130" y1="120" x2="200" y2="250"/><line x1="130" y1="120" x2="130" y2="275"/>
+      <line x1="130" y1="120" x2="60" y2="250"/><line x1="130" y1="120" x2="5" y2="195"/>
+      <line x1="130" y1="120" x2="-20" y2="120"/><line x1="130" y1="120" x2="5" y2="45"/>
+      <line x1="130" y1="120" x2="60" y2="-10"/><line x1="130" y1="120" x2="130" y2="-35"/>
+      <line x1="130" y1="120" x2="200" y2="-10"/><line x1="130" y1="120" x2="255" y2="45"/>
+    </g>
+
+    <!-- white flash -->
+    <ellipse class="ev-flash" cx="130" cy="120" rx="150" ry="150" fill="url(#eWhite)"/>
+
+    <!-- sparkles -->
+    <g class="ev-spark" fill="#FFEFA8">
+      <path d="M60 70 l3 8 l8 3 l-8 3 l-3 8 l-3 -8 l-8 -3 l8 -3 Z"/>
+      <path d="M205 90 l2.4 6 l6 2.4 l-6 2.4 l-2.4 6 l-2.4 -6 l-6 -2.4 l6 -2.4 Z"/>
+      <path d="M180 40 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 Z"/>
+      <path d="M75 150 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 Z"/>
+    </g>
+  </svg>
+</div>
+
+<div style="max-width:520px;margin:16px auto 0">
+  <p class="label">一次进化演出的 4 拍</p>
+  <p class="subtitle" style="text-align:left">① 蓄力：旧形态发光、微微颤抖，能量环收拢<br>② 光爆：一道白光盖住画面（顺势"换装"，不用逐帧变形）<br>③ 揭晓：光散开，新形态放大登场 + 放射光线<br>④ 庆祝：星星迸出 + 鼓励语气泡（接里程碑机制）</p>
+</div>
+
+<p class="subtitle" style="margin-top:12px">这个节奏 OK 吗？想更快/更华丽/更神秘都能调。每阶还能有专属揭晓（破壳探头、翅膀唰地展开、首次喷火）。</p>
