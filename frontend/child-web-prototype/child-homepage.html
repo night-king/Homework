@@ -5043,102 +5043,54 @@
       day.crystalAwarded = day.restDay || (day.tasks.length > 0 && day.tasks.every((task) => task.done));
     });
 
-    const petStages = [
-      {
-        level: 1,
-        name: "焰团幼龙",
-        description: "火团一样圆滚滚的启程伙伴",
-        unlockElement: "fire",
-        nextGrowth: 36,
-        nextCrystals: 1
+    const SPECIES = {
+      dragon: {
+        id: 'dragon', name: '火龙', accent: '#E8461F', stageColor: '#1C3A4A',
+        stages: [
+          { level:1, key:'egg',       name:'龙蛋',       reveal:null,               nextGrowth:36, spriteId:'sp-dragon-1', scale:0.48 },
+          { level:2, key:'hatchling', name:'破壳萌龙',   reveal:'裂壳光爆·奶龙探头', nextGrowth:60, spriteId:'sp-dragon-2', scale:0.72 },
+          { level:3, key:'juvenile',  name:'成长幼龙',   reveal:null,               nextGrowth:80, spriteId:'sp-dragon-3', scale:0.98 },
+          { level:4, key:'winged',    name:'展翼幼龙',   reveal:'翅膀第一次展开',    nextGrowth:100, spriteId:'sp-dragon-4', scale:1.24 },
+          { level:5, key:'adult',     name:'喷火成龙',   reveal:'首次喷火',          nextGrowth:null, spriteId:'sp-dragon-5', scale:1.62 },
+        ],
       },
-      {
-        level: 2,
-        name: "迅爪少龙",
-        description: "拉长身形、随时准备冲刺",
-        unlockElement: "water",
-        nextGrowth: 68,
-        nextCrystals: 2
+      dino: {
+        id: 'dino', name: '恐龙', accent: '#4E9E3E', stageColor: '#24402C',
+        stages: [
+          { level:1, key:'egg',       name:'恐龙蛋',   reveal:null,            nextGrowth:36, spriteId:'sp-dino-1', scale:0.48 },
+          { level:2, key:'hatchling', name:'破壳幼崽', reveal:'破壳探头',       nextGrowth:60, spriteId:'sp-dino-2', scale:0.72 },
+          { level:3, key:'juvenile',  name:'小恐龙',   reveal:null,            nextGrowth:80, spriteId:'sp-dino-3', scale:0.98 },
+          { level:4, key:'awaken',    name:'甲刺觉醒', reveal:'甲刺+头冠鼻角',  nextGrowth:100, spriteId:'sp-dino-4', scale:1.24 },
+          { level:5, key:'rex',       name:'霸王战龙', reveal:'首次震地咆哮',   nextGrowth:null, spriteId:'sp-dino-5', scale:1.55 },
+        ],
       },
-      {
-        level: 3,
-        name: "展翼飞龙",
-        description: "第一次真正张开双翼升空",
-        unlockElement: "wood",
-        nextGrowth: 84,
-        nextCrystals: 3
+      hero: {
+        id: 'hero', name: '光之英雄', accent: '#2A9BD8', stageColor: '#1E2E4A',
+        stages: [
+          { level:1, key:'core',    name:'光之核',     reveal:null,          nextGrowth:36, spriteId:'sp-hero-1', scale:0.48 },
+          { level:2, key:'chibi',   name:'觉醒小英雄', reveal:'从光中觉醒',   nextGrowth:60, spriteId:'sp-hero-2', scale:0.72 },
+          { level:3, key:'fighter', name:'成长斗士',   reveal:null,          nextGrowth:80, spriteId:'sp-hero-3', scale:0.98 },
+          { level:4, key:'armored', name:'铠甲光刃',   reveal:'铠甲+光刃',    nextGrowth:100, spriteId:'sp-hero-4', scale:1.24 },
+          { level:5, key:'titan',   name:'光之巨神',   reveal:'首次光束',     nextGrowth:null, spriteId:'sp-hero-5', scale:1.55 },
+        ],
       },
-      {
-        level: 4,
-        name: "重甲守护龙",
-        description: "胸甲与护臂都进入守护形态",
-        unlockElement: "earth",
-        nextGrowth: 100,
-        nextCrystals: 4
-      },
-      {
-        level: 5,
-        name: "圣冠龙王",
-        description: "加冕后的终局守护圣龙",
-        unlockElement: "metal",
-        nextGrowth: null,
-        nextCrystals: null
-      }
-    ];
-
-    const elementOrder = ["fire", "water", "wood", "earth", "metal"];
-
-    const elementMeta = {
-      fire: {
-        key: "fire",
-        name: "火系",
-        coreLabel: "火系核心",
-        activeCue: "火系激活",
-        unlockStage: 1
-      },
-      water: {
-        key: "water",
-        name: "水系",
-        coreLabel: "水系核心",
-        activeCue: "水系激活",
-        unlockStage: 2
-      },
-      wood: {
-        key: "wood",
-        name: "木系",
-        coreLabel: "木系核心",
-        activeCue: "木系激活",
-        unlockStage: 3
-      },
-      earth: {
-        key: "earth",
-        name: "土系",
-        coreLabel: "土系核心",
-        activeCue: "土系激活",
-        unlockStage: 4
-      },
-      metal: {
-        key: "metal",
-        name: "金系",
-        coreLabel: "金系核心",
-        activeCue: "金系激活",
-        unlockStage: 5
-      }
     };
 
     const state = {
       selectedIndex: 2,
       rewardQueue: ["\u7559\u5B58\u679C\u5B9E"],
       growth: 58,
-      level: 2,
-      activeElement: "fire",
-      unlockedElements: ["fire", "water"],
+      level: 1,
+      speciesId: 'dragon',
       streak: 4,
       crystals: 1,
       lastReward: "\u6628\u5929\u7559\u4E0B\u4E00\u4EFD\u8865\u7ED9",
       lastFeed: "",
       petMode: "idle"
     };
+
+    const getSpecies = () => SPECIES[state.speciesId];
+    const getCurrentStage = () => getSpecies().stages[Math.max(0, Math.min(4, state.level - 1))];
 
     const todayIndex = 2;
 
@@ -6600,19 +6552,18 @@
       return petStages.find((stage) => stage.level === level + 1) ?? null;
     }
 
-    function getElementMeta(elementKey = state.activeElement) {
-      return elementMeta[elementKey] ?? elementMeta.fire;
+    function getElementMeta(elementKey) {
+      // TODO Task 3: rewrite with SPECIES data
+      return null;
     }
 
     function getUnlockedElements(level = state.level) {
-      return elementOrder.filter((elementKey) => elementMeta[elementKey].unlockStage <= level);
+      // TODO Task 3: rewrite with SPECIES data
+      return [];
     }
 
     function syncUnlockedElements() {
-      state.unlockedElements = getUnlockedElements();
-      if (!state.unlockedElements.includes(state.activeElement)) {
-        state.activeElement = state.unlockedElements[0];
-      }
+      // TODO Task 3: rewrite with SPECIES data
     }
 
     function canEvolve() {
@@ -6817,14 +6768,14 @@
       syncUnlockedElements();
       const activeMeta = getElementMeta();
       elementCoreLabel.textContent = activeMeta.coreLabel;
-      elementCoreButton.dataset.element = state.activeElement;
-      elementCoreButton.setAttribute("aria-label", `切换属性，当前${activeMeta.name}`);
+      // TODO Task 3: elementCoreButton.dataset.element = ...
+      // elementCoreButton.setAttribute("aria-label", ...);
 
       elementOrbit.querySelectorAll(".element-chip").forEach((chip) => {
         const elementKey = chip.dataset.element;
-        const meta = elementMeta[elementKey];
-        const unlocked = state.unlockedElements.includes(elementKey);
-        const active = state.activeElement === elementKey;
+        const meta = null; // TODO Task 3: use SPECIES data
+        const unlocked = false; // TODO Task 3
+        const active = false; // TODO Task 3
         const label = chip.querySelector(".element-chip-label");
         const note = chip.querySelector(".element-lock-note");
 
@@ -6848,14 +6799,10 @@
       const meta = elementMeta[elementKey];
       if (!meta) return;
 
-      if (!state.unlockedElements.includes(elementKey)) {
-        showPetFeedback(`${meta.unlockStage}阶解锁`, "warn");
-        setElementSwitcherOpen(false);
-        return;
-      }
+      // TODO Task 3: check species unlock state
+      // if (!unlocked) { showPetFeedback(...); return; }
 
-      const changed = state.activeElement !== elementKey;
-      state.activeElement = elementKey;
+      const changed = false; // TODO Task 3: track active element via SPECIES
       setElementSwitcherOpen(false);
       renderStage(false);
 
@@ -6925,7 +6872,7 @@
           createElementBadge(
             stage.unlockElement,
             stage.level <= state.level,
-            state.activeElement === stage.unlockElement && stage.level <= state.level
+            false // TODO Task 3: use SPECIES unlock state
           )
         );
 
@@ -6936,7 +6883,7 @@
       });
 
       evolutionSummaryTitle.textContent = `当前：${currentStage.name}`;
-      evolutionSummaryCopy.textContent = `已解锁 ${state.level} 阶 / ${state.unlockedElements.length} 元素`;
+      evolutionSummaryCopy.textContent = `已解锁 ${state.level} 阶`; // TODO Task 3: add element count
 
       if (!nextStage) {
         evolutionGoalTitle.textContent = "已满级";
@@ -7130,25 +7077,18 @@
 
       const currentStage = getStageMeta();
       const nextStage = getNextStageMeta();
-      const previousUnlockCount = state.unlockedElements.length;
+      // TODO Task 3: track unlock state via SPECIES
 
       state.crystals -= currentStage.nextCrystals;
       state.growth = 18;
       state.level += 1;
-      syncUnlockedElements();
       state.lastReward = "";
       state.lastFeed = `${currentStage.name} -> ${nextStage.name}`;
       pulseGrowthRail();
       showPetFeedback("\u8FDB\u5316\uFF01", "evolve");
       dragonStage.trigger("evolveBurst", { message: `${nextStage.name}，登场！`, tone: "evolve" });
 
-      if (state.unlockedElements.length > previousUnlockCount) {
-        const unlockedMeta = elementMeta[nextStage.unlockElement];
-        state.lastFeed = `${currentStage.name} -> ${nextStage.name} / 解锁${unlockedMeta.name}`;
-        window.setTimeout(() => {
-          showPetFeedback(`${unlockedMeta.name}解锁`, "element");
-        }, 520);
-      }
+      // TODO Task 3: handle species unlock notification
 
       petCore.classList.add("is-evolving");
       window.setTimeout(() => {
@@ -7186,9 +7126,8 @@
       growthFill.style.width = `${state.growth}%`;
       growthPercent.textContent = `${state.growth}%`;
       growthPoints.textContent = `\u6210\u957F\u503C ${state.growth} / 100`;
-      petWrap.dataset.element = state.activeElement;
+      // TODO Task 3: petWrap.dataset.element = getSpecies().accent or id
       petCore.dataset.stage = String(state.level);
-      petCore.dataset.element = state.activeElement;
       petStageName.textContent = currentStageName;
       petHeroLevel.textContent = `Lv ${state.level}`;
       petHeroStageName.textContent = currentStageName;
@@ -7250,7 +7189,7 @@
             : "可 360° 拖动旋转 · 点一点会回应";
       dragonStage.setState({
         level: state.level,
-        element: state.activeElement,
+        element: state.speciesId, // TODO Task 3: map species to element
         mode: petMode,
         queueCount,
         stageName: currentStageName
