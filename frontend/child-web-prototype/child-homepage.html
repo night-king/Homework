@@ -3842,12 +3842,19 @@
     const HIRES_READY = new Set();
 
     // Task 3: \u6761\u4EF6\u6E32\u67D3\u2014\u2014\u6709\u4F4D\u56FE\u7528 <image>\uFF0C\u65E0\u4F4D\u56FE\u56DE\u9000 <use>
-    function petArtMarkup(spriteId, x, y, w, h) {
-      const box = `x="${x}" y="${y}" width="${w}" height="${h}"`;
+    // box=null \u2192 fill mode\uFF08\u4E3B\u821E\u53F0/\u9009\u5BA0\u7269\u5361\u7247\uFF09\uFF1A<use> \u88F8\u6807\u7B7E\uFF0C<image> width/height=100%
+    // box={x,y,w,h} \u2192 boxed mode\uFF08\u56FE\u9274\u8F68\u9053\uFF09\uFF1A<use>/<image> \u5E26\u5750\u6807\u5C5E\u6027
+    function petArtMarkup(spriteId, box) {
       if (HIRES_READY.has(spriteId)) {
-        return `<image href="assets/pets/${spriteId}.png" ${box} preserveAspectRatio="xMidYMid meet"></image>`;
+        if (box) {
+          return `<image href="assets/pets/${spriteId}.png" x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" preserveAspectRatio="xMidYMid meet"></image>`;
+        }
+        return `<image href="assets/pets/${spriteId}.png" width="100%" height="100%" preserveAspectRatio="xMidYMid meet"></image>`;
       }
-      return `<use href="#${spriteId}" ${box}></use>`;
+      if (box) {
+        return `<use href="#${spriteId}" x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}"></use>`;
+      }
+      return `<use href="#${spriteId}"></use>`;
     }
 
     // Task 3: \u5E76\u884C\u63A2\u6D4B\u6240\u6709 spriteId \u5BF9\u5E94\u7684 PNG\uFF1B\u52A0\u8F7D\u6210\u529F\u5219\u52A0\u5165 HIRES_READY \u5E76\u89E6\u53D1\u91CD\u6E32\u67D3
@@ -4149,7 +4156,7 @@
       const uses = stages.map((s, i) => {
         const sc = s.scale, w = 100 * sc, h = 130 * sc;
         const x = cx[i] - w / 2, y = GROUND - 120 * sc;
-        return petArtMarkup(s.spriteId, x.toFixed(1), y.toFixed(1), w.toFixed(1), h.toFixed(1)) +
+        return petArtMarkup(s.spriteId, {x: x.toFixed(1), y: y.toFixed(1), w: w.toFixed(1), h: h.toFixed(1)}) +
                `<text x="${cx[i]}" y="205" text-anchor="middle" fill="#3A5568" font-size="12">${s.name}${s.reveal ? ' ★' : ''}</text>`;
       }).join('');
       evolutionRail.innerHTML =
@@ -4388,7 +4395,7 @@
       const existingOverlay = petStageMount.querySelector(".evo-overlay");
       petStageMount.innerHTML =
         `<svg class="pet-stage-svg" viewBox="-12 -8 140 148" role="img" aria-label="${species.name}·${stage.name}">
-           ${petArtMarkup(stage.spriteId, -12, -8, 140, 148)}
+           ${petArtMarkup(stage.spriteId, null)}
          </svg>`;
       petStageMount.style.setProperty("--accent", species.accent || "#FF7A37");
       // Re-append overlay if it was present (innerHTML wipe would have removed it)
@@ -4562,7 +4569,7 @@
     function openPetSelect() {
       const cards = Object.values(SPECIES).map(sp =>
         `<button class="pet-select-card" data-id="${sp.id}" style="--accent:${sp.accent}" type="button">
-           <svg viewBox="-12 -8 130 148" role="img" aria-label="${sp.name}">${petArtMarkup(sp.stages[0].spriteId, -12, -8, 130, 148)}</svg>
+           <svg viewBox="-12 -8 130 148" role="img" aria-label="${sp.name}">${petArtMarkup(sp.stages[0].spriteId, null)}</svg>
            <span class="pet-select-name">${sp.name}</span>
            <span class="pet-select-personality">${PERSONALITY[sp.id] || sp.name}</span>
          </button>`).join('');
