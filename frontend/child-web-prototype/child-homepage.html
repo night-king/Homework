@@ -4783,7 +4783,7 @@
             <div class="pet-energy-ring" aria-hidden="true"></div>
             <div class="pet-core" id="petCore" data-stage="2" data-mode="idle" data-element="fire" aria-label="可进化龙伙伴">
               <div class="pet-3d-stage" id="pet3dStage">
-                <canvas class="pet-3d-canvas" id="pet3dCanvas" aria-label="可360°拖动旋转的圣龙伙伴"></canvas>
+                <div id="petStageMount" class="pet-stage-mount" aria-label="宠物伙伴"></div>
                 <div class="pet-speech-bubble" id="petSpeechBubble" aria-live="polite" aria-hidden="true">
                   <span id="petSpeechText"></span>
                 </div>
@@ -4791,42 +4791,9 @@
                   <span class="pet-stage-level" id="petHeroLevel">Lv 2</span>
                   <strong class="pet-stage-hero-name" id="petHeroStageName">迅爪少龙</strong>
                 </div>
-                <div class="pet-drag-hint" id="petDragHint">可 360° 拖动旋转 · 点一点会回应</div>
               </div>
             </div>
-            <div class="element-switcher" id="elementSwitcher">
-              <button
-                class="element-core-button"
-                id="elementCoreButton"
-                type="button"
-                aria-expanded="false"
-                aria-controls="elementOrbit"
-              >
-                <span id="elementCoreLabel">火系核心</span>
-              </button>
-              <div class="element-orbit" id="elementOrbit">
-                <button class="element-chip is-active" type="button" data-element="fire" data-state="active">
-                  <span class="element-chip-label">火系</span>
-                  <span class="element-lock-note">火系激活</span>
-                </button>
-                <button class="element-chip" type="button" data-element="water" data-state="unlocked">
-                  <span class="element-chip-label">水系</span>
-                  <span class="element-lock-note">免费切换</span>
-                </button>
-                <button class="element-chip" type="button" data-element="wood" data-state="locked">
-                  <span class="element-chip-label">木系</span>
-                  <span class="element-lock-note">3阶解锁</span>
-                </button>
-                <button class="element-chip" type="button" data-element="earth" data-state="locked">
-                  <span class="element-chip-label">土系</span>
-                  <span class="element-lock-note">4阶解锁</span>
-                </button>
-                <button class="element-chip" type="button" data-element="metal" data-state="locked">
-                  <span class="element-chip-label">金系</span>
-                  <span class="element-lock-note">5阶解锁</span>
-                </button>
-              </div>
-            </div>
+
             <div class="pet-feedback" id="petFeedback" aria-live="polite"></div>
             <div class="pet-action-row" id="petActionRow">
               <button class="pet-side-button" id="petTalkButton" type="button">说句话</button>
@@ -5101,16 +5068,10 @@
     const petWrap = document.querySelector(".pet-wrap");
     const petCore = document.getElementById("petCore");
     const pet3dStage = document.getElementById("pet3dStage");
-    const pet3dCanvas = document.getElementById("pet3dCanvas");
     const petSpeechBubble = document.getElementById("petSpeechBubble");
     const petSpeechText = document.getElementById("petSpeechText");
     const petHeroLevel = document.getElementById("petHeroLevel");
     const petHeroStageName = document.getElementById("petHeroStageName");
-    const petDragHint = document.getElementById("petDragHint");
-    const elementSwitcher = document.getElementById("elementSwitcher");
-    const elementCoreButton = document.getElementById("elementCoreButton");
-    const elementCoreLabel = document.getElementById("elementCoreLabel");
-    const elementOrbit = document.getElementById("elementOrbit");
     const petFeedback = document.getElementById("petFeedback");
     const petTalkButton = document.getElementById("petTalkButton");
     const petNapButton = document.getElementById("petNapButton");
@@ -5146,24 +5107,6 @@
     const progressValue = document.getElementById("progressValue");
     let petFeedbackTimer = 0;
     let evolutionCueTimer = 0;
-    let elementShiftTimer = 0;
-
-    const dragonMoodPose = {
-      rest: { bobAmp: 2.8, bobSpeed: 1.08, headPitch: -0.1, tailAmp: 0.16, tailSpeed: 1.34, wingAmp: 0.04, wingSpeed: 1.06, bodyPitch: 0.02, stepAmp: 0.015, stepSpeed: 1.02 },
-      idle: { bobAmp: 3.6, bobSpeed: 1.28, headPitch: 0.06, tailAmp: 0.24, tailSpeed: 1.78, wingAmp: 0.08, wingSpeed: 1.36, bodyPitch: 0.05, stepAmp: 0.03, stepSpeed: 1.34 },
-      ready: { bobAmp: 4.4, bobSpeed: 1.58, headPitch: 0.12, tailAmp: 0.3, tailSpeed: 2.04, wingAmp: 0.12, wingSpeed: 1.72, bodyPitch: 0.08, stepAmp: 0.055, stepSpeed: 1.8 },
-      hungry: { bobAmp: 4.8, bobSpeed: 1.86, headPitch: 0.04, tailAmp: 0.36, tailSpeed: 2.3, wingAmp: 0.16, wingSpeed: 1.94, bodyPitch: 0.03, stepAmp: 0.08, stepSpeed: 2.04 },
-      complete: { bobAmp: 4.4, bobSpeed: 1.7, headPitch: 0.14, tailAmp: 0.32, tailSpeed: 2.08, wingAmp: 0.16, wingSpeed: 1.82, bodyPitch: 0.1, stepAmp: 0.05, stepSpeed: 1.74 },
-      evolve: { bobAmp: 6.2, bobSpeed: 2.14, headPitch: 0.22, tailAmp: 0.46, tailSpeed: 2.62, wingAmp: 0.26, wingSpeed: 2.22, bodyPitch: 0.16, stepAmp: 0.08, stepSpeed: 2.08 }
-    };
-
-    const dragonElementThemes = {
-      fire: { accent: "#ffbf52", accentDeep: "#ff6e2e", glow: "rgba(255, 183, 78, 0.62)" },
-      water: { accent: "#7fd8ff", accentDeep: "#2f8fff", glow: "rgba(117, 212, 255, 0.58)" },
-      wood: { accent: "#9dea75", accentDeep: "#38b66d", glow: "rgba(143, 233, 108, 0.56)" },
-      earth: { accent: "#efd16a", accentDeep: "#ab7332", glow: "rgba(235, 194, 97, 0.54)" },
-      metal: { accent: "#ffe6a1", accentDeep: "#8ea1c7", glow: "rgba(255, 229, 150, 0.58)" }
-    };
 
     const dragonVoiceBank = {
       idle: ["先拿下一项委托吧！", "我已经热身好了！", "今天也一起把任务打通关。"],
@@ -5177,101 +5120,6 @@
       pet: ["嘿嘿，再摸一下嘛！", "我有在认真陪你长大哦。", "有你在，今天就能打赢。"],
       reward: ["补给到啦！", "我看到奖励了！", "新补给闻起来不错！"],
       evolveBurst: ["看好了，我要蜕变啦！", "圣焰，起飞！", "这次是大进化！"]
-    };
-
-    const dragonForms = {
-      1: {
-        scale: 0.94,
-        body: { length: 156, height: 84, depth: 98, tilt: 0.06, y: -8, chest: 1.02, waist: 0.76, haunch: 0.9 },
-        neck: { length: 34, rise: 22, thickness: 24 },
-        head: { length: 104, height: 64, depth: 70, tilt: 0.2 },
-        snout: { length: 58, height: 22, depth: 26 },
-        jaw: { length: 48, height: 14, depth: 22, drop: 10 },
-        legs: { front: 60, rear: 56, thickness: 20, spread: 28, frontX: 34, rearX: -42 },
-        tail: { lengths: [62, 52, 42], thickness: [22, 16, 12], baseAngle: -0.04, flame: 32 },
-        wings: null,
-        winglets: { span: 52, height: 42, thickness: 10, rootLift: 34, rootX: -4, trail: 0.58 },
-        horns: { length: 18, base: 10, spread: 14, lean: 0.26 },
-        spines: { count: 3, size: 10, gap: 20, startX: -12 },
-        armor: null,
-        crown: null,
-        eyes: { size: 12, spacing: 16 },
-        chestCore: 0,
-        phase: 0.2
-      },
-      2: {
-        scale: 1.1,
-        body: { length: 182, height: 70, depth: 84, tilt: 0.15, y: -1, chest: 1.2, waist: 0.58, haunch: 0.9 },
-        neck: { length: 68, rise: 36, thickness: 21 },
-        head: { length: 118, height: 60, depth: 66, tilt: 0.24 },
-        snout: { length: 68, height: 20, depth: 22 },
-        jaw: { length: 60, height: 13, depth: 20, drop: 14 },
-        legs: { front: 72, rear: 70, thickness: 18, spread: 25, frontX: 26, rearX: -44 },
-        tail: { lengths: [78, 66, 56], thickness: [20, 15, 11], baseAngle: 0.04, flame: 30 },
-        wings: { span: 152, height: 132, thickness: 10, rootLift: 62, rootX: -4, trail: 0.64, double: false, folded: true },
-        winglets: null,
-        horns: { length: 34, base: 12, spread: 20, lean: 0.18 },
-        spines: { count: 5, size: 14, gap: 22, startX: -18 },
-        armor: null,
-        crown: null,
-        eyes: { size: 10, spacing: 15 },
-        chestCore: 0,
-        phase: 1.2
-      },
-      3: {
-        scale: 1.1,
-        body: { length: 192, height: 82, depth: 96, tilt: 0.1, y: -2, chest: 1.1, waist: 0.66, haunch: 0.92 },
-        neck: { length: 72, rise: 38, thickness: 22 },
-        head: { length: 116, height: 66, depth: 74, tilt: 0.22 },
-        snout: { length: 66, height: 24, depth: 28 },
-        jaw: { length: 58, height: 15, depth: 24, drop: 12 },
-        legs: { front: 76, rear: 72, thickness: 18, spread: 28, frontX: 28, rearX: -46 },
-        tail: { lengths: [78, 68, 58], thickness: [20, 15, 11], baseAngle: 0.08, flame: 32 },
-        wings: { span: 188, height: 152, thickness: 12, rootLift: 56, rootX: -4, trail: 0.7, double: false },
-        horns: { length: 38, base: 12, spread: 20, lean: 0.16 },
-        spines: { count: 6, size: 15, gap: 22, startX: -20 },
-        armor: { chest: 0.26 },
-        crown: null,
-        eyes: { size: 10, spacing: 15 },
-        chestCore: 16,
-        phase: 2.2
-      },
-      4: {
-        scale: 1.22,
-        body: { length: 210, height: 96, depth: 114, tilt: 0.08, y: 2, chest: 1.18, waist: 0.72, haunch: 1 },
-        neck: { length: 74, rise: 34, thickness: 26 },
-        head: { length: 124, height: 72, depth: 84, tilt: 0.18 },
-        snout: { length: 70, height: 26, depth: 32 },
-        jaw: { length: 62, height: 16, depth: 28, drop: 14 },
-        legs: { front: 84, rear: 76, thickness: 24, spread: 34, frontX: 32, rearX: -48 },
-        tail: { lengths: [78, 68, 58], thickness: [22, 17, 12], baseAngle: 0.1, flame: 34 },
-        wings: { span: 194, height: 150, thickness: 14, rootLift: 58, rootX: -8, trail: 0.68, double: false },
-        horns: { length: 42, base: 14, spread: 24, lean: 0.12 },
-        spines: { count: 6, size: 18, gap: 22, startX: -24 },
-        armor: { chest: 1, shoulder: 1, forearm: 1 },
-        crown: { buds: 1, length: 18 },
-        eyes: { size: 11, spacing: 17 },
-        chestCore: 18,
-        phase: 3.5
-      },
-      5: {
-        scale: 1.34,
-        body: { length: 222, height: 98, depth: 118, tilt: 0.14, y: 12, chest: 1.22, waist: 0.72, haunch: 1.02 },
-        neck: { length: 92, rise: 54, thickness: 24 },
-        head: { length: 134, height: 74, depth: 82, tilt: 0.28 },
-        snout: { length: 74, height: 24, depth: 30 },
-        jaw: { length: 64, height: 16, depth: 26, drop: 14 },
-        legs: { front: 86, rear: 80, thickness: 22, spread: 32, frontX: 34, rearX: -46 },
-        tail: { lengths: [82, 72, 62], thickness: [20, 15, 10], baseAngle: 0.14, flame: 38 },
-        wings: { span: 248, height: 188, thickness: 14, rootLift: 68, rootX: 2, trail: 0.74, double: true },
-        horns: { length: 48, base: 14, spread: 28, lean: 0.18 },
-        spines: { count: 7, size: 17, gap: 21, startX: -22 },
-        armor: { chest: 1.3, shoulder: 1.1, forearm: 1.1, halo: 1 },
-        crown: { buds: 3, length: 30 },
-        eyes: { size: 12, spacing: 18 },
-        chestCore: 24,
-        phase: 5.1
-      }
     };
 
     function clamp(value, min, max) {
@@ -5328,1215 +5176,30 @@
       return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
     }
 
-    function normalize(vector) {
-      const length = Math.hypot(vector.x, vector.y, vector.z) || 1;
-      return {
-        x: vector.x / length,
-        y: vector.y / length,
-        z: vector.z / length
-      };
-    }
-
-    function add3(a, b) {
-      return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
-    }
-
-    function sub3(a, b) {
-      return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
-    }
-
-    function scale3(point, amount) {
-      if (typeof amount === "number") {
-        return { x: point.x * amount, y: point.y * amount, z: point.z * amount };
-      }
-      return {
-        x: point.x * amount.x,
-        y: point.y * amount.y,
-        z: point.z * amount.z
-      };
-    }
-
-    function cross(a, b) {
-      return {
-        x: a.y * b.z - a.z * b.y,
-        y: a.z * b.x - a.x * b.z,
-        z: a.x * b.y - a.y * b.x
-      };
-    }
-
-    function dot(a, b) {
-      return a.x * b.x + a.y * b.y + a.z * b.z;
-    }
-
-    function averagePoints(points) {
-      const sum = points.reduce((memo, point) => add3(memo, point), { x: 0, y: 0, z: 0 });
-      return scale3(sum, 1 / points.length);
-    }
-
-    function rotateX(point, angle) {
-      const cosine = Math.cos(angle);
-      const sine = Math.sin(angle);
-      return {
-        x: point.x,
-        y: point.y * cosine - point.z * sine,
-        z: point.y * sine + point.z * cosine
-      };
-    }
-
-    function rotateY(point, angle) {
-      const cosine = Math.cos(angle);
-      const sine = Math.sin(angle);
-      return {
-        x: point.x * cosine + point.z * sine,
-        y: point.y,
-        z: -point.x * sine + point.z * cosine
-      };
-    }
-
-    function rotateZ(point, angle) {
-      const cosine = Math.cos(angle);
-      const sine = Math.sin(angle);
-      return {
-        x: point.x * cosine - point.y * sine,
-        y: point.x * sine + point.y * cosine,
-        z: point.z
-      };
-    }
-
-    function rotatePoint(point, rotation = {}) {
-      let next = { ...point };
-      if (rotation.x) next = rotateX(next, rotation.x);
-      if (rotation.y) next = rotateY(next, rotation.y);
-      if (rotation.z) next = rotateZ(next, rotation.z);
-      return next;
-    }
-
-    function transformChain(point, transforms = []) {
-      let next = { ...point };
-      transforms.forEach((transform) => {
-        if (transform.scale) {
-          next = scale3(next, transform.scale);
-        }
-        if (transform.rotation) {
-          next = rotatePoint(next, transform.rotation);
-        }
-        if (transform.position) {
-          next = add3(next, transform.position);
-        }
-      });
-      return next;
-    }
-
-    function offset2D(origin, dx, dy, angle = 0) {
-      const cosine = Math.cos(angle);
-      const sine = Math.sin(angle);
-      return {
-        x: origin.x + dx * cosine - dy * sine,
-        y: origin.y + dx * sine + dy * cosine,
-        z: origin.z
-      };
-    }
-
     function pick(list) {
       return list[Math.floor(Math.random() * list.length)] ?? "";
     }
 
-    function createDragonPalette(elementKey) {
-      const theme = dragonElementThemes[elementKey] ?? dragonElementThemes.fire;
-      return {
-        body: mixHex("#f38646", theme.accent, 0.14),
-        bodyDeep: mixHex("#d95523", theme.accentDeep, 0.1),
-        belly: mixHex("#ffe4b1", theme.accent, 0.08),
-        armor: mixHex("#fff2cb", theme.accent, 0.2),
-        armorDeep: mixHex("#e9b04e", theme.accentDeep, 0.18),
-        wing: mixHex("#ffd79e", theme.accent, 0.38),
-        wingDeep: mixHex("#f18d3f", theme.accentDeep, 0.22),
-        horn: mixHex("#fff1c6", theme.accent, 0.18),
-        spike: mixHex("#ffc66e", theme.accent, 0.18),
-        eye: mixHex("#fff9e9", theme.accent, 0.24),
-        accent: theme.accent,
-        accentDeep: theme.accentDeep,
-        accentSoft: mixHex(theme.accent, "#ffffff", 0.56),
-        glow: theme.glow,
-        line: mixHex("#713713", theme.accentDeep, 0.08)
-      };
-    }
-
-    class DragonStage {
-      constructor(options) {
-        this.stageEl = options.stageEl;
-        this.canvas = options.canvas;
-        this.ctx = this.canvas.getContext("2d");
-        this.bubble = options.bubble;
-        this.bubbleText = options.bubbleText;
-        this.getContext = options.getContext;
-        this.level = 2;
-        this.element = "fire";
-        this.mode = "idle";
-        this.queueCount = 0;
-        this.stageName = "迅爪少龙";
-        this.restYaw = -0.28;
-        this.restPitch = 0;
-        this.currentYaw = this.restYaw;
-        this.targetYaw = this.restYaw;
-        this.currentPitch = this.restPitch;
-        this.targetPitch = this.restPitch;
-        this.minPitch = -0.22;
-        this.maxPitch = 0.18;
-        this.dragState = null;
-        this.didDrag = false;
-        this.action = null;
-        this.bubbleTimer = 0;
-        this.nextBlinkAt = performance.now() + 1200;
-        this.blinkStart = 0;
-        this.blinkDuration = 160;
-        this.width = 0;
-        this.height = 0;
-        this.centerX = 0;
-        this.centerY = 0;
-        this.focalLength = 0;
-        this.cameraDistance = 860;
-        this.lightDirection = normalize({ x: 0.32, y: 0.82, z: 0.54 });
-        this.boundResize = () => this.resizeCanvas();
-        this.frame = this.frame.bind(this);
-        this.attachEvents();
-        if (window.ResizeObserver) {
-          this.resizeObserver = new ResizeObserver(() => this.resizeCanvas());
-          this.resizeObserver.observe(this.stageEl);
-        } else {
-          window.addEventListener("resize", this.boundResize);
-        }
-        this.resizeCanvas();
-        requestAnimationFrame(this.frame);
-      }
-
-      attachEvents() {
-        this.stageEl.addEventListener("pointerdown", (event) => {
-          this.dragState = {
-            pointerId: event.pointerId,
-            startX: event.clientX,
-            startY: event.clientY,
-            yaw: this.targetYaw,
-            pitch: this.targetPitch
-          };
-          this.didDrag = false;
-          this.stageEl.classList.add("is-dragging");
-          if (this.stageEl.setPointerCapture) {
-            this.stageEl.setPointerCapture(event.pointerId);
-          }
-        });
-
-        this.stageEl.addEventListener("pointermove", (event) => {
-          if (!this.dragState || event.pointerId !== this.dragState.pointerId) {
-            return;
-          }
-          const deltaX = event.clientX - this.dragState.startX;
-          const deltaY = event.clientY - this.dragState.startY;
-          if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
-            this.didDrag = true;
-          }
-          this.targetYaw = this.dragState.yaw + deltaX * 0.012;
-          this.targetPitch = clamp(this.dragState.pitch - deltaY * 0.0052, this.minPitch, this.maxPitch);
-        });
-
-        const releasePointer = (event) => {
-          if (!this.dragState || event.pointerId !== this.dragState.pointerId) {
-            return;
-          }
-          if (this.stageEl.releasePointerCapture) {
-            try {
-              this.stageEl.releasePointerCapture(event.pointerId);
-            } catch (error) {
-              // ignore release failure in prototype browsers
-            }
-          }
-          const shouldPet = !this.didDrag;
-          this.dragState = null;
-          this.stageEl.classList.remove("is-dragging");
-          if (shouldPet) {
-            this.reactToTap();
-          }
-        };
-
-        this.stageEl.addEventListener("pointerup", releasePointer);
-        this.stageEl.addEventListener("pointercancel", releasePointer);
-      }
-
-      resizeCanvas() {
-        const rect = this.stageEl.getBoundingClientRect();
-        if (!rect.width || !rect.height) {
-          return;
-        }
-        const ratio = window.devicePixelRatio || 1;
-        this.width = rect.width;
-        this.height = rect.height;
-        this.canvas.width = Math.round(rect.width * ratio);
-        this.canvas.height = Math.round(rect.height * ratio);
-        this.canvas.style.width = `${rect.width}px`;
-        this.canvas.style.height = `${rect.height}px`;
-        this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        this.centerX = rect.width * 0.5;
-        this.centerY = rect.height * 0.66;
-        this.focalLength = Math.min(rect.width, rect.height) * 1.08;
-      }
-
-      setState(nextState) {
-        this.level = nextState.level;
-        this.element = nextState.element;
-        this.mode = nextState.mode;
-        this.queueCount = nextState.queueCount;
-        this.stageName = nextState.stageName;
-      }
-
-      setHint(message) {
-        if (petDragHint) {
-          petDragHint.textContent = message;
-        }
-      }
-
-      speak(message, tone = "talk", duration = 2200) {
-        window.clearTimeout(this.bubbleTimer);
-        this.bubble.dataset.tone = tone;
-        this.bubbleText.textContent = message;
-        this.bubble.setAttribute("aria-hidden", "false");
-        this.bubble.classList.remove("is-visible");
-        void this.bubble.offsetWidth;
-        this.bubble.classList.add("is-visible");
-        this.bubbleTimer = window.setTimeout(() => {
-          this.bubble.classList.remove("is-visible");
-          this.bubble.setAttribute("aria-hidden", "true");
-        }, duration);
-      }
-
-      trigger(actionName, options = {}) {
-        const durationMap = {
-          feed: 960,
-          talk: 1180,
-          nap: 2600,
-          pet: 960,
-          reward: 1040,
-          evolveBurst: 1520
-        };
-        this.action = {
-          name: actionName,
-          start: performance.now(),
-          duration: options.duration ?? durationMap[actionName] ?? 1000
-        };
-        if (options.message) {
-          this.speak(options.message, options.tone ?? (actionName === "feed" ? "feed" : actionName === "nap" ? "nap" : actionName === "evolveBurst" ? "evolve" : actionName), options.bubbleDuration ?? Math.max(1800, this.action.duration));
-        }
-      }
-
-      reactToTap() {
-        const context = this.getContext ? this.getContext() : { mode: this.mode, queueCount: this.queueCount };
-        const bankKey = context.queueCount > 0 ? "hungry" : context.mode === "complete" ? "complete" : context.mode === "evolve" ? "evolve" : context.mode === "rest" ? "rest" : "pet";
-        this.trigger("pet", {
-          message: pick(dragonVoiceBank[bankKey] ?? dragonVoiceBank.pet),
-          tone: "pet"
-        });
-      }
-
-      talkFromContext(forceKey) {
-        const context = this.getContext ? this.getContext() : { mode: this.mode, queueCount: this.queueCount };
-        const bankKey = forceKey ?? (context.queueCount > 0 ? "hungry" : context.mode === "complete" ? "complete" : context.mode === "evolve" ? "evolve" : context.mode === "rest" ? "rest" : context.mode === "ready" ? "ready" : "idle");
-        this.trigger(forceKey === "nap" ? "nap" : "talk", {
-          message: pick(dragonVoiceBank[bankKey] ?? dragonVoiceBank.idle),
-          tone: forceKey === "nap" ? "nap" : "talk",
-          duration: forceKey === "nap" ? 2600 : 1180,
-          bubbleDuration: forceKey === "nap" ? 2500 : 2200
-        });
-      }
-
-      getActiveAction(ts) {
-        if (!this.action) {
-          return null;
-        }
-        const progress = clamp((ts - this.action.start) / this.action.duration, 0, 1);
-        if (progress >= 1) {
-          this.action = null;
-          return null;
-        }
-        return { ...this.action, progress };
-      }
-
-      updateBlink(ts) {
-        if (ts >= this.nextBlinkAt) {
-          this.blinkStart = ts;
-          this.nextBlinkAt = ts + 2000 + Math.random() * 2400;
-        }
-        const elapsed = ts - this.blinkStart;
-        if (elapsed < 0 || elapsed > this.blinkDuration) {
-          return 0;
-        }
-        return Math.sin((elapsed / this.blinkDuration) * Math.PI);
-      }
-
-      getPose(ts, form) {
-        const mood = dragonMoodPose[this.mode] ?? dragonMoodPose.idle;
-        const time = ts * 0.001;
-        const action = this.getActiveAction(ts);
-        let feedPulse = 0;
-        let talkPulse = 0;
-        let napBlend = 0;
-        let petPulse = 0;
-        let rewardPulse = 0;
-        let evolvePulse = 0;
-
-        if (action) {
-          const pulse = Math.sin(action.progress * Math.PI);
-          if (action.name === "feed") feedPulse = pulse;
-          if (action.name === "talk") talkPulse = pulse;
-          if (action.name === "pet") petPulse = pulse;
-          if (action.name === "reward") rewardPulse = pulse;
-          if (action.name === "evolveBurst") evolvePulse = pulse;
-          if (action.name === "nap") {
-            if (action.progress < 0.18) {
-              napBlend = easeInOutSine(action.progress / 0.18);
-            } else if (action.progress > 0.82) {
-              napBlend = easeInOutSine((1 - action.progress) / 0.18);
-            } else {
-              napBlend = 1;
-            }
-          }
-        }
-
-        const breathWave = 0.5 + Math.sin(time * 2.5 + form.phase) * 0.5;
-        const bob = Math.sin(time * mood.bobSpeed + form.phase) * mood.bobAmp;
-        const blink = Math.max(this.updateBlink(ts), napBlend * 0.98);
-        const completeBoost = this.mode === "complete" ? 0.1 : 0;
-        const evolveReadyBoost = this.mode === "evolve" ? 0.16 : 0;
-
-        return {
-          blink,
-          breathScale: 0.96 + breathWave * 0.08,
-          bodyLift: bob + (this.mode === "complete" ? 3 : 0) + evolvePulse * 8 - napBlend * 8,
-          bodyPitch: mood.bodyPitch + feedPulse * 0.06 + rewardPulse * 0.04 + evolvePulse * 0.12 - napBlend * 0.06,
-          headPitch: mood.headPitch + talkPulse * 0.16 + petPulse * 0.12 + feedPulse * 0.14 + rewardPulse * 0.09 + evolvePulse * 0.22 - napBlend * 0.28,
-          headLift: Math.sin(time * 1.9 + form.phase) * 2 + talkPulse * 5 + evolvePulse * 10 - napBlend * 10,
-          mouthOpen: clamp(feedPulse * 0.44 + talkPulse * 0.34 + rewardPulse * 0.16 + (this.mode === "hungry" ? 0.08 : 0), 0, 0.7),
-          tailWave: time * mood.tailSpeed + form.phase,
-          tailSwing: mood.tailAmp + feedPulse * 0.12 + petPulse * 0.08 + rewardPulse * 0.08 + evolvePulse * 0.18,
-          wingFlap: Math.sin(time * mood.wingSpeed + form.phase) * (mood.wingAmp + completeBoost + evolveReadyBoost) + feedPulse * 0.12 + evolvePulse * 0.25 - napBlend * 0.2,
-          glowPulse: 0.55 + 0.45 * Math.sin(time * 3.4 + form.phase) + feedPulse * 0.18 + evolvePulse * 0.34,
-          step: Math.sin(time * mood.stepSpeed + form.phase) * mood.stepAmp + rewardPulse * 0.08,
-          napBlend,
-          sparkle: Math.max(this.mode === "complete" ? 0.7 : 0.16, evolvePulse + (this.mode === "evolve" ? 0.42 : 0)),
-          aura: completeBoost + evolveReadyBoost + feedPulse * 0.08,
-          heroScale: 1 + (this.mode === "complete" ? 0.01 : 0) + evolvePulse * 0.03
-        };
-      }
-
-      createFacePalette(baseColor, topBoost = 1.12) {
-        return {
-          front: shadeHex(baseColor, 1.05),
-          back: shadeHex(baseColor, 0.76),
-          left: shadeHex(baseColor, 0.88),
-          right: shadeHex(baseColor, 1),
-          top: shadeHex(baseColor, topBoost),
-          bottom: shadeHex(baseColor, 0.66)
-        };
-      }
-
-      appendFace(scene, points, fill, line, doubleSided = false) {
-        scene.faces.push({ points, fill, line, doubleSided });
-      }
-
-      addBox(scene, spec, rootTransforms) {
-        const halfX = spec.size.x / 2;
-        const halfY = spec.size.y / 2;
-        const halfZ = spec.size.z / 2;
-        const localPoints = [
-          { x: -halfX, y: -halfY, z: -halfZ },
-          { x: halfX, y: -halfY, z: -halfZ },
-          { x: halfX, y: halfY, z: -halfZ },
-          { x: -halfX, y: halfY, z: -halfZ },
-          { x: -halfX, y: -halfY, z: halfZ },
-          { x: halfX, y: -halfY, z: halfZ },
-          { x: halfX, y: halfY, z: halfZ },
-          { x: -halfX, y: halfY, z: halfZ }
-        ].map((point) => transformChain(point, [
-          { rotation: spec.rotation },
-          { position: spec.center },
-          ...rootTransforms
-        ]));
-        const faceMap = [
-          { indices: [1, 5, 6, 2], color: spec.palette.front },
-          { indices: [0, 3, 7, 4], color: spec.palette.back },
-          { indices: [0, 4, 5, 1], color: spec.palette.bottom },
-          { indices: [3, 2, 6, 7], color: spec.palette.top },
-          { indices: [1, 2, 3, 0], color: spec.palette.left },
-          { indices: [4, 7, 6, 5], color: spec.palette.right }
-        ];
-        faceMap.forEach((face) => {
-          this.appendFace(scene, face.indices.map((index) => localPoints[index]), face.color, spec.line ?? face.color, spec.doubleSided);
-        });
-      }
-
-      addPyramid(scene, spec, rootTransforms) {
-        const { axis = "y" } = spec;
-        let localPoints = [];
-        if (axis === "x") {
-          const halfX = spec.size.x / 2;
-          const halfY = spec.size.y / 2;
-          const halfZ = spec.size.z / 2;
-          localPoints = [
-            { x: -halfX, y: -halfY, z: -halfZ },
-            { x: -halfX, y: halfY, z: -halfZ },
-            { x: -halfX, y: halfY, z: halfZ },
-            { x: -halfX, y: -halfY, z: halfZ },
-            { x: halfX, y: 0, z: 0 }
-          ];
-        } else {
-          const halfX = spec.size.x / 2;
-          const halfY = spec.size.y / 2;
-          const halfZ = spec.size.z / 2;
-          localPoints = [
-            { x: -halfX, y: -halfY, z: -halfZ },
-            { x: halfX, y: -halfY, z: -halfZ },
-            { x: halfX, y: -halfY, z: halfZ },
-            { x: -halfX, y: -halfY, z: halfZ },
-            { x: 0, y: halfY, z: 0 }
-          ];
-        }
-        const points = localPoints.map((point) => transformChain(point, [
-          { rotation: spec.rotation },
-          { position: spec.center },
-          ...rootTransforms
-        ]));
-        const base = [0, 1, 2, 3].map((index) => points[index]);
-        this.appendFace(scene, base, spec.palette.bottom, spec.line ?? spec.palette.bottom, spec.doubleSided);
-        this.appendFace(scene, [points[0], points[1], points[4]], spec.palette.left, spec.line ?? spec.palette.left, spec.doubleSided);
-        this.appendFace(scene, [points[1], points[2], points[4]], spec.palette.front, spec.line ?? spec.palette.front, spec.doubleSided);
-        this.appendFace(scene, [points[2], points[3], points[4]], spec.palette.right, spec.line ?? spec.palette.right, spec.doubleSided);
-        this.appendFace(scene, [points[3], points[0], points[4]], spec.palette.back, spec.line ?? spec.palette.back, spec.doubleSided);
-      }
-
-      addTriPrism(scene, spec, rootTransforms) {
-        const half = spec.thickness / 2;
-        const localPoints = [
-          { x: spec.a.x - half, y: spec.a.y, z: spec.a.z },
-          { x: spec.b.x - half, y: spec.b.y, z: spec.b.z },
-          { x: spec.c.x - half, y: spec.c.y, z: spec.c.z },
-          { x: spec.a.x + half, y: spec.a.y, z: spec.a.z },
-          { x: spec.b.x + half, y: spec.b.y, z: spec.b.z },
-          { x: spec.c.x + half, y: spec.c.y, z: spec.c.z }
-        ].map((point) => transformChain(point, rootTransforms));
-        this.appendFace(scene, [localPoints[0], localPoints[1], localPoints[2]], spec.palette.back, spec.line ?? spec.palette.back, true);
-        this.appendFace(scene, [localPoints[3], localPoints[5], localPoints[4]], spec.palette.front, spec.line ?? spec.palette.front, true);
-        this.appendFace(scene, [localPoints[0], localPoints[3], localPoints[4], localPoints[1]], spec.palette.top, spec.line ?? spec.palette.top, true);
-        this.appendFace(scene, [localPoints[1], localPoints[4], localPoints[5], localPoints[2]], spec.palette.left, spec.line ?? spec.palette.left, true);
-        this.appendFace(scene, [localPoints[2], localPoints[5], localPoints[3], localPoints[0]], spec.palette.right, spec.line ?? spec.palette.right, true);
-      }
-
-      addDiamond(scene, spec, rootTransforms) {
-        const points = [
-          { x: spec.size, y: 0, z: 0 },
-          { x: -spec.size, y: 0, z: 0 },
-          { x: 0, y: spec.size, z: 0 },
-          { x: 0, y: -spec.size, z: 0 },
-          { x: 0, y: 0, z: spec.size * 0.76 },
-          { x: 0, y: 0, z: -spec.size * 0.76 }
-        ].map((point) => transformChain(point, [
-          { rotation: spec.rotation },
-          { position: spec.center },
-          ...rootTransforms
-        ]));
-        const faces = [
-          [points[0], points[2], points[4]],
-          [points[2], points[1], points[4]],
-          [points[1], points[3], points[4]],
-          [points[3], points[0], points[4]],
-          [points[2], points[0], points[5]],
-          [points[1], points[2], points[5]],
-          [points[3], points[1], points[5]],
-          [points[0], points[3], points[5]]
-        ];
-        faces.forEach((face, index) => {
-          const fill = index < 4 ? spec.palette.top : spec.palette.bottom;
-          this.appendFace(scene, face, fill, spec.line ?? fill, spec.doubleSided);
-        });
-      }
-
-      addLeg(scene, spec, rootTransforms, palette, armorPalette) {
-        const knee = {
-          x: spec.anchor.x + spec.length * 0.08,
-          y: spec.anchor.y - spec.length * 0.46 + spec.lift * 0.38,
-          z: spec.anchor.z
-        };
-        const foot = {
-          x: spec.anchor.x + spec.length * 0.16,
-          y: spec.anchor.y - spec.length + spec.lift,
-          z: spec.anchor.z
-        };
-        const upperLength = Math.hypot(knee.x - spec.anchor.x, knee.y - spec.anchor.y);
-        const lowerLength = Math.hypot(foot.x - knee.x, foot.y - knee.y);
-        const upperCenter = { x: (spec.anchor.x + knee.x) / 2, y: (spec.anchor.y + knee.y) / 2, z: spec.anchor.z };
-        const lowerCenter = { x: (knee.x + foot.x) / 2, y: (knee.y + foot.y) / 2, z: spec.anchor.z };
-        const upperAngle = Math.atan2(knee.y - spec.anchor.y, knee.x - spec.anchor.x);
-        const lowerAngle = Math.atan2(foot.y - knee.y, foot.x - knee.x);
-        this.addBox(scene, {
-          center: upperCenter,
-          size: { x: upperLength, y: spec.thickness, z: spec.thickness },
-          rotation: { z: upperAngle },
-          palette,
-          line: shadeHex(palette.front, 0.72)
-        }, rootTransforms);
-        this.addBox(scene, {
-          center: lowerCenter,
-          size: { x: lowerLength, y: spec.thickness * 0.82, z: spec.thickness * 0.86 },
-          rotation: { z: lowerAngle },
-          palette,
-          line: shadeHex(palette.front, 0.72)
-        }, rootTransforms);
-        this.addBox(scene, {
-          center: { x: foot.x + spec.thickness * 0.14, y: foot.y - spec.thickness * 0.16, z: foot.z },
-          size: { x: spec.thickness * 1.1, y: spec.thickness * 0.62, z: spec.thickness * 1.26 },
-          rotation: { z: 0.06 },
-          palette: this.createFacePalette(shadeHex(palette.front, 0.92), 1.1),
-          line: shadeHex(palette.front, 0.64)
-        }, rootTransforms);
-        if (spec.guard) {
-          this.addBox(scene, {
-            center: { x: lowerCenter.x + spec.thickness * 0.16, y: lowerCenter.y + spec.thickness * 0.06, z: lowerCenter.z },
-            size: { x: lowerLength * 0.44, y: spec.thickness * 0.74, z: spec.thickness * 1.12 },
-            rotation: { z: lowerAngle },
-            palette: armorPalette,
-            line: shadeHex(armorPalette.front, 0.72)
-          }, rootTransforms);
-        }
-        const clawPalette = this.createFacePalette(mixHex(palette.front, "#fff1cf", 0.58), 1.18);
-        [-0.32, 0, 0.32].forEach((offset) => {
-          this.addPyramid(scene, {
-            axis: "x",
-            center: {
-              x: foot.x + spec.thickness * 0.72,
-              y: foot.y - spec.thickness * 0.1,
-              z: foot.z + offset * spec.thickness
-            },
-            size: {
-              x: spec.thickness * 0.66,
-              y: spec.thickness * 0.18,
-              z: spec.thickness * 0.18
-            },
-            rotation: { z: -0.08 },
-            palette: clawPalette,
-            line: shadeHex(clawPalette.front, 0.74)
-          }, rootTransforms);
-        });
-      }
-
-      project(point) {
-        const depth = this.cameraDistance - point.z;
-        const scale = this.focalLength / Math.max(depth, 120);
-        return {
-          x: this.centerX + point.x * scale,
-          y: this.centerY - point.y * scale,
-          scale,
-          depth: point.z
-        };
-      }
-
-      drawGlow(position, radius, color, alpha = 0.6) {
-        const projected = this.project(position);
-        const renderRadius = Math.max(radius * projected.scale, 8);
-        const gradient = this.ctx.createRadialGradient(projected.x, projected.y, renderRadius * 0.08, projected.x, projected.y, renderRadius);
-        gradient.addColorStop(0, rgba(color, alpha));
-        gradient.addColorStop(0.45, rgba(color, alpha * 0.44));
-        gradient.addColorStop(1, rgba(color, 0));
-        this.ctx.fillStyle = gradient;
-        this.ctx.beginPath();
-        this.ctx.arc(projected.x, projected.y, renderRadius, 0, Math.PI * 2);
-        this.ctx.fill();
-      }
-
-      drawFlame(effect) {
-        const projected = this.project(effect.position);
-        const size = Math.max(effect.size * projected.scale, 10);
-        this.drawGlow(effect.position, effect.size * 1.55, effect.color, 0.44 + effect.pulse * 0.18);
-        this.ctx.save();
-        this.ctx.translate(projected.x, projected.y);
-        this.ctx.rotate(-0.36 + effect.pulse * 0.1);
-        this.ctx.fillStyle = rgba(effect.color, 0.96);
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, -size * 0.92);
-        this.ctx.bezierCurveTo(size * 0.46, -size * 0.4, size * 0.56, size * 0.2, 0, size * 0.88);
-        this.ctx.bezierCurveTo(-size * 0.58, size * 0.22, -size * 0.44, -size * 0.38, 0, -size * 0.92);
-        this.ctx.fill();
-        this.ctx.fillStyle = rgba(effect.core, 0.92);
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, -size * 0.52);
-        this.ctx.bezierCurveTo(size * 0.22, -size * 0.2, size * 0.24, size * 0.08, 0, size * 0.46);
-        this.ctx.bezierCurveTo(-size * 0.22, size * 0.08, -size * 0.2, -size * 0.18, 0, -size * 0.52);
-        this.ctx.fill();
-        this.ctx.restore();
-      }
-
-      drawCore(effect) {
-        const projected = this.project(effect.position);
-        const size = Math.max(effect.size * projected.scale, 8);
-        this.drawGlow(effect.position, effect.size * 1.9, effect.color, 0.3 + effect.pulse * 0.16);
-        this.ctx.save();
-        this.ctx.translate(projected.x, projected.y);
-        this.ctx.rotate(Math.PI / 4);
-        this.ctx.fillStyle = rgba(effect.color, 0.94);
-        this.ctx.fillRect(-size * 0.52, -size * 0.52, size * 1.04, size * 1.04);
-        this.ctx.fillStyle = rgba(effect.core, 0.92);
-        this.ctx.fillRect(-size * 0.26, -size * 0.26, size * 0.52, size * 0.52);
-        this.ctx.restore();
-      }
-
-      drawEye(effect) {
-        const projected = this.project(effect.position);
-        const width = Math.max(effect.size * projected.scale, 4);
-        const height = Math.max(width * 0.44 * (1 - effect.blink * 0.92), 1.6);
-        this.drawGlow(effect.position, effect.size * 1.2, effect.tint, 0.16);
-        this.ctx.save();
-        this.ctx.translate(projected.x, projected.y);
-        this.ctx.rotate(effect.rotate ?? 0);
-        this.ctx.fillStyle = rgba(effect.color, 0.98);
-        this.ctx.beginPath();
-        this.ctx.ellipse(0, 0, width * 0.56, height, 0, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.restore();
-      }
-
-      drawMouth(effect) {
-        const start = this.project(effect.start);
-        const end = this.project(effect.end);
-        const controlY = (start.y + end.y) / 2 + effect.open * 10;
-        this.ctx.save();
-        this.ctx.lineCap = "round";
-        this.ctx.lineJoin = "round";
-        this.ctx.strokeStyle = rgba(effect.color, 0.92);
-        this.ctx.lineWidth = Math.max(1.6, start.scale * 3.4);
-        this.ctx.beginPath();
-        this.ctx.moveTo(start.x, start.y);
-        this.ctx.quadraticCurveTo((start.x + end.x) / 2, controlY, end.x, end.y);
-        this.ctx.stroke();
-        this.ctx.restore();
-      }
-
-      drawSpark(effect) {
-        const projected = this.project(effect.position);
-        const size = Math.max(effect.size * projected.scale, 3);
-        this.ctx.save();
-        this.ctx.translate(projected.x, projected.y);
-        this.ctx.rotate(effect.angle);
-        this.ctx.strokeStyle = rgba(effect.color, 0.85);
-        this.ctx.lineWidth = Math.max(1.2, projected.scale * 1.8);
-        this.ctx.beginPath();
-        this.ctx.moveTo(-size, 0);
-        this.ctx.lineTo(size, 0);
-        this.ctx.moveTo(0, -size);
-        this.ctx.lineTo(0, size);
-        this.ctx.stroke();
-        this.ctx.restore();
-      }
-
-      buildDragon(scene, form, pose, palette) {
-        const rootTransforms = [
-          { scale: form.scale * pose.heroScale },
-          { rotation: { x: this.currentPitch, y: this.currentYaw } },
-          { position: { x: 0, y: pose.bodyLift, z: 0 } }
-        ];
-        const bodyCenter = { x: 0, y: form.body.y, z: 0 };
-        const bodyAngle = form.body.tilt + pose.bodyPitch;
-        const bodyPalette = this.createFacePalette(palette.body);
-        const bellyPalette = this.createFacePalette(palette.belly, 1.18);
-        const armorPalette = this.createFacePalette(palette.armor, 1.18);
-        const wingPalette = this.createFacePalette(palette.wing, 1.16);
-        const hornPalette = this.createFacePalette(palette.horn, 1.18);
-        const spikePalette = this.createFacePalette(palette.spike, 1.12);
-        const bodyHeight = form.body.height * pose.breathScale;
-        const chestScale = form.body.chest ?? 1;
-        const waistScale = form.body.waist ?? 0.72;
-        const haunchScale = form.body.haunch ?? 0.9;
-        const bodySize = {
-          x: form.body.length * 0.58,
-          y: bodyHeight * 0.6,
-          z: form.body.depth * 0.56
-        };
-        const chestAnchor = offset2D(bodyCenter, form.body.length * 0.22, form.body.height * 0.08, bodyAngle);
-        const tailAnchor = offset2D(bodyCenter, -form.body.length * 0.46, -form.body.height * 0.03, bodyAngle);
-        const frontHip = offset2D(bodyCenter, form.legs.frontX, -form.body.height * 0.18, bodyAngle);
-        const rearHip = offset2D(bodyCenter, form.legs.rearX, -form.body.height * 0.22, bodyAngle);
-        const neckBase = offset2D(bodyCenter, form.body.length * 0.34, form.body.height * 0.15, bodyAngle);
-        let tailJoint = { ...tailAnchor };
-        let tailAngle = form.tail.baseAngle + bodyAngle * 0.42;
-
-        form.tail.lengths.forEach((length, index) => {
-          tailAngle += Math.sin(pose.tailWave + index * 0.72) * pose.tailSwing * (1 - index * 0.18);
-          const center = offset2D(tailJoint, -length * 0.48, 0, tailAngle);
-          this.addBox(scene, {
-            center,
-            size: { x: length, y: form.tail.thickness[index], z: form.tail.thickness[index] * 0.88 },
-            rotation: { z: tailAngle },
-            palette: this.createFacePalette(index === 0 ? palette.bodyDeep : palette.body, 1.08),
-            line: shadeHex(palette.line, 0.92)
-          }, rootTransforms);
-          tailJoint = offset2D(tailJoint, -length, 0, tailAngle);
-        });
-
-        this.addBox(scene, {
-          center: bodyCenter,
-          size: bodySize,
-          rotation: { z: bodyAngle },
-          palette: bodyPalette,
-          line: palette.line
-        }, rootTransforms);
-
-        this.addBox(scene, {
-          center: offset2D(bodyCenter, form.body.length * 0.16, form.body.height * 0.02, bodyAngle),
-          size: { x: form.body.length * 0.42, y: bodyHeight * 0.72 * chestScale, z: form.body.depth * 0.66 * chestScale },
-          rotation: { z: bodyAngle },
-          palette: this.createFacePalette(mixHex(palette.body, palette.accentSoft, 0.08), 1.16),
-          line: palette.line
-        }, rootTransforms);
-
-        this.addBox(scene, {
-          center: offset2D(bodyCenter, -form.body.length * 0.16, -form.body.height * 0.04, bodyAngle),
-          size: { x: form.body.length * 0.36, y: bodyHeight * 0.56 * haunchScale, z: form.body.depth * 0.62 * haunchScale },
-          rotation: { z: bodyAngle },
-          palette: this.createFacePalette(shadeHex(palette.bodyDeep, 0.96), 1.08),
-          line: shadeHex(palette.line, 0.88)
-        }, rootTransforms);
-
-        this.addBox(scene, {
-          center: offset2D(bodyCenter, form.body.length * 0.04, -form.body.height * 0.1, bodyAngle),
-          size: { x: form.body.length * 0.46, y: bodyHeight * 0.4 * waistScale, z: form.body.depth * 0.4 * waistScale },
-          rotation: { z: bodyAngle },
-          palette: bellyPalette,
-          line: shadeHex(palette.belly, 0.72)
-        }, rootTransforms);
-
-        if (form.armor?.chest) {
-          this.addBox(scene, {
-            center: offset2D(chestAnchor, 0, 0, bodyAngle),
-            size: { x: 44 + 12 * form.armor.chest, y: 42 + 12 * form.armor.chest, z: form.body.depth * 0.54 },
-            rotation: { z: bodyAngle },
-            palette: armorPalette,
-            line: shadeHex(palette.armorDeep, 0.78)
-          }, rootTransforms);
-        }
-
-        if (form.armor?.shoulder) {
-          [-1, 1].forEach((side) => {
-            this.addBox(scene, {
-              center: { x: frontHip.x + 10, y: frontHip.y + 8, z: side * (form.legs.spread + 6) },
-              size: { x: 36 + 10 * form.armor.shoulder, y: 18 + 4 * form.armor.shoulder, z: 30 + 8 * form.armor.shoulder },
-              rotation: { z: 0.08 },
-              palette: armorPalette,
-              line: shadeHex(palette.armorDeep, 0.78)
-            }, rootTransforms);
-          });
-        }
-
-        [-1, 1].forEach((side) => {
-          const frontLift = side === -1 ? pose.step * 14 : -pose.step * 10;
-          const rearLift = side === -1 ? -pose.step * 10 : pose.step * 12;
-          this.addLeg(scene, {
-            anchor: { x: frontHip.x, y: frontHip.y, z: side * form.legs.spread },
-            length: form.legs.front,
-            thickness: form.legs.thickness,
-            lift: frontLift,
-            guard: Boolean(form.armor?.forearm)
-          }, rootTransforms, this.createFacePalette(palette.bodyDeep, 1.08), armorPalette);
-          this.addLeg(scene, {
-            anchor: { x: rearHip.x, y: rearHip.y, z: side * (form.legs.spread - 4) },
-            length: form.legs.rear,
-            thickness: form.legs.thickness * 0.92,
-            lift: rearLift,
-            guard: false
-          }, rootTransforms, this.createFacePalette(shadeHex(palette.bodyDeep, 0.94), 1.04), armorPalette);
-        });
-
-        if (form.spines.count > 0) {
-          for (let index = 0; index < form.spines.count; index += 1) {
-            const ratio = form.spines.count === 1 ? 0.5 : index / (form.spines.count - 1);
-            const spikeCenter = offset2D(bodyCenter, form.spines.startX + form.spines.gap * index, form.body.height * 0.44 - ratio * 6, bodyAngle);
-            this.addPyramid(scene, {
-              axis: "y",
-              center: { x: spikeCenter.x, y: spikeCenter.y, z: 0 },
-              size: { x: 16 - ratio * 3, y: form.spines.size - ratio * 2, z: 16 - ratio * 3 },
-              rotation: { z: bodyAngle * 0.35 },
-              palette: spikePalette,
-              line: shadeHex(palette.spike, 0.72)
-            }, rootTransforms);
-          }
-        }
-
-        const headAngle = form.head.tilt + pose.headPitch;
-        const neckCenter = offset2D(neckBase, form.neck.length * 0.5, form.neck.rise * 0.54, headAngle);
-        const headCenter = offset2D(neckBase, form.neck.length + form.head.length * 0.24, form.neck.rise + form.head.height * 0.02 + pose.headLift, headAngle);
-        const skullCenter = offset2D(headCenter, -form.head.length * 0.08, form.head.height * 0.02, headAngle);
-        const snoutCenter = offset2D(headCenter, form.head.length * 0.26 + form.snout.length * 0.34, -form.head.height * 0.03 - pose.mouthOpen * 1.4, headAngle);
-        const jawSpec = form.jaw ?? {
-          length: form.snout.length * 0.86,
-          height: form.snout.height * 0.46,
-          depth: form.snout.depth * 0.76,
-          drop: form.snout.height * 0.42
-        };
-        const jawCenter = offset2D(
-          snoutCenter,
-          -form.snout.length * 0.08,
-          -jawSpec.drop - pose.mouthOpen * 4.2,
-          headAngle - (0.04 + pose.mouthOpen * 0.24)
-        );
-
-        this.addBox(scene, {
-          center: neckCenter,
-          size: { x: form.neck.length, y: form.neck.thickness, z: form.neck.thickness * 0.88 },
-          rotation: { z: headAngle },
-          palette: this.createFacePalette(palette.bodyDeep, 1.06),
-          line: palette.line
-        }, rootTransforms);
-
-        this.addBox(scene, {
-          center: skullCenter,
-          size: { x: form.head.length * 0.82, y: form.head.height, z: form.head.depth },
-          rotation: { z: headAngle },
-          palette: this.createFacePalette(mixHex(palette.body, palette.accentSoft, 0.08), 1.14),
-          line: palette.line
-        }, rootTransforms);
-
-        this.addBox(scene, {
-          center: snoutCenter,
-          size: { x: form.snout.length, y: form.snout.height, z: form.snout.depth },
-          rotation: { z: headAngle },
-          palette: this.createFacePalette(mixHex(palette.belly, palette.body, 0.1), 1.14),
-          line: shadeHex(palette.belly, 0.64)
-        }, rootTransforms);
-
-        this.addPyramid(scene, {
-          axis: "x",
-          center: offset2D(snoutCenter, form.snout.length * 0.44, form.snout.height * 0.04, headAngle),
-          size: { x: form.snout.length * 0.4, y: form.snout.height * 0.58, z: form.snout.depth * 0.6 },
-          rotation: { z: headAngle - 0.02 },
-          palette: this.createFacePalette(mixHex(palette.body, palette.accentSoft, 0.06), 1.12),
-          line: shadeHex(palette.line, 0.9)
-        }, rootTransforms);
-
-        this.addBox(scene, {
-          center: jawCenter,
-          size: { x: jawSpec.length, y: jawSpec.height, z: jawSpec.depth },
-          rotation: { z: headAngle - (0.08 + pose.mouthOpen * 0.18) },
-          palette: this.createFacePalette(mixHex(palette.belly, palette.horn, 0.18), 1.12),
-          line: shadeHex(palette.belly, 0.62)
-        }, rootTransforms);
-
-        if (form.horns) {
-          [-1, 1].forEach((side) => {
-            this.addPyramid(scene, {
-              axis: "x",
-              center: { x: skullCenter.x - form.head.length * 0.06, y: skullCenter.y + form.head.height * 0.34, z: side * form.horns.spread },
-              size: { x: form.horns.length, y: form.horns.base, z: form.horns.base },
-              rotation: { z: headAngle + form.horns.lean, y: side * 0.24 },
-              palette: hornPalette,
-              line: shadeHex(palette.horn, 0.72)
-            }, rootTransforms);
-          });
-        }
-
-        if (form.crown) {
-          const count = form.crown.buds;
-          for (let index = 0; index < count; index += 1) {
-            const centerOffset = count === 1 ? 0 : index - (count - 1) / 2;
-            this.addPyramid(scene, {
-              axis: "y",
-              center: { x: skullCenter.x - form.head.length * 0.08 + centerOffset * 10, y: skullCenter.y + form.head.height * 0.48, z: centerOffset * 8 },
-              size: { x: 12, y: form.crown.length - Math.abs(centerOffset) * 6, z: 12 },
-              rotation: { z: headAngle * 0.3 },
-              palette: this.createFacePalette(mixHex(palette.horn, palette.accentSoft, 0.28), 1.22),
-              line: shadeHex(palette.horn, 0.7)
-            }, rootTransforms);
-          }
-        }
-
-        if (form.winglets) {
-          [-1, 1].forEach((side) => {
-            const wingRoot = { x: form.winglets.rootX, y: bodyCenter.y + form.winglets.rootLift, z: side * (form.body.depth * 0.28) };
-            const wingTip = {
-              x: wingRoot.x - form.winglets.height * 0.12,
-              y: wingRoot.y + form.winglets.height * 0.18,
-              z: wingRoot.z + side * form.winglets.span
-            };
-            const wingLower = {
-              x: wingRoot.x - form.winglets.height * 0.52,
-              y: wingRoot.y - form.winglets.height * 0.62,
-              z: wingRoot.z + side * form.winglets.span * form.winglets.trail
-            };
-            this.addTriPrism(scene, {
-              a: wingRoot,
-              b: wingTip,
-              c: wingLower,
-              thickness: form.winglets.thickness,
-              palette: this.createFacePalette(mixHex(palette.wing, palette.body, 0.18), 1.14),
-              line: shadeHex(palette.wingDeep, 0.8)
-            }, rootTransforms);
-          });
-        }
-
-        if (form.wings) {
-          [-1, 1].forEach((side) => {
-            const wingRoot = { x: form.wings.rootX, y: bodyCenter.y + form.wings.rootLift, z: side * (form.body.depth * 0.36) };
-            const flapLift = form.wings.height * (0.18 + pose.wingFlap * 0.32);
-            const spreadFactor = form.wings.folded ? 0.72 : 1;
-            const wingLiftFactor = form.wings.folded ? 0.78 : 1;
-            const wingTrailFactor = form.wings.folded ? 0.64 : form.wings.trail;
-            const wingTip = {
-              x: wingRoot.x - form.wings.height * (form.wings.folded ? 0.02 : 0.12),
-              y: wingRoot.y + flapLift * wingLiftFactor + (form.wings.folded ? form.wings.height * 0.04 : 0),
-              z: wingRoot.z + side * form.wings.span * spreadFactor
-            };
-            const wingLower = {
-              x: wingRoot.x - form.wings.height * (form.wings.folded ? 0.62 : 0.4),
-              y: wingRoot.y - form.wings.height * (form.wings.folded ? 0.42 : (0.68 - pose.wingFlap * 0.12)),
-              z: wingRoot.z + side * form.wings.span * wingTrailFactor
-            };
-            this.addTriPrism(scene, {
-              a: wingRoot,
-              b: wingTip,
-              c: wingLower,
-              thickness: form.wings.thickness,
-              palette: wingPalette,
-              line: shadeHex(palette.wingDeep, 0.82)
-            }, rootTransforms);
-            if (form.wings.folded) {
-              const foldedElbow = {
-                x: wingRoot.x - form.wings.height * 0.18,
-                y: wingRoot.y + flapLift * 0.44 + form.wings.height * 0.05,
-                z: wingRoot.z + side * form.wings.span * 0.42
-              };
-              const foldedTrail = {
-                x: wingRoot.x - form.wings.height * 0.66,
-                y: wingRoot.y - form.wings.height * 0.34,
-                z: wingRoot.z + side * form.wings.span * 0.3
-              };
-              this.addTriPrism(scene, {
-                a: { x: wingRoot.x + 4, y: wingRoot.y + 4, z: wingRoot.z },
-                b: foldedElbow,
-                c: foldedTrail,
-                thickness: form.wings.thickness * 0.82,
-                palette: this.createFacePalette(mixHex(palette.wing, palette.accentSoft, 0.14), 1.16),
-                line: shadeHex(palette.wingDeep, 0.78)
-              }, rootTransforms);
-            }
-            if (form.wings.double) {
-              const innerTip = {
-                x: wingRoot.x - form.wings.height * 0.04,
-                y: wingRoot.y + flapLift * 0.76,
-                z: wingRoot.z + side * form.wings.span * 0.62
-              };
-              const innerLower = {
-                x: wingRoot.x - form.wings.height * 0.18,
-                y: wingRoot.y - form.wings.height * 0.38,
-                z: wingRoot.z + side * form.wings.span * 0.42
-              };
-              this.addTriPrism(scene, {
-                a: { x: wingRoot.x + 8, y: wingRoot.y + 4, z: wingRoot.z },
-                b: innerTip,
-                c: innerLower,
-                thickness: form.wings.thickness * 0.7,
-                palette: this.createFacePalette(mixHex(palette.wing, palette.accentSoft, 0.18), 1.18),
-                line: shadeHex(palette.wingDeep, 0.78)
-              }, rootTransforms);
-            }
-          });
-        }
-
-        if (form.chestCore > 0) {
-          this.addDiamond(scene, {
-            center: { x: chestAnchor.x + 8, y: chestAnchor.y - 2, z: 0 },
-            size: form.chestCore,
-            rotation: { z: bodyAngle * 0.4 },
-            palette: {
-              top: mixHex(palette.accentSoft, "#ffffff", 0.24),
-              bottom: palette.accent,
-              front: palette.accent,
-              back: palette.accentDeep,
-              left: shadeHex(palette.accent, 0.92),
-              right: shadeHex(palette.accentSoft, 0.96)
-            },
-            line: shadeHex(palette.accentDeep, 0.84)
-          }, rootTransforms);
-        }
-
-        const eyeBaseX = form.head.length * 0.18;
-        const eyeBaseY = form.head.height * 0.08;
-        const eyeZ = form.eyes.spacing;
-        scene.effects.push({
-          kind: "eye",
-          position: transformChain({ x: eyeBaseX, y: eyeBaseY, z: -eyeZ }, [{ rotation: { z: headAngle } }, { position: skullCenter }, ...rootTransforms]),
-          size: form.eyes.size,
-          color: palette.eye,
-          tint: palette.accent,
-          blink: pose.blink,
-          rotate: -0.08
-        });
-        scene.effects.push({
-          kind: "eye",
-          position: transformChain({ x: eyeBaseX, y: eyeBaseY, z: eyeZ }, [{ rotation: { z: headAngle } }, { position: skullCenter }, ...rootTransforms]),
-          size: form.eyes.size * 0.96,
-          color: palette.eye,
-          tint: palette.accent,
-          blink: pose.blink,
-          rotate: 0.08
-        });
-        scene.effects.push({
-          kind: "mouth",
-          start: transformChain({ x: form.snout.length * 0.18, y: -form.snout.height * 0.08, z: -form.snout.depth * 0.16 }, [{ rotation: { z: headAngle } }, { position: snoutCenter }, ...rootTransforms]),
-          end: transformChain({ x: form.snout.length * 0.18, y: -form.snout.height * 0.08, z: form.snout.depth * 0.16 }, [{ rotation: { z: headAngle } }, { position: snoutCenter }, ...rootTransforms]),
-          open: pose.mouthOpen,
-          color: palette.line
-        });
-        scene.effects.push({
-          kind: "flame",
-          position: transformChain({ x: tailJoint.x, y: tailJoint.y, z: 0 }, rootTransforms),
-          size: form.tail.flame * (1 + pose.aura * 0.14),
-          color: palette.accent,
-          core: palette.accentSoft,
-          pulse: pose.glowPulse
-        });
-        if (form.chestCore > 0) {
-          scene.effects.push({
-            kind: "core",
-            position: transformChain({ x: chestAnchor.x + 8, y: chestAnchor.y - 2, z: 0 }, rootTransforms),
-            size: form.chestCore * (0.8 + pose.glowPulse * 0.18),
-            color: palette.accent,
-            core: palette.accentSoft,
-            pulse: pose.glowPulse
-          });
-        }
-        for (let index = 0; index < 3; index += 1) {
-          const sparkTime = pose.tailWave + index * 1.5;
-          scene.effects.push({
-            kind: "spark",
-            position: transformChain({
-              x: chestAnchor.x + Math.sin(sparkTime) * 18,
-              y: chestAnchor.y + 26 + Math.cos(sparkTime * 1.2) * 18,
-              z: (index - 1) * 18
-            }, rootTransforms),
-            size: 3 + pose.sparkle * 5,
-            color: palette.accentSoft,
-            angle: sparkTime
-          });
-        }
-      }
-
-      drawScene(scene, pose) {
-        this.ctx.clearRect(0, 0, this.width, this.height);
-        this.ctx.save();
-        this.ctx.translate(this.centerX, this.centerY + this.height * 0.2);
-        this.ctx.scale(1, 0.3);
-        const shadowRadius = this.width * 0.22 * pose.heroScale;
-        const shadow = this.ctx.createRadialGradient(0, 0, shadowRadius * 0.18, 0, 0, shadowRadius);
-        shadow.addColorStop(0, "rgba(88, 47, 17, 0.28)");
-        shadow.addColorStop(1, "rgba(88, 47, 17, 0)");
-        this.ctx.fillStyle = shadow;
-        this.ctx.beginPath();
-        this.ctx.arc(0, 0, shadowRadius, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.restore();
-
-        const faces = [];
-        scene.faces.forEach((face) => {
-          const edgeA = sub3(face.points[1], face.points[0]);
-          const edgeB = sub3(face.points[face.points.length - 1], face.points[0]);
-          const normal = normalize(cross(edgeA, edgeB));
-          const center = averagePoints(face.points);
-          const view = normalize({ x: -center.x, y: -center.y, z: this.cameraDistance - center.z });
-          if (!face.doubleSided && dot(normal, view) <= 0) {
-            return;
-          }
-          const lightAmount = clamp(0.48 + dot(normal, this.lightDirection) * 0.42, 0.24, 1.2);
-          faces.push({
-            projected: face.points.map((point) => this.project(point)),
-            depth: center.z,
-            fill: shadeHex(face.fill, lightAmount),
-            line: rgba(shadeHex(face.line, lightAmount * 0.86), 0.92)
-          });
-        });
-
-        faces.sort((left, right) => left.depth - right.depth);
-        faces.forEach((face) => {
-          this.ctx.beginPath();
-          this.ctx.moveTo(face.projected[0].x, face.projected[0].y);
-          for (let index = 1; index < face.projected.length; index += 1) {
-            this.ctx.lineTo(face.projected[index].x, face.projected[index].y);
-          }
-          this.ctx.closePath();
-          this.ctx.fillStyle = face.fill;
-          this.ctx.fill();
-          this.ctx.strokeStyle = face.line;
-          this.ctx.lineWidth = 1.1;
-          this.ctx.stroke();
-        });
-
-        this.ctx.save();
-        this.ctx.globalCompositeOperation = "lighter";
-        scene.effects
-          .filter((effect) => effect.kind === "flame" || effect.kind === "core" || effect.kind === "spark")
-          .sort((left, right) => left.position.z - right.position.z)
-          .forEach((effect) => {
-            if (effect.kind === "flame") {
-              this.drawFlame(effect);
-            }
-            if (effect.kind === "core") {
-              this.drawCore(effect);
-            }
-            if (effect.kind === "spark") {
-              this.drawSpark(effect);
-            }
-          });
-        this.ctx.restore();
-
-        scene.effects.forEach((effect) => {
-          if (effect.kind === "eye") {
-            this.drawEye(effect);
-          }
-          if (effect.kind === "mouth") {
-            this.drawMouth(effect);
-          }
-        });
-      }
-
-      frame(ts) {
-        if (!this.dragState) {
-          this.targetPitch = lerp(this.targetPitch, this.restPitch, 0.08);
-        }
-        this.currentYaw = lerp(this.currentYaw, this.targetYaw, 0.18);
-        this.currentPitch = lerp(this.currentPitch, this.targetPitch, 0.18);
-        const form = dragonForms[this.level] ?? dragonForms[1];
-        const palette = createDragonPalette(this.element);
-        const pose = this.getPose(ts, form);
-        const scene = { faces: [], effects: [] };
-        this.buildDragon(scene, form, pose, palette);
-        this.drawScene(scene, pose);
-        requestAnimationFrame(this.frame);
-      }
-    }
-
-    const dragonStage = new DragonStage({
-      stageEl: pet3dStage,
-      canvas: pet3dCanvas,
-      bubble: petSpeechBubble,
-      bubbleText: petSpeechText,
-      getContext: () => ({
-        mode: state.petMode,
-        queueCount: state.rewardQueue.length,
-        level: state.level,
-        stageName: getStageMeta().name
-      })
-    });
-
-    function setElementSwitcherOpen(isOpen) {
-      elementSwitcher.classList.toggle("is-open", isOpen);
-      elementCoreButton.setAttribute("aria-expanded", String(isOpen));
-    }
 
     function setEvolutionOpen(isOpen) {
       petEvolutionShell.classList.toggle("is-open", isOpen);
       petEvolutionTrigger.setAttribute("aria-expanded", String(isOpen));
+    }
+
+    let _speechBubbleTimer = 0;
+    function showSpeechBubble(message, tone, duration) {
+      const dur = duration ?? (tone === "nap" ? 2600 : tone === "evolve" ? 1520 : 1800);
+      window.clearTimeout(_speechBubbleTimer);
+      petSpeechBubble.dataset.tone = tone ?? "talk";
+      petSpeechText.textContent = message;
+      petSpeechBubble.setAttribute("aria-hidden", "false");
+      petSpeechBubble.classList.remove("is-visible");
+      void petSpeechBubble.offsetWidth;
+      petSpeechBubble.classList.add("is-visible");
+      _speechBubbleTimer = window.setTimeout(() => {
+        petSpeechBubble.classList.remove("is-visible");
+        petSpeechBubble.setAttribute("aria-hidden", "true");
+      }, dur);
     }
 
     function setEvolutionModalOpen(isOpen) {
@@ -6552,20 +5215,6 @@
     function getNextStageMeta(level = state.level) {
       // TODO Task 4: rewrite with SPECIES stage data; petStages removed in Task 2
       return null;
-    }
-
-    function getElementMeta(elementKey) {
-      // TODO Task 3: rewrite with SPECIES data
-      return null;
-    }
-
-    function getUnlockedElements(level = state.level) {
-      // TODO Task 3: rewrite with SPECIES data
-      return [];
-    }
-
-    function syncUnlockedElements() {
-      // TODO Task 3: rewrite with SPECIES data
     }
 
     function canEvolve() {
@@ -6619,19 +5268,6 @@
       evolutionCueTimer = window.setTimeout(() => {
         showPetFeedback("\u53EF\u8FDB\u5316", "evolve");
       }, 760);
-    }
-
-    function triggerElementShift() {
-      window.clearTimeout(elementShiftTimer);
-      petWrap.classList.remove("is-element-shifting");
-      petCore.classList.remove("is-element-shifting");
-      void petCore.offsetWidth;
-      petWrap.classList.add("is-element-shifting");
-      petCore.classList.add("is-element-shifting");
-      elementShiftTimer = window.setTimeout(() => {
-        petWrap.classList.remove("is-element-shifting");
-        petCore.classList.remove("is-element-shifting");
-      }, 920);
     }
 
     function pulseGrowthRail() {
@@ -6745,80 +5381,6 @@
       return lock;
     }
 
-    function createElementBadge(elementKey, isUnlocked, isActive = false) {
-      const meta = elementMeta[elementKey];
-      const badge = document.createElement("span");
-      badge.className = "element-badge";
-      badge.dataset.element = elementKey;
-      if (!isUnlocked) {
-        badge.classList.add("is-locked");
-      }
-      if (isActive) {
-        badge.classList.add("is-active");
-      }
-
-      const icon = document.createElement("span");
-      icon.className = "element-badge-icon";
-      const label = document.createElement("span");
-      label.textContent = isUnlocked ? meta.name : "???";
-
-      badge.append(icon, label);
-      return badge;
-    }
-
-    function renderElementSwitcher() {
-      syncUnlockedElements();
-      const activeMeta = getElementMeta();
-      // TODO Task 3: restore elementCoreLabel update when getElementMeta() returns real data
-      if (activeMeta) {
-        elementCoreLabel.textContent = activeMeta.coreLabel;
-      }
-      // TODO Task 3: elementCoreButton.dataset.element = ...
-      // elementCoreButton.setAttribute("aria-label", ...);
-
-      elementOrbit.querySelectorAll(".element-chip").forEach((chip) => {
-        const elementKey = chip.dataset.element;
-        const meta = null; // TODO Task 3: use SPECIES data
-        const unlocked = false; // TODO Task 3
-        const active = false; // TODO Task 3
-        const label = chip.querySelector(".element-chip-label");
-        const note = chip.querySelector(".element-lock-note");
-
-        chip.dataset.state = active ? "active" : unlocked ? "unlocked" : "locked";
-        chip.classList.toggle("is-active", active);
-        chip.classList.toggle("is-locked", !unlocked);
-        chip.setAttribute("aria-pressed", String(active));
-        chip.setAttribute("aria-disabled", String(!unlocked));
-
-        if (label) {
-          label.textContent = unlocked && meta ? meta.name : "???";
-        }
-
-        if (note) {
-          // TODO Task 3: restore meta.unlockStage when SPECIES data is wired
-          note.textContent = active ? "激活" : unlocked ? "可切" : "—";
-        }
-      });
-    }
-
-    function activateElement(elementKey) {
-      // TODO Task 3: elementMeta removed; replace with SPECIES unlock lookup
-      const meta = null;
-      if (!meta) return;
-
-      // TODO Task 3: check species unlock state
-      // if (!unlocked) { showPetFeedback(...); return; }
-
-      const changed = false; // TODO Task 3: track active element via SPECIES
-      setElementSwitcherOpen(false);
-      renderStage(false);
-
-      if (changed) {
-        triggerElementShift();
-        showPetFeedback(meta.activeCue, "element");
-      }
-    }
-
     function renderEvolutionGallery() {
       evolutionRail.innerHTML = "";
 
@@ -6871,23 +5433,8 @@
           card.appendChild(lock);
         }
 
-        const unlockRow = document.createElement("div");
-        unlockRow.className = "element-unlock-row";
-        const unlockTitle = document.createElement("div");
-        unlockTitle.className = "element-unlock-title";
-        unlockTitle.textContent = "本阶新增";
-        unlockRow.appendChild(unlockTitle);
-        unlockRow.appendChild(
-          createElementBadge(
-            stage.unlockElement,
-            stage.level <= state.level,
-            false // TODO Task 3: use SPECIES unlock state
-          )
-        );
-
         card.appendChild(title);
         card.appendChild(copy);
-        card.appendChild(unlockRow);
         evolutionRail.appendChild(card);
       });
 
@@ -7049,14 +5596,14 @@
       }
 
       state.lastReward = summaryParts.join(" / ");
-      dragonStage.trigger("reward", { message: dragonCopy, tone: "talk" });
+      showSpeechBubble(dragonCopy, "talk");
       render();
     }
 
     function feedPet() {
       if (state.rewardQueue.length === 0) {
         state.lastFeed = "\u53BB\u62FF\u8865\u7ED9";
-        dragonStage.trigger("talk", { message: "先完成委托，我再吃补给！", tone: "talk" });
+        showSpeechBubble("先完成委托，我再吃补给！", "talk");
         render();
         return;
       }
@@ -7068,7 +5615,7 @@
       launchFeedProjectile(rewardName);
       pulseGrowthRail();
       showPetFeedback("\u6210\u957F+12", "growth");
-      dragonStage.trigger("feed", { message: `${rewardName} 真香！`, tone: "feed" });
+      showSpeechBubble(`${rewardName} 真香！`, "feed");
 
       if (canEvolve()) {
         state.lastFeed = "\u5DF2\u6EE1\u8DB3\u8FDB\u5316";
@@ -7081,7 +5628,7 @@
     function evolvePet() {
       if (!canEvolve()) {
         state.lastFeed = "\u8FD8\u5DEE\u4E00\u70B9";
-        dragonStage.trigger("talk", { message: "再喂我一点点，我们就能进化！", tone: "talk" });
+        showSpeechBubble("再喂我一点点，我们就能进化！", "talk");
         render();
         return;
       }
@@ -7097,7 +5644,7 @@
       state.lastFeed = `${currentStage.name} -> ${nextStage.name}`;
       pulseGrowthRail();
       showPetFeedback("\u8FDB\u5316\uFF01", "evolve");
-      dragonStage.trigger("evolveBurst", { message: `${nextStage.name}，登场！`, tone: "evolve" });
+      showSpeechBubble(`${nextStage.name}，登场！`, "evolve");
 
       // TODO Task 3: handle species unlock notification
 
@@ -7114,7 +5661,6 @@
     }
 
     function renderStage(animateHappy) {
-      syncUnlockedElements();
       const selectedDay = getSelectedDay();
       const doneCount = selectedDay.tasks.filter((task) => task.done).length;
       const totalCount = selectedDay.tasks.length;
@@ -7168,7 +5714,6 @@
       }
 
       renderEvolutionGallery();
-      renderElementSwitcher();
       petCore.classList.toggle("is-happy", Boolean(animateHappy || hasQueue));
 
       if (isRestDay) {
@@ -7191,20 +5736,7 @@
       state.petMode = petMode;
       petWrap.dataset.mode = petMode;
       petCore.dataset.mode = petMode;
-      petDragHint.textContent = evolutionReady
-        ? "可 360° 拖动旋转 · 现在可进化"
-        : hasQueue
-          ? "可 360° 拖动旋转 · 记得喂食"
-          : petMode === "rest"
-            ? "可 360° 拖动旋转 · 今天轻松巡逻"
-            : "可 360° 拖动旋转 · 点一点会回应";
-      dragonStage.setState({
-        level: state.level,
-        element: state.speciesId, // TODO Task 3: map species to element
-        mode: petMode,
-        queueCount,
-        stageName: currentStageName
-      });
+      // TODO Task 4: wire pet SVG renderer setState here
       renderRewardQueue();
 
       if (state.lastFeed) {
@@ -7230,18 +5762,23 @@
       renderStage(animateHappy);
     }
 
+    const petStageMount = document.getElementById("petStageMount");
+    if (petStageMount) {
+      petStageMount.addEventListener("click", () => {
+        const bankKey = state.rewardQueue.length > 0 ? "hungry" : state.petMode === "complete" ? "complete" : state.petMode === "evolve" ? "evolve" : state.petMode === "rest" ? "rest" : "pet";
+        showSpeechBubble(pick(dragonVoiceBank[bankKey] ?? dragonVoiceBank.pet), "pet");
+      });
+    }
     feedButton.addEventListener("click", feedPet);
     petTalkButton.addEventListener("click", (event) => {
       event.stopPropagation();
-      setElementSwitcherOpen(false);
       setEvolutionOpen(false);
-      dragonStage.talkFromContext();
+      showSpeechBubble(pick(dragonVoiceBank[state.petMode] ?? dragonVoiceBank.idle), "talk");
     });
     petNapButton.addEventListener("click", (event) => {
       event.stopPropagation();
-      setElementSwitcherOpen(false);
       setEvolutionOpen(false);
-      dragonStage.talkFromContext("nap");
+      showSpeechBubble(pick(dragonVoiceBank.nap), "nap");
     });
     petFeedShortcut.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -7249,20 +5786,8 @@
       feedPet();
     });
     evolveButton.addEventListener("click", evolvePet);
-    elementCoreButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const nextOpen = !elementSwitcher.classList.contains("is-open");
-      setElementSwitcherOpen(nextOpen);
-    });
-    elementOrbit.querySelectorAll(".element-chip").forEach((chip) => {
-      chip.addEventListener("click", (event) => {
-        event.stopPropagation();
-        activateElement(chip.dataset.element);
-      });
-    });
     openEvolutionGalleryButton.addEventListener("click", (event) => {
       event.stopPropagation();
-      setElementSwitcherOpen(false);
       setEvolutionOpen(false);
       setEvolutionModalOpen(true);
     });
@@ -7277,13 +5802,7 @@
     petEvolutionShell.addEventListener("mouseleave", () => {
       setEvolutionOpen(false);
     });
-    elementSwitcher.addEventListener("mouseleave", () => {
-      setElementSwitcherOpen(false);
-    });
     document.addEventListener("click", (event) => {
-      if (!elementSwitcher.contains(event.target)) {
-        setElementSwitcherOpen(false);
-      }
       if (!petEvolutionShell.contains(event.target)) {
         setEvolutionOpen(false);
       }
@@ -7293,7 +5812,6 @@
     });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
-        setElementSwitcherOpen(false);
         setEvolutionOpen(false);
         setEvolutionModalOpen(false);
       }
