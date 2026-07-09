@@ -272,3 +272,6 @@ backend/src/Homework.Blazor.Server.Tiered/Logs/*
 backend/.runtime/
 
 
+
+# 一次性排查/验证脚本与截图（throwaway）
+.tmp-*
