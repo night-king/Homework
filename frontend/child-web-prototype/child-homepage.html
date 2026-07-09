@@ -3838,6 +3838,29 @@
       },
     };
 
+    // Task 3: \u4F4D\u56FE\u63A2\u6D4B\u96C6\u5408\u2014\u2014\u63A2\u6D4B\u6210\u529F\u7684 spriteId \u52A0\u5165\u6B64\u96C6\u5408
+    const HIRES_READY = new Set();
+
+    // Task 3: \u6761\u4EF6\u6E32\u67D3\u2014\u2014\u6709\u4F4D\u56FE\u7528 <image>\uFF0C\u65E0\u4F4D\u56FE\u56DE\u9000 <use>
+    function petArtMarkup(spriteId, x, y, w, h) {
+      const box = `x="${x}" y="${y}" width="${w}" height="${h}"`;
+      if (HIRES_READY.has(spriteId)) {
+        return `<image href="assets/pets/${spriteId}.png" ${box} preserveAspectRatio="xMidYMid meet"></image>`;
+      }
+      return `<use href="#${spriteId}" ${box}></use>`;
+    }
+
+    // Task 3: \u5E76\u884C\u63A2\u6D4B\u6240\u6709 spriteId \u5BF9\u5E94\u7684 PNG\uFF1B\u52A0\u8F7D\u6210\u529F\u5219\u52A0\u5165 HIRES_READY \u5E76\u89E6\u53D1\u91CD\u6E32\u67D3
+    function preloadHiResArt() {
+      const ids = [];
+      Object.values(SPECIES).forEach(sp => sp.stages.forEach(s => ids.push(s.spriteId)));
+      ids.forEach(id => {
+        const img = new Image();
+        img.onload = () => { HIRES_READY.add(id); if (typeof renderPetStage === 'function') renderPetStage(); };
+        img.src = `assets/pets/${id}.png`;
+      });
+    }
+
     const state = {
       selectedIndex: 2,
       rewardQueue: ["\u7559\u5B58\u679C\u5B9E"],
@@ -4126,7 +4149,7 @@
       const uses = stages.map((s, i) => {
         const sc = s.scale, w = 100 * sc, h = 130 * sc;
         const x = cx[i] - w / 2, y = GROUND - 120 * sc;
-        return `<use href="#${s.spriteId}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"/>` +
+        return petArtMarkup(s.spriteId, x.toFixed(1), y.toFixed(1), w.toFixed(1), h.toFixed(1)) +
                `<text x="${cx[i]}" y="205" text-anchor="middle" fill="#3A5568" font-size="12">${s.name}${s.reveal ? ' ★' : ''}</text>`;
       }).join('');
       evolutionRail.innerHTML =
@@ -4365,7 +4388,7 @@
       const existingOverlay = petStageMount.querySelector(".evo-overlay");
       petStageMount.innerHTML =
         `<svg class="pet-stage-svg" viewBox="-12 -8 140 148" role="img" aria-label="${species.name}·${stage.name}">
-           <use href="#${stage.spriteId}"></use>
+           ${petArtMarkup(stage.spriteId, -12, -8, 140, 148)}
          </svg>`;
       petStageMount.style.setProperty("--accent", species.accent || "#FF7A37");
       // Re-append overlay if it was present (innerHTML wipe would have removed it)
@@ -4539,7 +4562,7 @@
     function openPetSelect() {
       const cards = Object.values(SPECIES).map(sp =>
         `<button class="pet-select-card" data-id="${sp.id}" style="--accent:${sp.accent}" type="button">
-           <svg viewBox="-12 -8 130 148" role="img" aria-label="${sp.name}"><use href="#${sp.stages[0].spriteId}"></use></svg>
+           <svg viewBox="-12 -8 130 148" role="img" aria-label="${sp.name}">${petArtMarkup(sp.stages[0].spriteId, -12, -8, 130, 148)}</svg>
            <span class="pet-select-name">${sp.name}</span>
            <span class="pet-select-personality">${PERSONALITY[sp.id] || sp.name}</span>
          </button>`).join('');
@@ -4581,6 +4604,9 @@
         openPetSelect();
       }
     }());
+
+    // Task 3: 页面初始化后立即探测位图资产（并行 HTTP HEAD via Image probe）
+    preloadHiResArt();
 
     // Tap the pet stage area — handler on pet3dStage (the visual container that
     // covers petStageMount) so the click always reaches the listener on mobile.
