@@ -5325,8 +5325,8 @@
               <div class="pet-evolution-card" id="petEvolutionCard">
                 <div class="overline">伙伴成长</div>
                 <strong id="petStageName">迅爪少龙</strong>
-                <p id="petEvolutionHint">差 10 成长 / 1 晶核</p>
-                <div class="crystal-row" id="crystalRow" aria-label="进化晶核进度"></div>
+                <p id="petEvolutionHint">差 42 成长值 到「破壳萌龙」</p>
+                <div class="crystal-row" id="crystalRow" aria-hidden="true"></div>
                 <button class="evolve-button" id="evolveButton" type="button" hidden>立即进化</button>
               </div>
             </div>
@@ -5354,10 +5354,6 @@
               <span class="mini-badge">
                 <span class="mini-badge-label">Lv</span>
                 <strong class="mini-badge-value" id="badgeLevel">2</strong>
-              </span>
-              <span class="mini-badge">
-                <span class="mini-badge-label">晶核</span>
-                <strong class="mini-badge-value" id="badgeCrystal">1</strong>
               </span>
             </div>
           </div>
@@ -5424,7 +5420,7 @@
         <div class="evolution-goal-card">
           <div class="overline">下一阶</div>
           <strong id="evolutionGoalTitle">差一点</strong>
-          <p id="evolutionGoalCopy">差成长值和晶核</p>
+          <p id="evolutionGoalCopy">差成长值</p>
         </div>
       </div>
     </section>
@@ -5585,7 +5581,6 @@
     const petEvolutionTrigger = document.getElementById("petEvolutionTrigger");
     const petStageName = document.getElementById("petStageName");
     const petEvolutionHint = document.getElementById("petEvolutionHint");
-    const crystalRow = document.getElementById("crystalRow");
     const evolveButton = document.getElementById("evolveButton");
     const openEvolutionGalleryButton = document.getElementById("openEvolutionGalleryButton");
     const petFeedShortcut = document.getElementById("petFeedShortcut");
@@ -5607,7 +5602,6 @@
     const growthPoints = document.getElementById("growthPoints");
     const growthHint = document.getElementById("growthHint");
     const badgeLevel = document.getElementById("badgeLevel");
-    const badgeCrystal = document.getElementById("badgeCrystal");
     const starsValue = document.getElementById("starsValue");
     const streakValue = document.getElementById("streakValue");
     const progressValue = document.getElementById("progressValue");
@@ -5714,10 +5708,7 @@
     }
 
     function getStageMeta() {
-      // Returns the current SPECIES stage augmented with nextCrystals:0 for
-      // backward-compatibility with canEvolve/renderStage callers (crystal gate removed).
-      const stage = getCurrentStage();
-      return Object.assign({ nextCrystals: 0 }, stage);
+      return getCurrentStage();
     }
 
     function getNextStageMeta() {
@@ -5728,27 +5719,10 @@
 
     function canEvolve() {
       const currentStage = getStageMeta();
-      return (
-        currentStage.nextGrowth !== null &&
-        state.growth >= currentStage.nextGrowth &&
-        state.crystals >= currentStage.nextCrystals
-      );
+      return currentStage.nextGrowth !== null && state.growth >= currentStage.nextGrowth;
     }
 
-    function renderCrystalRow(requiredCrystals) {
-      crystalRow.innerHTML = "";
-      const slots = requiredCrystals ?? 4;
-      const litCount = requiredCrystals === null ? 4 : Math.min(state.crystals, requiredCrystals);
 
-      for (let index = 0; index < slots; index += 1) {
-        const crystal = document.createElement("span");
-        crystal.className = "crystal-dot";
-        if (index < litCount) {
-          crystal.classList.add("is-lit");
-        }
-        crystalRow.appendChild(crystal);
-      }
-    }
 
     function getRewardGlyph(rewardName = "") {
       if (/[\u6676\u77FF\u77F3\u91D1\u5E01]/.test(rewardName)) return "\uD83D\uDC8E";
@@ -6018,18 +5992,10 @@
       const summaryParts = [`${rewardName} +1`];
       let dragonCopy = "补给到手！";
 
-      if (day.tasks.every((entry) => entry.done) && !day.crystalAwarded) {
-        day.crystalAwarded = true;
-        state.crystals += 1;
-        summaryParts.push("\u6676\u6838+1");
-        showPetFeedback("\u6676\u6838+1", "crystal");
-        dragonCopy = "晶核到手，离进化更近了！";
-
-        if (canEvolve()) {
-          state.lastFeed = "\u5DF2\u6EE1\u8DB3\u8FDB\u5316";
-          scheduleEvolutionCue();
-          dragonCopy = "补给和晶核都齐了！";
-        }
+      if (canEvolve()) {
+        state.lastFeed = "已满足进化";
+        scheduleEvolutionCue();
+        dragonCopy = "成长值满了！";
       }
 
       state.lastReward = summaryParts.join(" / ");
@@ -6189,7 +6155,6 @@
       starsValue.textContent = `${stars}`;
       streakValue.textContent = `${state.streak}\u5929`;
       badgeLevel.textContent = `${state.level}`;
-      badgeCrystal.textContent = currentStage.nextCrystals === null ? "MAX" : `${state.crystals}`;
       growthFill.style.width = `${state.growth}%`;
       growthPercent.textContent = `${state.growth}%`;
       growthPoints.textContent = `\u6210\u957F\u503C ${state.growth} / 100`;
@@ -6203,22 +6168,18 @@
         petEvolutionHint.textContent = "\u6700\u7EC8\u5F62\u6001";
         petEvolutionTrigger.textContent = "\u5DF2\u6EE1\u7EA7";
         growthHint.textContent = "\u5DF2\u6EE1\u7EA7";
-        renderCrystalRow(null);
         evolveButton.hidden = true;
       } else if (evolutionReady) {
         petEvolutionHint.textContent = `\u70B9\u6B64\u8FDB\u5316\u4E3A ${nextStage.name}`;
         petEvolutionTrigger.textContent = "\u53EF\u8FDB\u5316";
         growthHint.textContent = "\u70B9\u51FB\u8FDB\u5316";
-        renderCrystalRow(currentStage.nextCrystals);
         evolveButton.hidden = false;
         evolveButton.textContent = `\u8FDB\u5316\u6210 ${nextStage.name}`;
       } else {
         const growthLeft = Math.max(currentStage.nextGrowth - state.growth, 0);
-        const crystalLeft = Math.max(currentStage.nextCrystals - state.crystals, 0);
-        petEvolutionHint.textContent = `\u5DEE ${growthLeft} \u6210\u957F / ${crystalLeft} \u6676\u6838`;
+        petEvolutionHint.textContent = `\u5DEE ${growthLeft} \u6210\u957F\u503C \u5230\u300C${nextStage.name}\u300D`;
         petEvolutionTrigger.textContent = "\u8FDB\u5316";
         growthHint.textContent = "\u6BCF\u6B21\u6295\u5582 +12";
-        renderCrystalRow(currentStage.nextCrystals);
         evolveButton.hidden = true;
       }
 
