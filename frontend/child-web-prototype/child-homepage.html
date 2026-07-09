@@ -671,6 +671,12 @@
       transform: translateY(0) scale(1);
     }
 
+    .pet-evolution-shell.is-evolving .pet-evolution-card {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(10px) scale(0.98) !important;
+    }
+
     .pet-evolution-card strong {
       display: block;
       margin-top: 4px;
@@ -1737,17 +1743,7 @@
     }
 
     .evolution-rail::before {
-      content: "";
-      position: absolute;
-      left: 9%;
-      right: 9%;
-      top: 92px;
-      height: 8px;
-      border-radius: 999px;
-      background:
-        linear-gradient(90deg, rgba(255, 165, 66, 0.2), rgba(255, 211, 86, 0.52), rgba(41, 211, 183, 0.18));
-      box-shadow: 0 0 18px rgba(255, 186, 65, 0.16);
-      z-index: 0;
+      display: none;
     }
 
     .evolution-card {
@@ -4131,7 +4127,7 @@
         const sc = s.scale, w = 100 * sc, h = 130 * sc;
         const x = cx[i] - w / 2, y = GROUND - 120 * sc;
         return `<use href="#${s.spriteId}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"/>` +
-               `<text x="${cx[i]}" y="205" text-anchor="middle" fill="#CFE3EE" font-size="12">${s.name}${s.reveal ? ' ★' : ''}</text>`;
+               `<text x="${cx[i]}" y="205" text-anchor="middle" fill="#3A5568" font-size="12">${s.name}${s.reveal ? ' ★' : ''}</text>`;
       }).join('');
       evolutionRail.innerHTML =
         `<svg viewBox="0 0 ${VB_W} 214" width="100%" xmlns="http://www.w3.org/2000/svg">` +
@@ -4387,6 +4383,9 @@
     function playEvolution(nextLevel) {
       if (_isEvolving) return;
       _isEvolving = true;
+      // 动画期间强制隐藏进化卡片（盖过 :hover / :focus-within），避免挡住舞台演出
+      petEvolutionShell.classList.add("is-evolving");
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
 
       // Build the overlay div with all animation layers
       const overlay = document.createElement("div");
@@ -4421,6 +4420,7 @@
         const liveOverlay = petStageMount.querySelector(".evo-overlay");
         if (liveOverlay) liveOverlay.remove();
         _isEvolving = false;
+        petEvolutionShell.classList.remove("is-evolving");
 
         // Refresh growth bar, level badge, evolution panel to new level
         render();
@@ -4610,9 +4610,10 @@
     evolveButton.addEventListener("click", () => {
       // Gate: only play evolution animation when canEvolve() is true
       if (canEvolve() && state.level < 5) {
-        // 立即收起进化卡片，避免它挡住宠物舞台的进化演出动画
+        // 立即收起进化卡片并移除焦点，避免它挡住宠物舞台的进化演出动画
         petEvolutionShell.classList.remove("is-open");
         petEvolutionTrigger.setAttribute("aria-expanded", "false");
+        evolveButton.blur();
         playEvolution(state.level + 1);
       } else {
         evolvePet(); // shows hint if not ready or already max level
