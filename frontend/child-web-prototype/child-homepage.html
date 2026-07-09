@@ -4522,6 +4522,125 @@
     }
     /* ── end Task 4 ── */
 
+    /* ── Task 5: evolution animation overlay ── */
+    .evo-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      border-radius: inherit;
+      overflow: hidden;
+    }
+
+    .evo-glow {
+      position: absolute;
+      inset: -20%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,230,140,0.9) 0%, rgba(255,190,60,0.0) 70%);
+      animation: evo-Glow 2.2s ease-in-out forwards;
+    }
+
+    .evo-ring {
+      position: absolute;
+      inset: 10%;
+      border-radius: 50%;
+      border: 3px solid rgba(95,224,255,0.7);
+      animation: evo-Ring 2.2s ease-in-out forwards;
+    }
+
+    .evo-rays {
+      position: absolute;
+      inset: 0;
+      background:
+        conic-gradient(
+          from 0deg,
+          transparent 0deg 22deg,  rgba(255,222,122,0.55) 22deg 28deg,
+          transparent 28deg 52deg, rgba(255,222,122,0.45) 52deg 58deg,
+          transparent 58deg 82deg, rgba(255,222,122,0.50) 82deg 88deg,
+          transparent 88deg 112deg,rgba(255,222,122,0.45) 112deg 118deg,
+          transparent 118deg 142deg,rgba(255,222,122,0.55) 142deg 148deg,
+          transparent 148deg 172deg,rgba(255,222,122,0.45) 172deg 178deg,
+          transparent 178deg 202deg,rgba(255,222,122,0.50) 202deg 208deg,
+          transparent 208deg 232deg,rgba(255,222,122,0.45) 232deg 238deg,
+          transparent 238deg 262deg,rgba(255,222,122,0.55) 262deg 268deg,
+          transparent 268deg 292deg,rgba(255,222,122,0.45) 292deg 298deg,
+          transparent 298deg 322deg,rgba(255,222,122,0.50) 322deg 328deg,
+          transparent 328deg 360deg
+        );
+      border-radius: 50%;
+      animation: evo-Rays 2.2s ease-out forwards;
+    }
+
+    .evo-flash {
+      position: absolute;
+      inset: -5%;
+      background: radial-gradient(circle, #ffffff 0%, rgba(255,243,208,0.85) 55%, rgba(255,243,208,0) 100%);
+      animation: evo-Flash 2.2s ease-in-out forwards;
+    }
+
+    .evo-spark {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 28% 35%, rgba(255,240,168,0.85) 0%, transparent 6%),
+        radial-gradient(circle at 72% 30%, rgba(255,240,168,0.75) 0%, transparent 5%),
+        radial-gradient(circle at 55% 68%, rgba(255,240,168,0.70) 0%, transparent 5%),
+        radial-gradient(circle at 22% 65%, rgba(255,240,168,0.75) 0%, transparent 4%);
+      animation: evo-Spark 2.2s ease-out forwards;
+    }
+
+    .evo-old-shake {
+      animation: evo-OldShake 0.9s ease-in-out forwards !important;
+    }
+
+    @keyframes evo-OldShake {
+      0%   { transform: translateY(0) scale(1); filter: drop-shadow(0 28px 42px rgba(226,90,22,0.22)); }
+      10%  { transform: translateX(-2px); }
+      16%  { transform: translateX(2px); }
+      22%  { transform: translateX(-2px); }
+      28%  { transform: translateX(3px); }
+      34%  { transform: translateX(-3px); }
+      38%  { opacity: 1; transform: translateX(0); filter: drop-shadow(0 0 42px rgba(255,213,102,0.7)); }
+      48%  { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes evo-Glow {
+      0%   { opacity: 0; transform: scale(0.8); }
+      40%  { opacity: 0.95; transform: scale(1); }
+      48%  { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes evo-Ring {
+      0%   { opacity: 0.25; transform: scale(1.15); }
+      40%  { opacity: 0.70; transform: scale(0.7); }
+      49%  { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes evo-Rays {
+      0%, 42% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+      53%     { opacity: 0.85; }
+      72%     { opacity: 0; transform: scale(1.5) rotate(20deg); }
+      100%    { opacity: 0; }
+    }
+
+    @keyframes evo-Flash {
+      0%, 42% { opacity: 0; }
+      49%     { opacity: 1; }
+      64%     { opacity: 0; }
+      100%    { opacity: 0; }
+    }
+
+    @keyframes evo-Spark {
+      0%, 60% { opacity: 0; transform: scale(0.5); }
+      70%     { opacity: 1; transform: scale(1); }
+      90%     { opacity: 0.9; }
+      97%,100%{ opacity: 0; }
+    }
+    /* ── end Task 5 ── */
+
     .pet-speech-bubble {
       position: absolute;
       left: 50%;
@@ -5902,11 +6021,67 @@
       if (!petStageMount) return;
       const stage = getCurrentStage();
       const species = getSpecies();
+      // Preserve any evolution overlay that may be appended (Task 5: overlay/innerHTML fix)
+      const existingOverlay = petStageMount.querySelector(".evo-overlay");
       petStageMount.innerHTML =
         `<svg class="pet-stage-svg" viewBox="-12 -8 140 148" role="img" aria-label="${species.name}·${stage.name}">
            <use href="#${stage.spriteId}"></use>
          </svg>`;
       petStageMount.style.setProperty("--accent", species.accent || "#FF7A37");
+      // Re-append overlay if it was present (innerHTML wipe would have removed it)
+      if (existingOverlay) {
+        petStageMount.appendChild(existingOverlay);
+      }
+    }
+
+    // Task 5: 4-beat evolution animation
+    // Beat 1 (0–900ms):   old form glows + shakes, energy ring contracts
+    // Beat 2 (~900ms):    white flash peaks
+    // Beat 3 (~1050ms):   at flash peak swap sprite; flash fades + burst rays
+    // Beat 4 (~1400ms+):  sparkles + reveal speech bubble
+    let _isEvolving = false;
+    function playEvolution(nextLevel) {
+      if (_isEvolving) return;
+      _isEvolving = true;
+
+      // Build the overlay div with all animation layers
+      const overlay = document.createElement("div");
+      overlay.className = "evo-overlay";
+      overlay.innerHTML = `
+        <div class="evo-glow"></div>
+        <div class="evo-ring"></div>
+        <div class="evo-rays"></div>
+        <div class="evo-flash"></div>
+        <div class="evo-spark"></div>
+      `;
+
+      // Append overlay to petStageMount (above the SVG, z-index:10)
+      petStageMount.appendChild(overlay);
+
+      // Beat 1: shake the pet-core element
+      petCore.classList.add("evo-old-shake");
+
+      // Beat 3: at flash peak (~1050ms) swap the sprite
+      // renderPetStage() is called which does innerHTML reset; our modified
+      // renderPetStage() re-appends the overlay node so it survives.
+      window.setTimeout(() => {
+        state.level = nextLevel;
+        renderPetStage(); // overlay is re-appended inside this call
+      }, 1050);
+
+      // Beat 4: cleanup at ~2200ms, show reveal speech bubble
+      window.setTimeout(() => {
+        petCore.classList.remove("evo-old-shake");
+        // Remove overlay (it may have been re-appended by renderPetStage)
+        const liveOverlay = petStageMount.querySelector(".evo-overlay");
+        if (liveOverlay) liveOverlay.remove();
+        _isEvolving = false;
+
+        const reveal = getCurrentStage().reveal;
+        if (reveal) {
+          showSpeechBubble(reveal, "evolve", 2800);
+        }
+      }, 2200);
     }
 
     function renderStage(animateHappy) {
@@ -6033,7 +6208,15 @@
       setEvolutionOpen(false);
       feedPet();
     });
-    evolveButton.addEventListener("click", evolvePet);
+    evolveButton.addEventListener("click", () => {
+      // Task 5: play the 4-beat evolution animation, then advance level
+      // Gate: if growth gating is active and not met, fall back to evolvePet which shows a hint
+      if (state.level < 5) {
+        playEvolution(state.level + 1);
+      } else {
+        evolvePet(); // already max level — evolvePet will show the hint
+      }
+    });
     openEvolutionGalleryButton.addEventListener("click", (event) => {
       event.stopPropagation();
       setEvolutionOpen(false);
