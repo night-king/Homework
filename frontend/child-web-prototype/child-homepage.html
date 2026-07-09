@@ -4880,6 +4880,115 @@
         justify-content: center;
       }
     }
+
+    /* ── Task 9: Pet Selection Overlay ──────────────────────────────────── */
+    .pet-select-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 18, 32, 0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 24px 16px 32px;
+      box-sizing: border-box;
+    }
+
+    .pet-select-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #E8F4FF;
+      margin: 0 0 8px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+
+    .pet-select-subtitle {
+      font-size: 0.85rem;
+      color: #7AABCC;
+      margin: 0 0 28px;
+      text-align: center;
+    }
+
+    .pet-select-row {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      width: 100%;
+      max-width: 420px;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .pet-select-card {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 8px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      min-height: 160px;
+      color: inherit;
+      font-family: inherit;
+    }
+
+    .pet-select-card:hover,
+    .pet-select-card:focus-visible {
+      border-color: var(--accent, #FF7A37);
+      background: color-mix(in srgb, var(--accent, #FF7A37) 12%, transparent);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .pet-select-card:active {
+      transform: translateY(0px) scale(0.97);
+    }
+
+    .pet-select-card svg {
+      width: 72px;
+      height: 94px;
+      flex-shrink: 0;
+    }
+
+    .pet-select-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #E8F4FF;
+      text-align: center;
+    }
+
+    .pet-select-personality {
+      font-size: 0.7rem;
+      color: #7AABCC;
+      text-align: center;
+      line-height: 1.35;
+      padding: 0 2px;
+    }
+
+    @media (max-width: 380px) {
+      .pet-select-card svg {
+        width: 56px;
+        height: 73px;
+      }
+      .pet-select-name {
+        font-size: 0.8rem;
+      }
+      .pet-select-personality {
+        font-size: 0.65rem;
+      }
+      .pet-select-row {
+        gap: 8px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -6484,6 +6593,69 @@
       renderStage(animateHappy);
     }
 
+    // ── Task 9: Pet Selection Overlay ────────────────────────────────────────
+    // Guard: renderPetStage() is a no-op until species is decided (saved or chosen)
+    // This prevents a flash of the default dragon before the selection overlay.
+    let _petSpeciesReady = false;
+    const _origRenderPetStage = renderPetStage;
+    renderPetStage = function() {
+      if (!_petSpeciesReady) return;
+      _origRenderPetStage();
+    };
+
+    const PERSONALITY = {
+      dragon: '火龙 · 会喷火的战龙',
+      dino:   '恐龙 · 称霸的霸王龙',
+      hero:   '光之英雄 · 守护的光之巨神',
+    };
+
+    function openPetSelect() {
+      const cards = Object.values(SPECIES).map(sp =>
+        `<button class="pet-select-card" data-id="${sp.id}" style="--accent:${sp.accent}" type="button">
+           <svg viewBox="-12 -8 130 148" role="img" aria-label="${sp.name}"><use href="#${sp.stages[0].spriteId}"></use></svg>
+           <span class="pet-select-name">${sp.name}</span>
+           <span class="pet-select-personality">${PERSONALITY[sp.id] || sp.name}</span>
+         </button>`).join('');
+      const ov = document.createElement('div');
+      ov.id = 'petSelectOverlay';
+      ov.className = 'pet-select-overlay';
+      ov.innerHTML =
+        `<h2 class="pet-select-title">选择你的伙伴</h2>` +
+        `<p class="pet-select-subtitle">它将陪你完成每一天的任务</p>` +
+        `<div class="pet-select-row">${cards}</div>`;
+      document.body.appendChild(ov);
+      ov.querySelectorAll('.pet-select-card').forEach(b =>
+        b.addEventListener('click', () => choosePet(b.dataset.id)));
+    }
+
+    function choosePet(id) {
+      if (!SPECIES[id]) return;
+      state.speciesId = id;
+      state.level = 1;
+      try { localStorage.setItem('hw_pet_species', id); } catch (e) {}
+      document.getElementById('petSelectOverlay')?.remove();
+      _petSpeciesReady = true;
+      renderPetStage();
+      renderEvolutionRail();
+    }
+
+    (function initPet() {
+      const saved = (function() {
+        try { return localStorage.getItem('hw_pet_species'); } catch(e) { return null; }
+      }());
+      if (saved && SPECIES[saved]) {
+        state.speciesId = saved;
+        state.level = state.level || 1;
+        _petSpeciesReady = true;
+        render(); // normal full render — species already set
+      } else {
+        // First visit: show overlay, then run render() for non-pet UI,
+        // but renderPetStage() is guarded and won't fire (no flash).
+        render();
+        openPetSelect();
+      }
+    }());
+
     if (petStageMount) {
       petStageMount.addEventListener("click", () => {
         const bankKey = state.rewardQueue.length > 0 ? "hungry" : state.petMode === "complete" ? "complete" : state.petMode === "evolve" ? "evolve" : state.petMode === "rest" ? "rest" : "pet";
@@ -6546,7 +6718,7 @@
         setEvolutionModalOpen(false);
       }
     });
-    render();
+    // render() is called inside initPet() above — do NOT call it again here.
   </script>
 </body>
 </html>
