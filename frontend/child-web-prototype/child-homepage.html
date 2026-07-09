@@ -5735,62 +5735,30 @@
       return lock;
     }
 
+    // Task 6: 5-stage same-baseline size-staircase SVG rail
+    function renderEvolutionRail() {
+      const stages = getSpecies().stages;
+      const GROUND = 188, VB_W = 640;
+      const cx = [55, 132, 235, 365, 520];
+      const uses = stages.map((s, i) => {
+        const sc = s.scale, w = 100 * sc, h = 130 * sc;
+        const x = cx[i] - w / 2, y = GROUND - 120 * sc;
+        return `<use href="#${s.spriteId}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}"/>` +
+               `<text x="${cx[i]}" y="205" text-anchor="middle" fill="#CFE3EE" font-size="12">${s.name}${s.reveal ? ' ★' : ''}</text>`;
+      }).join('');
+      evolutionRail.innerHTML =
+        `<svg viewBox="0 0 ${VB_W} 214" width="100%" xmlns="http://www.w3.org/2000/svg">` +
+        `<line x1="12" y1="${GROUND}" x2="628" y2="${GROUND}" stroke="#3A5A6E" stroke-width="1.5" opacity="0.6"/>` +
+        uses +
+        `</svg>`;
+    }
+
     function renderEvolutionGallery() {
-      evolutionRail.innerHTML = "";
+      // Rail: replaced by renderEvolutionRail() (Task 6)
+      renderEvolutionRail();
 
       const currentStage = getStageMeta();
       const nextStage = getNextStageMeta();
-
-      // TODO Task 4: restore petStages iteration when SPECIES stage list is wired
-      const _petStages = []; // guard: petStages removed in Task 2
-      _petStages.forEach((stage) => {
-        const card = document.createElement("article");
-        card.className = "evolution-card";
-        const stateTag = document.createElement("div");
-        stateTag.className = "evolution-state";
-        const title = document.createElement("h4");
-        const copy = document.createElement("p");
-
-        if (stage.level < state.level) {
-          card.classList.add("is-unlocked");
-          stateTag.textContent = "已解锁";
-          title.textContent = stage.name;
-          copy.textContent = stage.description;
-          card.appendChild(stateTag);
-          card.appendChild(createUnlockedEvolutionAvatar(stage.level));
-        } else if (stage.level === state.level) {
-          card.classList.add("is-current");
-          stateTag.textContent = "当前阶段";
-          title.textContent = stage.name;
-          copy.textContent = "当前伙伴";
-          card.appendChild(stateTag);
-          card.appendChild(createUnlockedEvolutionAvatar(stage.level));
-        } else if (nextStage && stage.level === nextStage.level) {
-          card.classList.add("is-locked", "is-next");
-          stateTag.textContent = "即将揭晓";
-          title.textContent = "???";
-          copy.textContent = "下一阶解锁";
-          const lock = document.createElement("div");
-          lock.className = "evolution-lock";
-          lock.textContent = "?";
-          card.appendChild(stateTag);
-          card.appendChild(lock);
-        } else {
-          card.classList.add("is-locked");
-          stateTag.textContent = "封印中";
-          title.textContent = "???";
-          copy.textContent = "神秘形态";
-          const lock = document.createElement("div");
-          lock.className = "evolution-lock";
-          lock.textContent = "???";
-          card.appendChild(stateTag);
-          card.appendChild(lock);
-        }
-
-        card.appendChild(title);
-        card.appendChild(copy);
-        evolutionRail.appendChild(card);
-      });
 
       evolutionSummaryTitle.textContent = `当前：${currentStage.name}`;
       evolutionSummaryCopy.textContent = `已解锁 ${state.level} 阶`; // TODO Task 3: add element count
@@ -6220,6 +6188,7 @@
     openEvolutionGalleryButton.addEventListener("click", (event) => {
       event.stopPropagation();
       setEvolutionOpen(false);
+      renderEvolutionRail(); // Task 6: render fresh rail on every modal open
       setEvolutionModalOpen(true);
     });
     closeEvolutionModalButton.addEventListener("click", () => {
