@@ -1731,10 +1731,8 @@
     }
 
     .evolution-rail {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-      align-items: start;
+      display: block;
+      width: 100%;
       position: relative;
     }
 
@@ -4612,6 +4610,9 @@
     evolveButton.addEventListener("click", () => {
       // Gate: only play evolution animation when canEvolve() is true
       if (canEvolve() && state.level < 5) {
+        // 立即收起进化卡片，避免它挡住宠物舞台的进化演出动画
+        petEvolutionShell.classList.remove("is-open");
+        petEvolutionTrigger.setAttribute("aria-expanded", "false");
         playEvolution(state.level + 1);
       } else {
         evolvePet(); // shows hint if not ready or already max level
