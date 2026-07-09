@@ -6545,11 +6545,13 @@
     }
 
     function getStageMeta(level = state.level) {
-      return petStages.find((stage) => stage.level === level) ?? petStages[0];
+      // TODO Task 4: rewrite with SPECIES stage data; petStages removed in Task 2
+      return { level, name: "—", nextGrowth: null, nextCrystals: null };
     }
 
     function getNextStageMeta(level = state.level) {
-      return petStages.find((stage) => stage.level === level + 1) ?? null;
+      // TODO Task 4: rewrite with SPECIES stage data; petStages removed in Task 2
+      return null;
     }
 
     function getElementMeta(elementKey) {
@@ -6767,7 +6769,10 @@
     function renderElementSwitcher() {
       syncUnlockedElements();
       const activeMeta = getElementMeta();
-      elementCoreLabel.textContent = activeMeta.coreLabel;
+      // TODO Task 3: restore elementCoreLabel update when getElementMeta() returns real data
+      if (activeMeta) {
+        elementCoreLabel.textContent = activeMeta.coreLabel;
+      }
       // TODO Task 3: elementCoreButton.dataset.element = ...
       // elementCoreButton.setAttribute("aria-label", ...);
 
@@ -6786,17 +6791,19 @@
         chip.setAttribute("aria-disabled", String(!unlocked));
 
         if (label) {
-          label.textContent = unlocked ? meta.name : "???";
+          label.textContent = unlocked && meta ? meta.name : "???";
         }
 
         if (note) {
-          note.textContent = active ? "激活" : unlocked ? "可切" : `${meta.unlockStage}阶`;
+          // TODO Task 3: restore meta.unlockStage when SPECIES data is wired
+          note.textContent = active ? "激活" : unlocked ? "可切" : "—";
         }
       });
     }
 
     function activateElement(elementKey) {
-      const meta = elementMeta[elementKey];
+      // TODO Task 3: elementMeta removed; replace with SPECIES unlock lookup
+      const meta = null;
       if (!meta) return;
 
       // TODO Task 3: check species unlock state
@@ -6818,7 +6825,9 @@
       const currentStage = getStageMeta();
       const nextStage = getNextStageMeta();
 
-      petStages.forEach((stage) => {
+      // TODO Task 4: restore petStages iteration when SPECIES stage list is wired
+      const _petStages = []; // guard: petStages removed in Task 2
+      _petStages.forEach((stage) => {
         const card = document.createElement("article");
         card.className = "evolution-card";
         const stateTag = document.createElement("div");
@@ -6887,12 +6896,14 @@
 
       if (!nextStage) {
         evolutionGoalTitle.textContent = "已满级";
-        evolutionGoalCopy.textContent = `当前属性：${getElementMeta().name}`;
+        // TODO Task 3: restore `当前属性：${getElementMeta().name}` when element data is wired
+        evolutionGoalCopy.textContent = "当前属性：—";
       } else {
-        const growthLeft = Math.max(currentStage.nextGrowth - state.growth, 0);
-        const crystalLeft = Math.max(currentStage.nextCrystals - state.crystals, 0);
+        const growthLeft = Math.max((currentStage.nextGrowth ?? 0) - state.growth, 0);
+        const crystalLeft = Math.max((currentStage.nextCrystals ?? 0) - state.crystals, 0);
         evolutionGoalTitle.textContent = `下一阶：${nextStage.name}`;
-        evolutionGoalCopy.textContent = `差 ${growthLeft} 成长 / ${crystalLeft} 晶核 · 解锁${elementMeta[nextStage.unlockElement].name}`;
+        // TODO Task 3: restore `· 解锁${elementMeta[nextStage.unlockElement].name}` when element data is wired
+        evolutionGoalCopy.textContent = `差 ${growthLeft} 成长 / ${crystalLeft} 晶核`;
       }
     }
 
