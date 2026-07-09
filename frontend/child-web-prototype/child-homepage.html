@@ -2507,209 +2507,6 @@
       outline-offset: 3px;
     }
 
-    .element-switcher {
-      position: absolute;
-      right: 14px;
-      top: 54px;
-      z-index: 4;
-      width: 116px;
-      min-height: 52px;
-    }
-
-    .element-core-button {
-      min-width: 112px;
-      border: 0;
-      border-radius: 18px;
-      padding: 10px 14px;
-      position: relative;
-      z-index: 2;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 232, 211, 0.92));
-      color: #38435e;
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      box-shadow: 0 16px 28px rgba(43, 30, 18, 0.14);
-      cursor: pointer;
-      transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
-    }
-
-    .element-core-button:hover,
-    .element-core-button:focus-visible {
-      transform: translateY(-1px);
-      box-shadow: 0 18px 30px rgba(43, 30, 18, 0.18);
-      filter: brightness(1.03);
-    }
-
-    .element-core-button:focus-visible {
-      outline: 2px solid rgba(255, 217, 112, 0.9);
-      outline-offset: 3px;
-    }
-
-    .element-core-button::before {
-      content: "";
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, var(--element-accent), var(--element-mid));
-      box-shadow:
-        0 0 0 4px color-mix(in srgb, var(--element-ring-bloom) 65%, transparent),
-        0 0 18px var(--element-ring-bloom);
-    }
-
-    .element-orbit {
-      position: absolute;
-      right: -8px;
-      top: 34px;
-      width: 228px;
-      height: 238px;
-      z-index: 1;
-      opacity: 0;
-      pointer-events: none;
-      transform: scale(0.94);
-      transform-origin: top right;
-      transition: opacity 180ms ease, transform 180ms ease;
-    }
-
-    .element-switcher.is-open .element-orbit,
-    .element-switcher:focus-within .element-orbit {
-      opacity: 1;
-      pointer-events: auto;
-      transform: scale(1);
-    }
-
-    .element-chip {
-      position: absolute;
-      min-width: 78px;
-      border: 1px solid rgba(255, 255, 255, 0.9);
-      border-radius: 18px;
-      padding: 9px 10px 8px;
-      display: grid;
-      justify-items: center;
-      gap: 3px;
-      background: rgba(255, 255, 255, 0.88);
-      color: #44506a;
-      font-weight: 900;
-      text-align: center;
-      box-shadow: 0 12px 20px rgba(45, 31, 15, 0.08);
-      cursor: pointer;
-      transition: transform 160ms ease, background 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
-    }
-
-    .element-chip:hover,
-    .element-chip:focus-visible {
-      transform: translateY(-2px) scale(1.03);
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 15px 24px rgba(45, 31, 15, 0.12);
-    }
-
-    .element-chip:focus-visible {
-      outline: 2px solid rgba(255, 217, 112, 0.9);
-      outline-offset: 3px;
-    }
-
-    .element-chip::before {
-      content: "";
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, var(--element-accent), var(--element-mid));
-      box-shadow: 0 0 12px var(--element-ring-bloom);
-      flex: 0 0 auto;
-    }
-
-    .element-chip[data-element="fire"]::before {
-      background: linear-gradient(180deg, #ffe687, #ff7c37);
-      box-shadow: 0 0 12px rgba(255, 131, 51, 0.34);
-    }
-
-    .element-chip[data-element="water"]::before {
-      background: linear-gradient(180deg, #e8fbff, #4eb8ff);
-      box-shadow: 0 0 12px rgba(98, 197, 255, 0.34);
-    }
-
-    .element-chip[data-element="wood"]::before {
-      background: linear-gradient(180deg, #f1ffd4, #4dab63);
-      box-shadow: 0 0 12px rgba(90, 183, 101, 0.3);
-    }
-
-    .element-chip[data-element="earth"]::before {
-      background: linear-gradient(180deg, #f7e4bc, #9d6330);
-      box-shadow: 0 0 12px rgba(164, 108, 53, 0.3);
-    }
-
-    .element-chip[data-element="metal"]::before {
-      background: linear-gradient(180deg, #fff3ba, #7ba6ff);
-      box-shadow: 0 0 12px rgba(110, 160, 255, 0.34);
-    }
-
-    .element-chip.is-active,
-    .element-chip[data-state="active"] {
-      background: linear-gradient(180deg, rgba(255, 249, 231, 0.98), rgba(245, 237, 221, 0.96));
-      color: #1e2f58;
-      box-shadow:
-        0 14px 26px rgba(45, 31, 15, 0.14),
-        0 0 0 2px rgba(255, 214, 114, 0.26);
-    }
-
-    .element-chip.is-locked,
-    .element-chip[disabled],
-    .element-chip[data-state="locked"] {
-      opacity: 0.66;
-      filter: saturate(0.55);
-      cursor: default;
-    }
-
-    .element-chip.is-locked:hover,
-    .element-chip[disabled]:hover,
-    .element-chip[data-state="locked"]:hover {
-      transform: none;
-      box-shadow: 0 12px 20px rgba(45, 31, 15, 0.08);
-      background: rgba(255, 255, 255, 0.88);
-    }
-
-    .element-chip-label {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      line-height: 1;
-    }
-
-    .element-lock-note {
-      font-size: 0.7rem;
-      color: #8b7a63;
-      letter-spacing: 0;
-      line-height: 1;
-    }
-
-    .element-orbit .element-chip:nth-child(1) {
-      right: 20px;
-      top: 6px;
-    }
-
-    .element-orbit .element-chip:nth-child(2) {
-      right: 104px;
-      top: 26px;
-    }
-
-    .element-orbit .element-chip:nth-child(3) {
-      right: 144px;
-      top: 86px;
-    }
-
-    .element-orbit .element-chip:nth-child(4) {
-      right: 124px;
-      top: 150px;
-    }
-
-    .element-orbit .element-chip:nth-child(5) {
-      right: 52px;
-      top: 194px;
-    }
-
     .bottom-growth-panel {
       margin-top: 14px;
       padding: 18px 20px;
@@ -4264,12 +4061,6 @@
         justify-items: start;
       }
 
-      .element-switcher {
-        position: static;
-        width: 100%;
-        margin-bottom: 8px;
-      }
-
       .pet-feed-shortcut {
         position: static;
         width: auto;
@@ -4287,40 +4078,6 @@
 
       .pet-wrap {
         gap: 12px;
-      }
-
-      .element-orbit {
-        position: static;
-        right: auto;
-        top: auto;
-        width: min(100%, 320px);
-        height: auto;
-        max-height: 0;
-        margin-top: 0;
-        overflow: hidden;
-        display: grid;
-        gap: 8px;
-        justify-items: stretch;
-      }
-
-      .element-switcher.is-open .element-orbit,
-      .element-switcher:focus-within .element-orbit {
-        max-height: 320px;
-        margin-top: 10px;
-      }
-
-      .element-chip,
-      .element-core-button {
-        width: 100%;
-      }
-
-      .element-chip {
-        position: static;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        text-align: left;
       }
 
       .evolution-rail {
@@ -4380,10 +4137,6 @@
         top: 72px;
         min-width: 92px;
         padding: 8px 12px;
-      }
-
-      .element-switcher {
-        min-height: 0;
       }
 
       .pet-feed-shortcut {
@@ -4484,16 +4237,6 @@
 
     .pet-wrap[data-mode="rest"] .pet-3d-stage {
       filter: saturate(0.95) brightness(0.98);
-    }
-
-    .pet-3d-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      z-index: 0;
-      touch-action: none;
     }
 
     /* ── Task 4: SVG pet stage ── */
@@ -4736,24 +4479,6 @@
       color: #3b2617;
     }
 
-    .pet-drag-hint {
-      position: absolute;
-      right: 18px;
-      bottom: 18px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(255, 255, 255, 0.84);
-      color: #775934;
-      font-size: 0.74rem;
-      font-weight: 800;
-      letter-spacing: 0.03em;
-      box-shadow: 0 12px 22px rgba(88, 62, 23, 0.06);
-      z-index: 3;
-      user-select: none;
-      pointer-events: none;
-    }
-
     .pet-action-row {
       position: absolute;
       left: 50%;
@@ -4843,12 +4568,6 @@
         width: 100%;
       }
 
-      .pet-drag-hint {
-        left: 50%;
-        right: auto;
-        bottom: 84px;
-        transform: translateX(-50%);
-      }
     }
 
     @media (max-width: 760px) {
@@ -4864,11 +4583,6 @@
         left: 12px;
         bottom: 12px;
         padding: 12px 14px;
-      }
-
-      .pet-drag-hint {
-        bottom: 74px;
-        font-size: 0.72rem;
       }
 
       .pet-action-row {
@@ -5860,7 +5574,6 @@
     const petMoodTag = document.getElementById("petMoodTag");
     const petWrap = document.querySelector(".pet-wrap");
     const petCore = document.getElementById("petCore");
-    const pet3dStage = document.getElementById("pet3dStage");
     const petSpeechBubble = document.getElementById("petSpeechBubble");
     const petSpeechText = document.getElementById("petSpeechText");
     const petHeroLevel = document.getElementById("petHeroLevel");
@@ -6000,14 +5713,17 @@
       evolutionModal.setAttribute("aria-hidden", String(!isOpen));
     }
 
-    function getStageMeta(level = state.level) {
-      // TODO Task 4: rewrite with SPECIES stage data; petStages removed in Task 2
-      return { level, name: "—", nextGrowth: null, nextCrystals: null };
+    function getStageMeta() {
+      // Returns the current SPECIES stage augmented with nextCrystals:0 for
+      // backward-compatibility with canEvolve/renderStage callers (crystal gate removed).
+      const stage = getCurrentStage();
+      return Object.assign({ nextCrystals: 0 }, stage);
     }
 
-    function getNextStageMeta(level = state.level) {
-      // TODO Task 4: rewrite with SPECIES stage data; petStages removed in Task 2
-      return null;
+    function getNextStageMeta() {
+      // Returns the next SPECIES stage object, or null when already at max level.
+      if (state.level >= 5) return null;
+      return getSpecies().stages[state.level]; // stages is 0-indexed; stages[level] = next
     }
 
     function canEvolve() {
@@ -6137,43 +5853,6 @@
       });
     }
 
-    function createUnlockedEvolutionAvatar(stageLevel) {
-      const avatar = document.createElement("div");
-      avatar.className = `evolution-avatar stage-${stageLevel}`;
-      const wings = document.createElement("div");
-      wings.className = "evolution-wings";
-      const neck = document.createElement("div");
-      neck.className = "evolution-neck";
-      const spines = document.createElement("div");
-      spines.className = "evolution-spines";
-      for (let index = 0; index < 4; index += 1) {
-        spines.appendChild(document.createElement("span"));
-      }
-      const chestCore = document.createElement("div");
-      chestCore.className = "evolution-chest-core";
-      const guardLeft = document.createElement("div");
-      guardLeft.className = "evolution-guard evolution-guard-left";
-      const guardRight = document.createElement("div");
-      guardRight.className = "evolution-guard evolution-guard-right";
-      const face = document.createElement("div");
-      face.className = "evolution-face";
-      const eyes = document.createElement("div");
-      eyes.className = "evo-eye-core";
-      const crown = document.createElement("div");
-      crown.className = "evolution-crown";
-      crown.appendChild(document.createElement("span"));
-      face.appendChild(eyes);
-      avatar.append(wings, neck, spines, chestCore, guardLeft, guardRight, face, crown);
-      return avatar;
-    }
-
-    function createLockedDexAvatar(isNext) {
-      const lock = document.createElement("div");
-      lock.className = "evolution-lock is-mini";
-      lock.textContent = isNext ? "?" : "???";
-      return lock;
-    }
-
     // Task 6: 5-stage same-baseline size-staircase SVG rail
     function renderEvolutionRail() {
       const stages = getSpecies().stages;
@@ -6200,18 +5879,15 @@
       const nextStage = getNextStageMeta();
 
       evolutionSummaryTitle.textContent = `当前：${currentStage.name}`;
-      evolutionSummaryCopy.textContent = `已解锁 ${state.level} 阶`; // TODO Task 3: add element count
+      evolutionSummaryCopy.textContent = `已解锁 ${state.level} 阶`;
 
       if (!nextStage) {
         evolutionGoalTitle.textContent = "已满级";
-        // TODO Task 3: restore `当前属性：${getElementMeta().name}` when element data is wired
-        evolutionGoalCopy.textContent = "当前属性：—";
+        evolutionGoalCopy.textContent = "最终形态";
       } else {
         const growthLeft = Math.max((currentStage.nextGrowth ?? 0) - state.growth, 0);
-        const crystalLeft = Math.max((currentStage.nextCrystals ?? 0) - state.crystals, 0);
         evolutionGoalTitle.textContent = `下一阶：${nextStage.name}`;
-        // TODO Task 3: restore `· 解锁${elementMeta[nextStage.unlockElement].name}` when element data is wired
-        evolutionGoalCopy.textContent = `差 ${growthLeft} 成长 / ${crystalLeft} 晶核`;
+        evolutionGoalCopy.textContent = `差 ${growthLeft} 成长值 到「${nextStage.name}」`;
       }
     }
 
@@ -6396,9 +6072,7 @@
 
       const currentStage = getStageMeta();
       const nextStage = getNextStageMeta();
-      // TODO Task 3: track unlock state via SPECIES
 
-      state.crystals -= currentStage.nextCrystals;
       state.growth = 18;
       state.level += 1;
       state.lastReward = "";
@@ -6406,8 +6080,6 @@
       pulseGrowthRail();
       showPetFeedback("\u8FDB\u5316\uFF01", "evolve");
       showSpeechBubble(`${nextStage.name}，登场！`, "evolve");
-
-      // TODO Task 3: handle species unlock notification
 
       petCore.classList.add("is-evolving");
       window.setTimeout(() => {
@@ -6423,9 +6095,13 @@
 
     // Task 4: SVG pet stage renderer
     const petStageMount = document.getElementById("petStageMount");
+    // Guard flag: renderPetStage() is a no-op until species is decided (saved or chosen).
+    // Prevents a flash of the default dragon before the selection overlay.
+    let _petSpeciesReady = false;
 
     function renderPetStage() {
       if (!petStageMount) return;
+      if (!_petSpeciesReady) return;
       const stage = getCurrentStage();
       const species = getSpecies();
       // Preserve any evolution overlay that may be appended (Task 5: overlay/innerHTML fix)
@@ -6484,6 +6160,9 @@
         if (liveOverlay) liveOverlay.remove();
         _isEvolving = false;
 
+        // Refresh growth bar, level badge, evolution panel to new level
+        render();
+
         const reveal = getCurrentStage().reveal;
         if (reveal) {
           showSpeechBubble(reveal, "evolve", 2800);
@@ -6514,7 +6193,6 @@
       growthFill.style.width = `${state.growth}%`;
       growthPercent.textContent = `${state.growth}%`;
       growthPoints.textContent = `\u6210\u957F\u503C ${state.growth} / 100`;
-      // TODO Task 3: petWrap.dataset.element = getSpecies().accent or id
       petCore.dataset.stage = String(state.level);
       petStageName.textContent = currentStageName;
       petHeroLevel.textContent = `Lv ${state.level}`;
@@ -6594,14 +6272,6 @@
     }
 
     // ── Task 9: Pet Selection Overlay ────────────────────────────────────────
-    // Guard: renderPetStage() is a no-op until species is decided (saved or chosen)
-    // This prevents a flash of the default dragon before the selection overlay.
-    let _petSpeciesReady = false;
-    const _origRenderPetStage = renderPetStage;
-    renderPetStage = function() {
-      if (!_petSpeciesReady) return;
-      _origRenderPetStage();
-    };
 
     const PERSONALITY = {
       dragon: '火龙 · 会喷火的战龙',
