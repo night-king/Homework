@@ -42,3 +42,13 @@ public partial class RewardItemMapper : MapperBase<RewardItem, RewardItemDto>
     [MapperIgnoreTarget(nameof(RewardItemDto.IconUrl))]
     public override partial void Map(RewardItem source, RewardItemDto destination);
 }
+
+[Mapper]
+public partial class MedalMapper : MapperBase<Medal, MedalDto>
+{
+    [MapperIgnoreTarget(nameof(MedalDto.ImageUrl))]
+    public override partial MedalDto Map(Medal source);
+
+    [MapperIgnoreTarget(nameof(MedalDto.ImageUrl))]
+    public override partial void Map(Medal source, MedalDto destination);
+}

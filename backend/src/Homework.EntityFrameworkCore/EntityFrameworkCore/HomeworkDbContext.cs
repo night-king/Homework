@@ -37,6 +37,7 @@ public class HomeworkDbContext :
     public DbSet<DailyScore> DailyScores { get; set; }
     public DbSet<FamilyGoal> FamilyGoals { get; set; }
     public DbSet<RewardItem> RewardItems { get; set; }
+    public DbSet<Medal> Medals { get; set; }
 
     #region Entities from the modules
 
@@ -139,6 +140,16 @@ public class HomeworkDbContext :
             b.Property(x => x.Name).IsRequired().HasMaxLength(64);
             b.Property(x => x.IconObjectKey).HasMaxLength(256);
             b.Property(x => x.Glyph).HasMaxLength(8);
+            b.HasIndex(x => new { x.IsActive, x.DisplayOrder });
+        });
+
+        builder.Entity<Medal>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "Medals", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Description).HasMaxLength(512);
+            b.Property(x => x.ImageObjectKey).HasMaxLength(256);
             b.HasIndex(x => new { x.IsActive, x.DisplayOrder });
         });
     }
