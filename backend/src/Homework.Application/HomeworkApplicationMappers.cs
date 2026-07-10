@@ -2,6 +2,8 @@ using Homework.Catalog;
 using Homework.Catalog.Dtos;
 using Homework.Children;
 using Homework.Children.Dtos;
+using Homework.Journeys;
+using Homework.Journeys.Dtos;
 using Homework.Tasks;
 using Homework.Tasks.Dtos;
 using Riok.Mapperly.Abstractions;
@@ -63,4 +65,11 @@ public partial class JourneyTaskTemplateItemMapper : MapperBase<JourneyTaskTempl
 {
     public override partial JourneyTaskTemplateItemDto Map(JourneyTaskTemplateItem source);
     public override partial void Map(JourneyTaskTemplateItem source, JourneyTaskTemplateItemDto destination);
+}
+
+[Mapper]
+public partial class JourneyMapper : MapperBase<Journey, JourneyDto>
+{
+    public override partial JourneyDto Map(Journey source);
+    public override partial void Map(Journey source, JourneyDto destination);
 }
