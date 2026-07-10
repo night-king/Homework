@@ -16,7 +16,6 @@ public class ChildProfile : FullAuditedAggregateRoot<Guid>
     public int Grade { get; private set; }
     public string? AvatarKey { get; private set; }
     public string? Pin { get; private set; }        // 可选 4 位 PIN；登录逻辑在后续阶段
-    public Guid? ActivePetId { get; private set; }
 
     protected ChildProfile()
     {
@@ -50,6 +49,4 @@ public class ChildProfile : FullAuditedAggregateRoot<Guid>
     public void SetAvatar(string? avatarKey) => AvatarKey = avatarKey;
 
     public void SetPin(string? pin) => Pin = pin;
-
-    public void SetActivePet(Guid? petId) => ActivePetId = petId;
 }

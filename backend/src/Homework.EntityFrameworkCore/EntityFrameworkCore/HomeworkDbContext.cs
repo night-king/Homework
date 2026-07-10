@@ -1,5 +1,6 @@
 using Homework.Catalog;
 using Homework.Children;
+using Homework.Journeys;
 using Homework.Scoring;
 using Homework.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,7 @@ public class HomeworkDbContext :
     public DbSet<RewardItem> RewardItems { get; set; }
     public DbSet<Medal> Medals { get; set; }
     public DbSet<PetSpecies> PetSpecies { get; set; }
+    public DbSet<Journey> Journeys { get; set; }
 
     #region Entities from the modules
 
@@ -170,6 +172,33 @@ public class HomeworkDbContext :
             b.Property(x => x.SpriteObjectKey).HasMaxLength(256);
             b.Property(x => x.RevealText).HasMaxLength(128);
             b.Property(x => x.EvolveVideoObjectKey).HasMaxLength(256);
+        });
+
+        builder.Entity<Journey>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "Journeys", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Description).HasMaxLength(512);
+            b.HasIndex(x => new { x.ChildId, x.Status });
+            b.HasMany(x => x.Stages).WithOne()
+                .HasForeignKey(s => s.JourneyId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Backpack).WithOne()
+                .HasForeignKey(bp => bp.JourneyId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<JourneyPetStage>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "JourneyPetStages", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasKey(x => new { x.JourneyId, x.Level });
+        });
+
+        builder.Entity<JourneyBackpackItem>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "JourneyBackpackItems", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasKey(x => new { x.JourneyId, x.RewardItemId });
         });
     }
 }
