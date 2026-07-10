@@ -45,8 +45,7 @@ public class PetSpeciesUpload_Tests : HomeworkEntityFrameworkCoreTestBase
     {
         var s = await _service.CreateAsync(new CreateUpdatePetSpeciesDto { Name = "火龙", Code = "dc" });
         var dto = await _service.UploadCoverAsync(s.Id, File("cover.png", "image/png"));
-        dto.CoverUrl.ShouldNotBeNull();
-        dto.CoverUrl!.ShouldEndWith($"pets/{s.Id:N}/cover.png");
+        dto.CoverUrl.ShouldBe($"/pets/{s.Id:N}/cover.png");
     }
 
     [Fact]
@@ -58,8 +57,8 @@ public class PetSpeciesUpload_Tests : HomeworkEntityFrameworkCoreTestBase
         var dto = await _service.UploadFormEvolveVideoAsync(s.Id, 1, File("e1.mp4", "video/mp4"));
 
         var form1 = dto.Forms.Single(f => f.Level == 1);
-        form1.SpriteUrl!.ShouldEndWith($"pets/{s.Id:N}/form-1.png");
-        form1.EvolveVideoUrl!.ShouldEndWith($"pets/{s.Id:N}/evolve-1-2.mp4");
+        form1.SpriteUrl.ShouldBe($"/pets/{s.Id:N}/form-1.png");
+        form1.EvolveVideoUrl.ShouldBe($"/pets/{s.Id:N}/evolve-1-2.mp4");
     }
 
     [Fact]

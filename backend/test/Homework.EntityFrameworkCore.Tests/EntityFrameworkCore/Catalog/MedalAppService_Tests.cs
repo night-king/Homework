@@ -37,7 +37,6 @@ public class MedalAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         var created = await _service.CreateAsync(new CreateUpdateMedalDto { Name = "勋章" });
         var file = new RemoteStreamContent(new MemoryStream(Encoding.UTF8.GetBytes("img")), "m.png", "image/png");
         var dto = await _service.UploadImageAsync(created.Id, file);
-        dto.ImageUrl.ShouldNotBeNull();
-        dto.ImageUrl!.ShouldEndWith($"medals/{created.Id:N}.png");
+        dto.ImageUrl.ShouldBe($"/medals/{created.Id:N}.png");
     }
 }

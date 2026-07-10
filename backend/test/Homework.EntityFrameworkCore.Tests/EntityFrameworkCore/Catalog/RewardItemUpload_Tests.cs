@@ -28,7 +28,6 @@ public class RewardItemUpload_Tests : HomeworkEntityFrameworkCoreTestBase
 
         var dto = await _service.UploadIconAsync(created.Id, file);
 
-        dto.IconUrl.ShouldNotBeNull();
-        dto.IconUrl!.ShouldEndWith($"rewards/{created.Id:N}.png");
+        dto.IconUrl.ShouldBe($"/rewards/{created.Id:N}.png");
     }
 }

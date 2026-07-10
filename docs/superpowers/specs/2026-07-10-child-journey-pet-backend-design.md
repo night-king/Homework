@@ -201,6 +201,7 @@
   所有对外 DTO 的图片/视频字段一律返回该 URL，**绝不返回裸 key**。分发策略（未来若改签名/代理）只动 resolver，
   实体、DTO、前端契约都不变。
 - 领域层（`PetSpecies`/`Journey` 等）只知道 key 与 `IBlobContainer`，不知 OSS。
+- **部署要点（AssetCdnBaseUrl）**：实体存的 object key 形如 `rewards/{id}.png`、`pets/{id}/cover.png`（不含前缀）。ABP BlobStoring 写入 OSS 时由 blob 名称计算器追加租户前缀——本项目多租户禁用（host 模式），前缀为 `host/`，故真实 OSS 对象路径为 `host/rewards/{id}.png`。ABP 逻辑容器名 `catalog` 被用作 **OSS Bucket 名**（`aliyun.ContainerName`），**不出现在对象路径中**。因此 `App:AssetCdnBaseUrl` 必须指向映射到 Bucket 根 + `host/` 的 CDN 源（例如 `https://<cdn>/host`），且**不要**包含 `/catalog`。上线前请先上传一个资产、在 OSS 控制台确认真实对象路径，再据此设定 base。
 
 ---
 

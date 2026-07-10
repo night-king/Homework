@@ -19,9 +19,15 @@ public class AssetUrlResolver_Tests
     [Fact]
     public void Joins_Base_And_Key()
     {
-        Build("https://cdn.example.com/host/catalog")
+        Build("https://cdn.example.com/host")
             .ToUrl("rewards/abc.png")
-            .ShouldBe("https://cdn.example.com/host/catalog/rewards/abc.png");
+            .ShouldBe("https://cdn.example.com/host/rewards/abc.png");
+    }
+
+    [Fact]
+    public void Unconfigured_Base_Yields_Relative_Key_Path()
+    {
+        Build(null).ToUrl("rewards/abc.png").ShouldBe("/rewards/abc.png");
     }
 
     [Fact]
