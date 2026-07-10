@@ -33,9 +33,9 @@ public class AssetUrlResolver_Tests
     [Fact]
     public void Trims_Duplicate_Slashes()
     {
-        Build("https://cdn.example.com/host/catalog/")
+        Build("https://cdn.example.com/host/")
             .ToUrl("/rewards/abc.png")
-            .ShouldBe("https://cdn.example.com/host/catalog/rewards/abc.png");
+            .ShouldBe("https://cdn.example.com/host/rewards/abc.png");
     }
 
     [Theory]
