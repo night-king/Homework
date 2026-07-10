@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Homework.Catalog.Dtos;
 using Homework.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.Content;
 using Volo.Abp.Domain.Repositories;
 
 namespace Homework.Catalog;
@@ -15,11 +18,16 @@ public class PetSpeciesAppService : HomeworkAppService, IPetSpeciesAppService
 {
     private readonly IRepository<PetSpecies, Guid> _repository;
     private readonly IAssetUrlResolver _urls;
+    private readonly IBlobContainer<CatalogBlobContainer> _blob;
 
-    public PetSpeciesAppService(IRepository<PetSpecies, Guid> repository, IAssetUrlResolver urls)
+    public PetSpeciesAppService(
+        IRepository<PetSpecies, Guid> repository,
+        IAssetUrlResolver urls,
+        IBlobContainer<CatalogBlobContainer> blob)
     {
         _repository = repository;
         _urls = urls;
+        _blob = blob;
     }
 
     [Authorize(HomeworkPermissions.Catalog.Pets)]
@@ -75,6 +83,63 @@ public class PetSpeciesAppService : HomeworkAppService, IPetSpeciesAppService
         species.SetForm(input.Level, input.Name, input.RevealText, input.GrowthToNext, input.Scale);
         await _repository.UpdateAsync(species, autoSave: true);
         return ToDto(species);
+    }
+
+    [Authorize(HomeworkPermissions.Catalog.Pets)]
+    public async Task<PetSpeciesDto> UploadCoverAsync(Guid id, IRemoteStreamContent file)
+    {
+        var species = await GetWithFormsAsync(id);
+        var key = $"pets/{id:N}/cover{Path.GetExtension(file.FileName)}";
+        await SaveAsync(key, file);
+        species.SetCover(key);
+        await _repository.UpdateAsync(species, autoSave: true);
+        return ToDto(species);
+    }
+
+    [Authorize(HomeworkPermissions.Catalog.Pets)]
+    public async Task<PetSpeciesDto> UploadFormSpriteAsync(Guid id, int level, IRemoteStreamContent file)
+    {
+        var species = await GetWithFormsAsync(id);
+        var key = $"pets/{id:N}/form-{level}{Path.GetExtension(file.FileName)}";
+        await SaveAsync(key, file);
+        species.SetFormSprite(level, key);
+        await _repository.UpdateAsync(species, autoSave: true);
+        return ToDto(species);
+    }
+
+    [Authorize(HomeworkPermissions.Catalog.Pets)]
+    public async Task<PetSpeciesDto> UploadFormEvolveVideoAsync(Guid id, int level, IRemoteStreamContent file)
+    {
+        var species = await GetWithFormsAsync(id);
+        var key = $"pets/{id:N}/evolve-{level}-{level + 1}{Path.GetExtension(file.FileName)}";
+        await SaveAsync(key, file);
+        species.SetFormEvolveVideo(level, key);
+        await _repository.UpdateAsync(species, autoSave: true);
+        return ToDto(species);
+    }
+
+    [Authorize(HomeworkPermissions.Catalog.Pets)]
+    public async Task<PetSpeciesDto> ActivateAsync(Guid id)
+    {
+        var species = await GetWithFormsAsync(id);
+        species.Activate();
+        await _repository.UpdateAsync(species, autoSave: true);
+        return ToDto(species);
+    }
+
+    [Authorize(HomeworkPermissions.Catalog.Pets)]
+    public async Task<PetSpeciesDto> DeactivateAsync(Guid id)
+    {
+        var species = await GetWithFormsAsync(id);
+        species.Deactivate();
+        await _repository.UpdateAsync(species, autoSave: true);
+        return ToDto(species);
+    }
+
+    private async Task SaveAsync(string objectKey, IRemoteStreamContent file)
+    {
+        await using var stream = file.GetStream();
+        await _blob.SaveAsync(objectKey, stream, overrideExisting: true);
     }
 
     private async Task<PetSpecies> GetWithFormsAsync(Guid id)
