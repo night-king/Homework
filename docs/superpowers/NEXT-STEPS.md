@@ -1,17 +1,17 @@
 # 服务端「旅程 · 宠物 · 道具」改造 — 后续工作清单
 
 > 活文档（living doc）。总设计规格见 `specs/2026-07-10-child-journey-pet-backend-design.md`；
-> 第一期实施计划见 `plans/2026-07-10-phase1-catalog-oss.md`。
-> 最近更新：2026-07-10。
+> 第一期计划 `plans/2026-07-10-phase1-catalog-oss.md`；第二期计划 `plans/2026-07-10-phase2-journey-growth.md`。
+> 最近更新：2026-07-10（第二期完成）。
 
 ---
 
 ## 现状快照
 
-- **第一期（图鉴 + OSS）✅ 已完成**，已 fast-forward 合入**本地 `main`**（HEAD `29f7e16`，领先 `origin/main` 15 个 commit，**尚未 push**）。
-- 已交付：三套全局图鉴 `PetSpecies`(5 形态 + 封面 + 4 进化视频) / `RewardItem` / `Medal` 的实体·持久化·CRUD·文件上传；`Homework.Catalog.*` 权限组 + 授权 admin；Aliyun OSS 接线 + `IAssetUrlResolver`(公有读 + CDN)；3 个 EF 迁移。
-- 测试：Domain 44 + EFCore 52 全绿。
-- 第二期、第三期**尚未开始**（各自需要 brainstorm → spec/plan）。
+- **第一期（图鉴 + OSS）✅ 已完成**，已合入本地 `main`。三套全局图鉴 + Aliyun OSS + `IAssetUrlResolver` + 3 迁移。
+- **第二期（旅程 + 成长闭环）✅ 已完成**，已 fast-forward 合入**本地 `main`**（HEAD `b28a094`，**尚未 push**）。交付：`Journey` 聚合(重塑 FamilyGoal，含阈值快照+背包)、喂养/单级进化/满级完成、`JourneyManager` 单旅程约束、`RewardResolver`(指定/加权随机/空池兜底)、任务引擎重挂旅程(`JourneyTaskTemplateItem` + `DailyTask` 加 JourneyId/Reward + 生成器旅程域内生成)、家长 `JourneyAppService` + 运行时 `JourneyPlayAppService`(开始/看板/背包/收藏/完成/喂养)、4 个 EF 迁移。经 opus 整分支终审：重复发奖漏洞已修复+回归测试。
+- 测试：Domain 56 + EFCore 58 全绿。
+- **第三期（家长创建旅程 UX + 孩子端接线）尚未开始**（需 brainstorm → plan）。
 
 ---
 
@@ -26,10 +26,9 @@
 
 ---
 
-## 1. 第二期：旅程 + 成长闭环（后端）
+## 1. 第二期：旅程 + 成长闭环（后端）✅ 已完成（HEAD b28a094，本地 main，未 push）
 
-> 依赖第一期图鉴。建议先 brainstorm → 写 spec 章节落地 → 出 `plans/…-phase2-journey-growth.md`，再走同样的子代理流水线。
-> 对应总规格 §3.2 / §4 / §5 / §9 / §10。
+> 已按 `plans/2026-07-10-phase2-journey-growth.md` 全部实现并通过评审。以下为原始 backlog（保留作追溯）。
 
 **1.1 `FamilyGoal` → `Journey` 聚合（按孩子维度）**
 - [ ] 新字段：`ChildId`、`Status`(Draft→Active→Completed)、`MedalId`、`PetSpeciesId?`、`CurrentLevel`、`GrowthPoints`、`Stages`(阈值快照子实体)、`Backpack`(`{RewardItemId,Quantity}` 子实体)、`CompletedTime?`。退役 `TargetStars/AchievedTime` 的达标即成就逻辑（完成改由宠物满级驱动）。
@@ -77,10 +76,19 @@
 - [ ] `PetForm.Set/SetSprite/SetEvolveVideo` 目前 `public`（可经只读 `Forms` 触达）→ 收紧为 `internal` 更贴聚合封装。
 - [ ] 长远：让 `AssetCdnBaseUrl` 不必手工编码 OSS 前缀（改为从 provider 推导），降低配置出错面。
 
+## 3b. 第二期遗留技术债（来自 opus 整分支终审，非阻塞）
+
+- [ ] **抽 `IRewardLedger` 共享领域服务**：奖励 grant/clawback 逻辑在 `JourneyPlayAppService` 与 `DailyTaskAppService` 复核路径各一份；每日看板组装也在两处重复。改动奖励逻辑前先用共享测试冻结两处等价行为，再抽取，防止漂移。
+- [ ] `ClawBackRewardIfNeededAsync` 的 journey==null 边界：目前 `RewardGranted` 永不清（journey 被删的极端情况）。低风险，评估是否需处理。
+- [ ] `GetDailyBoard*` 按 `(ChildId,Date)` 而非 `JourneyId` 取任务：当前安全（每(child,date)只生成一次 + 单旅程约束）。若未来允许同孩子多旅程日期重叠，需给 board 契约加 `JourneyId`。
+- [ ] 领域小护栏 / 测试断言补全：`JourneyBackpackItem.Decrement` 无负值下限；`Journey.Start` 未 null-check `stages`；若干 `BusinessException` throw 测试未断言 `.Code`。
+- [ ] 部署核对：`Reshaped/Added_DailyTask` 迁移把 `DailyTask.JourneyId` 对既有行回填 `Guid.Empty`。本项目 greenfield 无数据，但上线前确认目标库无遗留 `DailyTask` 行（否则会与任何旅程脱钩）。
+
 ---
 
 ## 4. 参考
 
 - 总设计规格：`docs/superpowers/specs/2026-07-10-child-journey-pet-backend-design.md`（§2 决策表 D1–D11、§12 风险与未决）。
 - 第一期计划：`docs/superpowers/plans/2026-07-10-phase1-catalog-oss.md`。
+- 第二期计划：`docs/superpowers/plans/2026-07-10-phase2-journey-growth.md`。
 - 子代理执行流水记录（可跨会话恢复）：`.superpowers/sdd/progress.md`。
