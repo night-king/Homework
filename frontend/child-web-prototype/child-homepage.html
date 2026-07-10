@@ -3001,6 +3001,104 @@
         gap: 8px;
       }
     }
+
+    /* 进化过场 CG：某段进化有 sp-<species>-<from>-to-<to>.mp4 时全屏播放，无则回退 CSS 闪光换装 */
+    .evo-cutscene {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(circle at 50% 42%, rgba(38, 28, 16, 0.72), rgba(16, 11, 7, 0.92));
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.32s ease, visibility 0.32s ease;
+    }
+    .evo-cutscene.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .evo-cutscene-inner {
+      position: relative;
+      width: min(92vw, 460px);
+      max-height: 84vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .evo-cutscene-video {
+      width: 100%;
+      max-height: 62vh;
+      border-radius: 24px;
+      object-fit: contain;
+      background: #0c0a08;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 0 46px var(--evo-cine-glow, rgba(255, 170, 70, 0.5));
+      transform: scale(0.95);
+      transition: transform 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+    .evo-cutscene.is-open .evo-cutscene-video { transform: scale(1); }
+    .evo-cutscene-loader {
+      position: absolute;
+      top: 46%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff2d8;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      font-size: 0.95rem;
+      animation: evoLoaderPulse 1.1s ease-in-out infinite;
+    }
+    @keyframes evoLoaderPulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.95; } }
+    .evo-cutscene-reveal {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      text-align: center;
+      animation: evoRevealIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+    }
+    @keyframes evoRevealIn { from { opacity: 0; transform: translateY(14px) scale(0.9); } to { opacity: 1; transform: none; } }
+    .evo-cutscene-badge {
+      padding: 5px 16px;
+      border-radius: 999px;
+      background: linear-gradient(120deg, #ffd35d, #ff8a3d);
+      color: #4a2a08;
+      font-weight: 900;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      box-shadow: 0 8px 20px rgba(255, 138, 61, 0.4);
+    }
+    .evo-cutscene-name {
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 900;
+      text-shadow: 0 2px 18px var(--evo-cine-glow, rgba(255, 170, 70, 0.6));
+    }
+    .evo-cutscene-sub { color: rgba(255, 245, 225, 0.82); font-size: 0.92rem; margin: 0; }
+    .evo-cutscene-skip {
+      position: absolute;
+      top: -4px;
+      right: 0;
+      border: none;
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+    }
+    .evo-cutscene-skip:hover { background: rgba(255, 255, 255, 0.28); }
+    @media (prefers-reduced-motion: reduce) {
+      .evo-cutscene, .evo-cutscene-video { transition: none; }
+    }
   </style>
 </head>
 <body>
@@ -3693,6 +3791,20 @@
     </p>
   </main>
 
+  <!-- 进化过场 CG：全屏播放 evo 视频，播完揭晓新形态 -->
+  <div class="evo-cutscene" id="evoCutscene" aria-hidden="true">
+    <div class="evo-cutscene-inner">
+      <button class="evo-cutscene-skip" id="evoCutsceneSkip" type="button">跳过 ▸</button>
+      <video class="evo-cutscene-video" id="evoCutsceneVideo" playsinline muted preload="auto"></video>
+      <div class="evo-cutscene-loader" id="evoCutsceneLoader">进化中…</div>
+      <div class="evo-cutscene-reveal" id="evoCutsceneReveal" hidden>
+        <span class="evo-cutscene-badge">进化成功</span>
+        <strong class="evo-cutscene-name" id="evoCutsceneName"></strong>
+        <p class="evo-cutscene-sub" id="evoCutsceneSub"></p>
+      </div>
+    </div>
+  </div>
+
   <div class="evolution-modal" id="evolutionModal" aria-hidden="true">
     <section class="evolution-modal-panel" role="dialog" aria-modal="true" aria-labelledby="evolutionModalTitle">
       <div class="evolution-modal-top">
@@ -3870,6 +3982,24 @@
       });
     }
 
+    // 进化过场视频探测：有 sp-<species>-<from>-to-<to>.mp4 则该段进化走全屏 CG，无则回退 CSS 闪光换装
+    const VIDEO_READY = new Set();
+    function evoVideoKey(species, from, to) { return `${species}-${from}-${to}`; }
+    function evoVideoPath(species, from, to) { return `assets/pets/sp-${species}-${from}-to-${to}.mp4`; }
+    function preloadEvolutionVideos() {
+      Object.values(SPECIES).forEach(sp => {
+        for (let from = 1; from < sp.stages.length; from++) {
+          const to = from + 1;
+          const key = evoVideoKey(sp.id, from, to);
+          const probe = document.createElement("video");
+          probe.preload = "metadata";
+          probe.muted = true;
+          probe.onloadedmetadata = () => { VIDEO_READY.add(key); };
+          probe.src = evoVideoPath(sp.id, from, to);
+        }
+      });
+    }
+
     const state = {
       selectedIndex: 2,
       rewardQueue: ["\u7559\u5B58\u679C\u5B9E"],
@@ -3905,6 +4035,13 @@
     const petStageName = document.getElementById("petStageName");
     const petEvolutionHint = document.getElementById("petEvolutionHint");
     const evolveButton = document.getElementById("evolveButton");
+    const evoCutscene = document.getElementById("evoCutscene");
+    const evoCutsceneVideo = document.getElementById("evoCutsceneVideo");
+    const evoCutsceneLoader = document.getElementById("evoCutsceneLoader");
+    const evoCutsceneReveal = document.getElementById("evoCutsceneReveal");
+    const evoCutsceneName = document.getElementById("evoCutsceneName");
+    const evoCutsceneSub = document.getElementById("evoCutsceneSub");
+    const evoCutsceneSkip = document.getElementById("evoCutsceneSkip");
     const openEvolutionGalleryButton = document.getElementById("openEvolutionGalleryButton");
     const petFeedShortcut = document.getElementById("petFeedShortcut");
     const evolutionModal = document.getElementById("evolutionModal");
@@ -4427,7 +4564,88 @@
     // Beat 3 (~1050ms):   at flash peak swap sprite; flash fades + burst rays
     // Beat 4 (~1400ms+):  sparkles + reveal speech bubble
     let _isEvolving = false;
+
+    // 进化演出调度：该阶段有过场视频 → 全屏 CG；否则回退 CSS 闪光换装
     function playEvolution(nextLevel) {
+      if (_isEvolving) return;
+      const species = getSpecies();
+      const key = evoVideoKey(species.id, state.level, nextLevel);
+      if (VIDEO_READY.has(key)) {
+        playEvolutionCutscene(species.id, state.level, nextLevel);
+      } else {
+        playEvolutionCss(nextLevel);
+      }
+    }
+
+    // 全屏进化过场：播放 evo 视频 → 播完切到新形态 + 揭晓横幅 → 淡出回首页
+    function playEvolutionCutscene(speciesId, fromLevel, toLevel) {
+      if (_isEvolving) return;
+      _isEvolving = true;
+      petEvolutionShell.classList.add("is-evolving");
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
+      const sp = SPECIES[speciesId];
+      const toStage = sp.stages[toLevel - 1];
+      const glow = PET_STAGE_GLOW[speciesId] || PET_STAGE_GLOW.dragon;
+      evoCutscene.style.setProperty("--evo-cine-glow", `rgba(${glow}, 0.55)`);
+
+      evoCutsceneReveal.hidden = true;
+      evoCutsceneLoader.style.display = "";
+      evoCutscene.classList.add("is-open");
+      evoCutscene.setAttribute("aria-hidden", "false");
+
+      let finished = false;
+      const applyStage = () => {
+        // 过场此刻仍盖在首页上，先把首页切到新形态，淡出后即为新宠物，无跳变
+        state.level = toLevel;
+        state.growth = 18;
+        renderPetStage();
+      };
+      const showReveal = () => {
+        applyStage();
+        evoCutsceneName.textContent = toStage.name;
+        evoCutsceneSub.textContent = toStage.reveal || `${sp.name}·进化成功`;
+        evoCutsceneReveal.hidden = false;
+      };
+      const closeCutscene = () => {
+        evoCutscene.classList.remove("is-open");
+        evoCutscene.setAttribute("aria-hidden", "true");
+        window.setTimeout(() => {
+          try { evoCutsceneVideo.pause(); } catch (e) {}
+          evoCutsceneVideo.removeAttribute("src");
+          evoCutsceneVideo.load();
+        }, 340);
+        _isEvolving = false;
+        petEvolutionShell.classList.remove("is-evolving");
+        render();
+        pulseGrowthRail();
+        showPetFeedback("进化！", "evolve");
+        const reveal = getCurrentStage().reveal;
+        if (reveal) showSpeechBubble(reveal, "evolve", 2800);
+      };
+      const finish = (didReveal) => {
+        if (finished) return;
+        finished = true;
+        window.clearTimeout(safety);
+        if (!didReveal) applyStage();
+        window.setTimeout(closeCutscene, 1700);
+      };
+
+      evoCutsceneVideo.onplaying = () => { evoCutsceneLoader.style.display = "none"; };
+      evoCutsceneVideo.onended = () => { showReveal(); finish(true); };
+      evoCutsceneVideo.onerror = () => { showReveal(); finish(true); };
+      evoCutsceneSkip.onclick = () => { try { evoCutsceneVideo.pause(); } catch (e) {} showReveal(); finish(true); };
+
+      // 兜底：万一 ended 不触发也不会卡死
+      const safety = window.setTimeout(() => { showReveal(); finish(true); }, 12000);
+
+      evoCutsceneVideo.src = evoVideoPath(speciesId, fromLevel, toLevel);
+      try { evoCutsceneVideo.currentTime = 0; } catch (e) {}
+      const pp = evoCutsceneVideo.play();
+      if (pp && pp.catch) pp.catch(() => {});
+    }
+
+    function playEvolutionCss(nextLevel) {
       if (_isEvolving) return;
       _isEvolving = true;
       // 动画期间强制隐藏进化卡片（盖过 :hover / :focus-within），避免挡住舞台演出
@@ -4631,6 +4849,7 @@
 
     // Task 3: 页面初始化后立即探测位图资产（并行 HTTP HEAD via Image probe）
     preloadHiResArt();
+    preloadEvolutionVideos();
 
     // Tap the pet stage area — handler on pet3dStage (the visual container that
     // covers petStageMount) so the click always reaches the listener on mobile.
