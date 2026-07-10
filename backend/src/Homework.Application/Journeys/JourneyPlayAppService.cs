@@ -173,9 +173,8 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
         }
 
         task.Complete(_clock.Now);
-        await _dailyTaskRepository.UpdateAsync(task, autoSave: true);
-        await GrantRewardIfNeededAsync(task);
-        await _dailyTaskRepository.UpdateAsync(task, autoSave: true); // persist RewardGranted flag
+        await GrantRewardIfNeededAsync(task);           // grants reward + MarkRewardGranted() in memory (+ persists journey)
+        await _dailyTaskRepository.UpdateAsync(task, autoSave: true);   // single save persists both Complete state and RewardGranted flag
         await _generator.SettleDayAsync(childId, task.Date);
         return ObjectMapper.Map<DailyTask, DailyTaskDto>(task);
     }
@@ -254,12 +253,10 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
 
         var q = await _journeyRepository.WithDetailsAsync(x => x.Backpack);
         var journey = await AsyncExecuter.FirstOrDefaultAsync(q.Where(x => x.Id == task.JourneyId));
-        if (journey != null)
+        if (journey != null && journey.RevokeReward(rewardItemId))
         {
-            journey.RevokeReward(rewardItemId);
             await _journeyRepository.UpdateAsync(journey, autoSave: true);
+            task.ClearRewardGranted();
         }
-
-        task.ClearRewardGranted();
     }
 }

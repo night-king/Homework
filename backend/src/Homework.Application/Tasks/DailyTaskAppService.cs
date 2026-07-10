@@ -97,13 +97,11 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
             {
                 var q = await _journeyRepository.WithDetailsAsync(x => x.Backpack);
                 var journey = await AsyncExecuter.FirstOrDefaultAsync(q.Where(x => x.Id == task.JourneyId));
-                if (journey != null)
+                if (journey != null && journey.RevokeReward(revokeItemId))
                 {
-                    journey.RevokeReward(revokeItemId);
                     await _journeyRepository.UpdateAsync(journey, autoSave: true);
+                    task.ClearRewardGranted();
                 }
-
-                task.ClearRewardGranted();
             }
         }
         else

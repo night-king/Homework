@@ -109,12 +109,12 @@ public class Journey : FullAuditedAggregateRoot<Guid>
         }
     }
 
-    public void RevokeReward(Guid rewardItemId)
+    public bool RevokeReward(Guid rewardItemId)
     {
         var entry = _backpack.FirstOrDefault(b => b.RewardItemId == rewardItemId);
         if (entry == null || entry.Quantity <= 0)
         {
-            return; // 尽力回收：无未喂养单位则 no-op
+            return false; // best-effort: nothing unfed to claw back
         }
 
         entry.Decrement(1);
@@ -122,6 +122,8 @@ public class Journey : FullAuditedAggregateRoot<Guid>
         {
             _backpack.Remove(entry);
         }
+
+        return true;
     }
 
     public JourneyFeedResult Feed(Guid rewardItemId, int growthValue, DateTime now)

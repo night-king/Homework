@@ -363,4 +363,81 @@ public class JourneyLoop_Tests : HomeworkEntityFrameworkCoreTestBase
             backpackAfter.Items.Count.ShouldBe(0);
         }
     }
+
+    [Fact]
+    public async Task Fed_Reward_Survives_Uncomplete_No_Regrant()
+    {
+        // Arrange: seed child, species, medal, reward, journey
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var speciesId = await SeedSpeciesAsync();
+        var medalId = await SeedMedalAsync();
+        var rewardId = await SeedRewardAsync();
+        var monday = new DateOnly(2026, 7, 6);
+        var journeyId = _guid.Create();
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var j = new Journey(journeyId, pid, childId, "喂养后撤销不重复发奖旅程",
+                monday, monday.AddDays(60), medalId);
+            await _journeyRepo.InsertAsync(j, autoSave: true);
+        });
+
+        using (_principal.Change(Parent(pid)))
+        {
+            await _play.StartAsync(new StartJourneyDto
+            {
+                ChildId = childId,
+                JourneyId = journeyId,
+                PetSpeciesId = speciesId
+            });
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var t = new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "科学", order: 0);
+                t.SetReward(rewardId, isRandom: false);
+                await _templateRepo.InsertAsync(t, autoSave: true);
+            });
+
+            // Act step 1: get board, complete task → reward lands in backpack
+            var board = await _play.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+            board.Tasks.Count.ShouldBe(1);
+            var taskId = board.Tasks[0].Id;
+
+            var completedDto = await _play.CompleteTaskAsync(childId, taskId);
+            completedDto.RewardGranted.ShouldBeTrue();
+
+            var backpackAfterComplete = await _play.GetBackpackAsync(childId, journeyId);
+            backpackAfterComplete.Items.Count.ShouldBe(1);
+            backpackAfterComplete.Items[0].Quantity.ShouldBe(1);
+
+            // Act step 2: feed → backpack qty → 0, growth applied
+            var feedResult = await _play.FeedAsync(new FeedDto
+            {
+                ChildId = childId,
+                JourneyId = journeyId,
+                RewardItemId = rewardId
+            });
+            feedResult.Evolved.ShouldBeTrue(); // GrowthValue=20 crosses threshold=20 at level 1
+
+            var backpackAfterFeed = await _play.GetBackpackAsync(childId, journeyId);
+            backpackAfterFeed.Items.Count.ShouldBe(0);
+
+            // Act step 3: uncomplete the task (reward already fed → RevokeReward returns false)
+            var uncompletedDto = await _play.UncompleteTaskAsync(childId, taskId);
+            uncompletedDto.IsCompleted.ShouldBeFalse();
+
+            // Assert: backpack remains empty (clawback was no-op, not clearing RewardGranted incorrectly)
+            var backpackAfterUncomplete = await _play.GetBackpackAsync(childId, journeyId);
+            backpackAfterUncomplete.Items.Count.ShouldBe(0);
+
+            // Act step 4: re-complete the same task — must NOT re-grant (RewardGranted still true)
+            var recompletedDto = await _play.CompleteTaskAsync(childId, taskId);
+            recompletedDto.IsCompleted.ShouldBeTrue();
+
+            // Assert: backpack still empty — no second reward granted
+            var backpackAfterRecomplete = await _play.GetBackpackAsync(childId, journeyId);
+            backpackAfterRecomplete.Items.Count.ShouldBe(0);
+        }
+    }
 }
