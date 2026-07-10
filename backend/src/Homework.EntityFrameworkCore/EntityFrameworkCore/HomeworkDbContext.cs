@@ -33,7 +33,7 @@ public class HomeworkDbContext :
 
     // Homework game
     public DbSet<ChildProfile> ChildProfiles { get; set; }
-public DbSet<DailyTask> DailyTasks { get; set; }
+    public DbSet<DailyTask> DailyTasks { get; set; }
     public DbSet<DailyScore> DailyScores { get; set; }
     public DbSet<RewardItem> RewardItems { get; set; }
     public DbSet<Medal> Medals { get; set; }
