@@ -90,7 +90,38 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
     {
         var task = await _repository.GetAsync(id);
         await _manager.EnsureChildOwnedAsync(task.ChildId);
-        if (revoke) { task.Revoke(); } else { task.Restore(); }
+        if (revoke)
+        {
+            task.Revoke();
+            if (task.RewardGranted && task.RewardItemId is Guid revokeItemId)
+            {
+                var q = await _journeyRepository.WithDetailsAsync(x => x.Backpack);
+                var journey = await AsyncExecuter.FirstOrDefaultAsync(q.Where(x => x.Id == task.JourneyId));
+                if (journey != null)
+                {
+                    journey.RevokeReward(revokeItemId);
+                    await _journeyRepository.UpdateAsync(journey, autoSave: true);
+                }
+
+                task.ClearRewardGranted();
+            }
+        }
+        else
+        {
+            task.Restore();
+            if (task.CountsAsCompleted && task.RewardItemId is Guid restoreItemId && !task.RewardGranted)
+            {
+                var q = await _journeyRepository.WithDetailsAsync(x => x.Backpack);
+                var journey = await AsyncExecuter.FirstOrDefaultAsync(q.Where(x => x.Id == task.JourneyId));
+                if (journey != null && journey.Status == JourneyStatus.Active)
+                {
+                    journey.GrantReward(restoreItemId);
+                    await _journeyRepository.UpdateAsync(journey, autoSave: true);
+                    task.MarkRewardGranted();
+                }
+            }
+        }
+
         await _repository.UpdateAsync(task, autoSave: true);
         await _generator.SettleDayAsync(task.ChildId, task.Date);
     }

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Timing;
 using StarCalc = Homework.Scoring.StarCalculator;
 
 namespace Homework.Journeys;
@@ -28,6 +29,7 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
     private readonly DailyTaskGenerator _generator;
     private readonly ChildProfileManager _childManager;
     private readonly IAssetUrlResolver _urls;
+    private readonly IClock _clock;
 
     public JourneyPlayAppService(
         IRepository<Journey, Guid> journeyRepository,
@@ -38,7 +40,8 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
         JourneyManager journeyManager,
         DailyTaskGenerator generator,
         ChildProfileManager childManager,
-        IAssetUrlResolver urls)
+        IAssetUrlResolver urls,
+        IClock clock)
     {
         _journeyRepository = journeyRepository;
         _dailyTaskRepository = dailyTaskRepository;
@@ -49,6 +52,7 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
         _generator = generator;
         _childManager = childManager;
         _urls = urls;
+        _clock = clock;
     }
 
     public async Task<JourneyDto?> GetActiveAsync(Guid childId)
@@ -157,5 +161,105 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
             });
         }
         return new ListResultDto<CollectionEntryDto>(dtos);
+    }
+
+    public async Task<DailyTaskDto> CompleteTaskAsync(Guid childId, Guid taskId)
+    {
+        await _childManager.EnsureChildOwnedAsync(childId);
+        var task = await _dailyTaskRepository.GetAsync(taskId);
+        if (task.ChildId != childId)
+        {
+            throw new Volo.Abp.Domain.Entities.EntityNotFoundException(typeof(DailyTask), taskId);
+        }
+
+        task.Complete(_clock.Now);
+        await _dailyTaskRepository.UpdateAsync(task, autoSave: true);
+        await GrantRewardIfNeededAsync(task);
+        await _dailyTaskRepository.UpdateAsync(task, autoSave: true); // persist RewardGranted flag
+        await _generator.SettleDayAsync(childId, task.Date);
+        return ObjectMapper.Map<DailyTask, DailyTaskDto>(task);
+    }
+
+    public async Task<DailyTaskDto> UncompleteTaskAsync(Guid childId, Guid taskId)
+    {
+        await _childManager.EnsureChildOwnedAsync(childId);
+        var task = await _dailyTaskRepository.GetAsync(taskId);
+        if (task.ChildId != childId)
+        {
+            throw new Volo.Abp.Domain.Entities.EntityNotFoundException(typeof(DailyTask), taskId);
+        }
+
+        task.Uncomplete();
+        await ClawBackRewardIfNeededAsync(task);
+        await _dailyTaskRepository.UpdateAsync(task, autoSave: true);
+        await _generator.SettleDayAsync(childId, task.Date);
+        return ObjectMapper.Map<DailyTask, DailyTaskDto>(task);
+    }
+
+    public async Task<FeedResultDto> FeedAsync(FeedDto input)
+    {
+        await _childManager.EnsureChildOwnedAsync(input.ChildId);
+        var q = await _journeyRepository.WithDetailsAsync(x => x.Backpack, x => x.Stages);
+        var journey = await AsyncExecuter.FirstOrDefaultAsync(q.Where(x => x.Id == input.JourneyId && x.ChildId == input.ChildId))
+            ?? throw new Volo.Abp.Domain.Entities.EntityNotFoundException(typeof(Journey), input.JourneyId);
+
+        var reward = await _rewardRepository.GetAsync(input.RewardItemId);
+        var result = journey.Feed(input.RewardItemId, reward.GrowthValue, _clock.Now);
+        await _journeyRepository.UpdateAsync(journey, autoSave: true);
+
+        var dto = new FeedResultDto
+        {
+            Evolved = result.Evolved, NewLevel = result.NewLevel, Completed = result.Completed,
+            CurrentLevel = journey.CurrentLevel, GrowthPoints = journey.GrowthPoints,
+        };
+
+        if (result.Evolved && journey.PetSpeciesId is Guid speciesId)
+        {
+            var sq = await _speciesRepository.WithDetailsAsync(x => x.Forms);
+            var species = await AsyncExecuter.FirstOrDefaultAsync(sq.Where(x => x.Id == speciesId));
+            var arriving = species?.Forms.FirstOrDefault(f => f.Level == result.NewLevel);
+            var leaving = species?.Forms.FirstOrDefault(f => f.Level == result.NewLevel - 1);
+            dto.RevealText = arriving?.RevealText;
+            dto.EvolveVideoUrl = _urls.ToUrl(leaving?.EvolveVideoObjectKey);
+        }
+
+        return dto;
+    }
+
+    private async Task GrantRewardIfNeededAsync(DailyTask task)
+    {
+        if (task.RewardItemId is not Guid rewardItemId || task.RewardGranted || !task.CountsAsCompleted)
+        {
+            return;
+        }
+
+        var q = await _journeyRepository.WithDetailsAsync(x => x.Backpack);
+        var journey = await AsyncExecuter.FirstOrDefaultAsync(q.Where(x => x.Id == task.JourneyId));
+        if (journey == null || journey.Status != JourneyStatus.Active)
+        {
+            return;
+        }
+
+        journey.GrantReward(rewardItemId);
+        await _journeyRepository.UpdateAsync(journey, autoSave: true);
+        task.MarkRewardGranted();
+    }
+
+    private async Task ClawBackRewardIfNeededAsync(DailyTask task)
+    {
+        if (task.RewardItemId is not Guid rewardItemId || !task.RewardGranted)
+        {
+            return;
+        }
+
+        var q = await _journeyRepository.WithDetailsAsync(x => x.Backpack);
+        var journey = await AsyncExecuter.FirstOrDefaultAsync(q.Where(x => x.Id == task.JourneyId));
+        if (journey != null)
+        {
+            journey.RevokeReward(rewardItemId);
+            await _journeyRepository.UpdateAsync(journey, autoSave: true);
+        }
+
+        task.ClearRewardGranted();
     }
 }
