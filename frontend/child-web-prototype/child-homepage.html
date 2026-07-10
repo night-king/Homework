@@ -2738,12 +2738,14 @@
 
     .pet-stage-banner {
       position: absolute;
-      left: 18px;
-      bottom: 18px;
+      right: 0;
+      top: 10px;
       display: grid;
+      justify-items: end;
       gap: 4px;
-      padding: 14px 16px;
-      min-width: 144px;
+      padding: 10px 14px;
+      min-width: 120px;
+      text-align: right;
       border-radius: 20px;
       background: rgba(255, 250, 239, 0.78);
       border: 1px solid rgba(255, 255, 255, 0.88);
@@ -3581,6 +3583,10 @@
         <div class="pet-stage">
           <div class="pet-wrap">
             <div class="pet-stage-tag" id="petMoodTag">待命</div>
+            <div class="pet-stage-banner" aria-hidden="true">
+              <span class="pet-stage-level" id="petHeroLevel">Lv 2</span>
+              <strong class="pet-stage-hero-name" id="petHeroStageName">觉醒小英雄</strong>
+            </div>
             <div class="pet-aura"></div>
             <div class="pet-disc"></div>
             <div class="pet-energy-ring" aria-hidden="true"></div>
@@ -3589,10 +3595,6 @@
                 <div id="petStageMount" class="pet-stage-mount" aria-label="宠物伙伴"></div>
                 <div class="pet-speech-bubble" id="petSpeechBubble" aria-live="polite" aria-hidden="true">
                   <span id="petSpeechText"></span>
-                </div>
-                <div class="pet-stage-banner" aria-hidden="true">
-                  <span class="pet-stage-level" id="petHeroLevel">Lv 2</span>
-                  <strong class="pet-stage-hero-name" id="petHeroStageName">迅爪少龙</strong>
                 </div>
               </div>
             </div>
