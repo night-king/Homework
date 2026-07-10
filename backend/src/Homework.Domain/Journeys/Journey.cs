@@ -96,5 +96,76 @@ public class Journey : FullAuditedAggregateRoot<Guid>
         GrowthPoints = 0;
     }
 
+    public void GrantReward(Guid rewardItemId)
+    {
+        var entry = _backpack.FirstOrDefault(b => b.RewardItemId == rewardItemId);
+        if (entry == null)
+        {
+            _backpack.Add(new JourneyBackpackItem(Id, rewardItemId, 1));
+        }
+        else
+        {
+            entry.Increment(1);
+        }
+    }
+
+    public void RevokeReward(Guid rewardItemId)
+    {
+        var entry = _backpack.FirstOrDefault(b => b.RewardItemId == rewardItemId);
+        if (entry == null || entry.Quantity <= 0)
+        {
+            return; // 尽力回收：无未喂养单位则 no-op
+        }
+
+        entry.Decrement(1);
+        if (entry.Quantity <= 0)
+        {
+            _backpack.Remove(entry);
+        }
+    }
+
+    public JourneyFeedResult Feed(Guid rewardItemId, int growthValue, DateTime now)
+    {
+        EnsureActive();
+
+        var entry = _backpack.FirstOrDefault(b => b.RewardItemId == rewardItemId && b.Quantity > 0);
+        if (entry == null)
+        {
+            throw new BusinessException(HomeworkDomainErrorCodes.JourneyBackpackEmpty);
+        }
+
+        entry.Decrement(1);
+        if (entry.Quantity <= 0)
+        {
+            _backpack.Remove(entry);
+        }
+
+        GrowthPoints += growthValue;
+
+        var evolved = false;
+        var stage = CurrentStage();
+        if (CurrentLevel < MaxLevel && stage?.GrowthToNext is int threshold && GrowthPoints >= threshold)
+        {
+            GrowthPoints -= threshold;      // 进位保留余数
+            CurrentLevel++;
+            evolved = true;
+            if (CurrentLevel >= MaxLevel)
+            {
+                Status = JourneyStatus.Completed;
+                CompletedTime = now;
+            }
+        }
+
+        return new JourneyFeedResult(evolved, CurrentLevel, Status == JourneyStatus.Completed);
+    }
+
+    private void EnsureActive()
+    {
+        if (Status != JourneyStatus.Active)
+        {
+            throw new BusinessException(HomeworkDomainErrorCodes.JourneyNotActive);
+        }
+    }
+
     internal JourneyPetStage? CurrentStage() => _stages.FirstOrDefault(s => s.Level == CurrentLevel);
 }
