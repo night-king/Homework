@@ -26,6 +26,8 @@ using Volo.Abp.Modularity;
 using Volo.Abp.OpenIddict;
 using Volo.Abp.Security.Claims;
 using Volo.Abp.Swashbuckle;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.Aliyun;
 using Volo.Abp.UI.Navigation.Urls;
 
 namespace Homework;
@@ -38,7 +40,8 @@ namespace Homework;
     typeof(AbpAccountWebOpenIddictModule),          // 提供 /connect/token（捆绑的 Account Razor 页保留但闲置）
     typeof(AbpAspNetCoreMvcUiThemeSharedModule),    // Account.Web 的依赖，必须留
     typeof(AbpAspNetCoreSerilogModule),
-    typeof(AbpSwashbuckleModule)
+    typeof(AbpSwashbuckleModule),
+    typeof(AbpBlobStoringAliyunModule)
     )]
 public class HomeworkHttpApiHostModule : AbpModule
 {
@@ -97,6 +100,27 @@ public class HomeworkHttpApiHostModule : AbpModule
         Configure<Microsoft.AspNetCore.Builder.RequestLocalizationOptions>(options =>
         {
             options.SetDefaultCulture("zh-Hans");
+        });
+
+        ConfigureBlobStoring(configuration);
+    }
+
+    private void ConfigureBlobStoring(IConfiguration configuration)
+    {
+        Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.ConfigureDefault(container =>
+            {
+                container.UseAliyun(aliyun =>
+                {
+                    aliyun.AccessKeyId = configuration["Aliyun:AccessKeyId"];
+                    aliyun.AccessKeySecret = configuration["Aliyun:AccessKeySecret"];
+                    aliyun.Endpoint = configuration["Aliyun:Oss:Endpoint"];
+                    aliyun.ContainerName = configuration["Aliyun:Oss:BucketName"];
+                    // 公有读 Bucket 由运维预先创建；不由应用自动建桶。
+                    aliyun.CreateContainerIfNotExists = false;
+                });
+            });
         });
     }
 

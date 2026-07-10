@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using System;
+using System.IO;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -10,6 +12,8 @@ using Volo.Abp.FeatureManagement;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.SettingManagement;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.BlobStoring.FileSystem;
 using Volo.Abp.Uow;
 
 namespace Homework.EntityFrameworkCore;
@@ -17,7 +21,8 @@ namespace Homework.EntityFrameworkCore;
 [DependsOn(
     typeof(HomeworkApplicationTestModule),
     typeof(HomeworkEntityFrameworkCoreModule),
-    typeof(AbpEntityFrameworkCoreSqliteModule)
+    typeof(AbpEntityFrameworkCoreSqliteModule),
+    typeof(AbpBlobStoringFileSystemModule)
     )]
 public class HomeworkEntityFrameworkCoreTestModule : AbpModule
 {
@@ -25,6 +30,17 @@ public class HomeworkEntityFrameworkCoreTestModule : AbpModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        Configure<AbpBlobStoringOptions>(options =>
+        {
+            options.Containers.ConfigureDefault(container =>
+            {
+                container.UseFileSystem(fs =>
+                {
+                    fs.BasePath = Path.Combine(Path.GetTempPath(), "homework-test-blobs", Guid.NewGuid().ToString("N"));
+                });
+            });
+        });
+
         Configure<FeatureManagementOptions>(options =>
         {
             options.SaveStaticFeaturesToDatabase = false;

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Homework.MultiTenancy;
 using Volo.Abp.AuditLogging;
+using Volo.Abp.BlobStoring;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Emailing;
 using Volo.Abp.FeatureManagement;
@@ -28,7 +29,8 @@ namespace Homework;
     typeof(AbpPermissionManagementDomainIdentityModule),
     typeof(AbpSettingManagementDomainModule),
     typeof(AbpTenantManagementDomainModule),
-    typeof(AbpEmailingModule)
+    typeof(AbpEmailingModule),
+    typeof(AbpBlobStoringModule)
 )]
 public class HomeworkDomainModule : AbpModule
 {
