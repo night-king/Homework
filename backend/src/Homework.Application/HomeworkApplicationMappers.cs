@@ -52,3 +52,15 @@ public partial class MedalMapper : MapperBase<Medal, MedalDto>
     [MapperIgnoreTarget(nameof(MedalDto.ImageUrl))]
     public override partial void Map(Medal source, MedalDto destination);
 }
+
+[Mapper]
+public partial class PetSpeciesMapper : MapperBase<PetSpecies, PetSpeciesDto>
+{
+    [MapperIgnoreTarget(nameof(PetSpeciesDto.CoverUrl))]
+    [MapperIgnoreTarget(nameof(PetSpeciesDto.Forms))]
+    public override partial PetSpeciesDto Map(PetSpecies source);
+
+    [MapperIgnoreTarget(nameof(PetSpeciesDto.CoverUrl))]
+    [MapperIgnoreTarget(nameof(PetSpeciesDto.Forms))]
+    public override partial void Map(PetSpecies source, PetSpeciesDto destination);
+}

@@ -38,6 +38,7 @@ public class HomeworkDbContext :
     public DbSet<FamilyGoal> FamilyGoals { get; set; }
     public DbSet<RewardItem> RewardItems { get; set; }
     public DbSet<Medal> Medals { get; set; }
+    public DbSet<PetSpecies> PetSpecies { get; set; }
 
     #region Entities from the modules
 
@@ -151,6 +152,33 @@ public class HomeworkDbContext :
             b.Property(x => x.Description).HasMaxLength(512);
             b.Property(x => x.ImageObjectKey).HasMaxLength(256);
             b.HasIndex(x => new { x.IsActive, x.DisplayOrder });
+        });
+
+        builder.Entity<PetSpecies>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "PetSpecies", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Code).IsRequired().HasMaxLength(64);
+            b.Property(x => x.CoverObjectKey).HasMaxLength(256);
+            b.Property(x => x.AccentColor).HasMaxLength(16);
+            b.Property(x => x.Description).HasMaxLength(512);
+            b.HasIndex(x => x.Code).IsUnique();
+            b.HasIndex(x => new { x.IsActive, x.DisplayOrder });
+            b.HasMany(x => x.Forms).WithOne()
+                .HasForeignKey(f => f.PetSpeciesId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<PetForm>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "PetForms", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasKey(x => new { x.PetSpeciesId, x.Level });
+            b.Property(x => x.Name).IsRequired().HasMaxLength(64);
+            b.Property(x => x.SpriteObjectKey).HasMaxLength(256);
+            b.Property(x => x.RevealText).HasMaxLength(128);
+            b.Property(x => x.EvolveVideoObjectKey).HasMaxLength(256);
         });
     }
 }
