@@ -1,10 +1,14 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Homework.Catalog;
 using Homework.Catalog.Dtos;
 using Homework.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.BlobStoring;
+using Volo.Abp.Content;
 using Volo.Abp.Domain.Repositories;
 
 namespace Homework.Catalog;
@@ -14,11 +18,16 @@ public class RewardItemAppService : HomeworkAppService, IRewardItemAppService
 {
     private readonly IRepository<RewardItem, Guid> _repository;
     private readonly IAssetUrlResolver _urls;
+    private readonly IBlobContainer<CatalogBlobContainer> _blob;
 
-    public RewardItemAppService(IRepository<RewardItem, Guid> repository, IAssetUrlResolver urls)
+    public RewardItemAppService(
+        IRepository<RewardItem, Guid> repository,
+        IAssetUrlResolver urls,
+        IBlobContainer<CatalogBlobContainer> blob)
     {
         _repository = repository;
         _urls = urls;
+        _blob = blob;
     }
 
     [Authorize(HomeworkPermissions.Catalog.RewardItems)]
@@ -64,6 +73,21 @@ public class RewardItemAppService : HomeworkAppService, IRewardItemAppService
 
     [Authorize(HomeworkPermissions.Catalog.RewardItems)]
     public async Task DeleteAsync(Guid id) => await _repository.DeleteAsync(id);
+
+    [Authorize(HomeworkPermissions.Catalog.RewardItems)]
+    public async Task<RewardItemDto> UploadIconAsync(Guid id, IRemoteStreamContent file)
+    {
+        var item = await _repository.GetAsync(id);
+        var ext = Path.GetExtension(file.FileName) ?? string.Empty;
+        var objectKey = $"rewards/{id:N}{ext}";
+        await using (var stream = file.GetStream())
+        {
+            await _blob.SaveAsync(objectKey, stream, overrideExisting: true);
+        }
+        item.SetIcon(objectKey);
+        await _repository.UpdateAsync(item, autoSave: true);
+        return ToDto(item);
+    }
 
     private ListResultDto<RewardItemDto> List(System.Collections.Generic.IEnumerable<RewardItem> items)
         => new(items.Select(ToDto).ToList());

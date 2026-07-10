@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Homework.Catalog.Dtos;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Content;
 
 namespace Homework.Catalog;
 
@@ -14,4 +15,5 @@ public interface IRewardItemAppService : IApplicationService
     Task<RewardItemDto> CreateAsync(CreateUpdateRewardItemDto input);
     Task<RewardItemDto> UpdateAsync(Guid id, CreateUpdateRewardItemDto input);
     Task DeleteAsync(Guid id);
+    Task<RewardItemDto> UploadIconAsync(Guid id, IRemoteStreamContent file);
 }
