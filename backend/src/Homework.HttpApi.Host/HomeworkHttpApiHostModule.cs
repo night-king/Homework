@@ -113,10 +113,11 @@ public class HomeworkHttpApiHostModule : AbpModule
             {
                 container.UseAliyun(aliyun =>
                 {
-                    aliyun.AccessKeyId = configuration["Aliyun:AccessKeyId"];
-                    aliyun.AccessKeySecret = configuration["Aliyun:AccessKeySecret"];
-                    aliyun.Endpoint = configuration["Aliyun:Oss:Endpoint"];
-                    aliyun.ContainerName = configuration["Aliyun:Oss:BucketName"];
+                    aliyun.AccessKeyId = configuration["Aliyun:AccessKeyId"] ?? string.Empty;
+                    aliyun.AccessKeySecret = configuration["Aliyun:AccessKeySecret"] ?? string.Empty;
+                    aliyun.Endpoint = configuration["Aliyun:Oss:Endpoint"] ?? string.Empty;
+                    // ABP Aliyun provider: ContainerName = OSS bucket name (10.5.0 has no BucketName property)
+                    aliyun.ContainerName = configuration["Aliyun:Oss:BucketName"] ?? string.Empty;
                     // 公有读 Bucket 由运维预先创建；不由应用自动建桶。
                     aliyun.CreateContainerIfNotExists = false;
                 });
