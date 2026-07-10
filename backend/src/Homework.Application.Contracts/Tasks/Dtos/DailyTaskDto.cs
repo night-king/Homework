@@ -16,4 +16,7 @@ public class DailyTaskDto : EntityDto<Guid>
     public TaskReviewState ReviewState { get; set; }
     public bool CountsAsCompleted { get; set; }
     public Guid? SourceTemplateItemId { get; set; }
+    public Guid JourneyId { get; set; }
+    public Guid? RewardItemId { get; set; }
+    public bool RewardGranted { get; set; }
 }

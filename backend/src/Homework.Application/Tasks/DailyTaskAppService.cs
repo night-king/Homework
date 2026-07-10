@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Homework.Children;
+using Homework.Journeys;
 using Homework.Permissions;
 using Homework.Scoring;
 using Homework.Tasks.Dtos;
@@ -16,15 +17,18 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
     private readonly IRepository<DailyTask, Guid> _repository;
     private readonly DailyTaskGenerator _generator;
     private readonly ChildProfileManager _manager;
+    private readonly IRepository<Journey, Guid> _journeyRepository;
 
     public DailyTaskAppService(
         IRepository<DailyTask, Guid> repository,
         DailyTaskGenerator generator,
-        ChildProfileManager manager)
+        ChildProfileManager manager,
+        IRepository<Journey, Guid> journeyRepository)
     {
         _repository = repository;
         _generator = generator;
         _manager = manager;
+        _journeyRepository = journeyRepository;
     }
 
     public async Task<DailyBoardDto> GetBoardAsync(GetDailyBoardInput input)
@@ -52,7 +56,10 @@ public class DailyTaskAppService : HomeworkAppService, IDailyTaskAppService
     public async Task<DailyTaskDto> CreateAsync(CreateDailyTaskDto input)
     {
         await _manager.EnsureChildOwnedAsync(input.ChildId);
-        var task = new DailyTask(GuidGenerator.Create(), input.ChildId, input.Date, input.Title, input.Subject, input.Order);
+        var journey = await _journeyRepository.FirstOrDefaultAsync(
+            j => j.ChildId == input.ChildId && j.Status == JourneyStatus.Active)
+            ?? throw new Volo.Abp.BusinessException(HomeworkDomainErrorCodes.JourneyNotActive);
+        var task = new DailyTask(GuidGenerator.Create(), input.ChildId, journey.Id, input.Date, input.Title, input.Subject, input.Order);
         await _repository.InsertAsync(task, autoSave: true);
         await _generator.SettleDayAsync(input.ChildId, input.Date);
         return ObjectMapper.Map<DailyTask, DailyTaskDto>(task);

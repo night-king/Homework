@@ -14,6 +14,9 @@ public class DailyTask : FullAuditedAggregateRoot<Guid>
     public string? Subject { get; private set; }
     public int Order { get; private set; }
     public Guid? SourceTemplateItemId { get; private set; }
+    public Guid JourneyId { get; private set; }
+    public Guid? RewardItemId { get; private set; }
+    public bool RewardGranted { get; private set; }
     public bool IsCompleted { get; private set; }
     public DateTime? CompletedTime { get; private set; }
     public TaskReviewState ReviewState { get; private set; }
@@ -23,16 +26,19 @@ public class DailyTask : FullAuditedAggregateRoot<Guid>
     }
 
     public DailyTask(
-        Guid id, Guid childId, DateOnly date, [NotNull] string title,
-        string? subject = null, int order = 0, Guid? sourceTemplateItemId = null)
+        Guid id, Guid childId, Guid journeyId, DateOnly date, [NotNull] string title,
+        string? subject = null, int order = 0, Guid? sourceTemplateItemId = null, Guid? rewardItemId = null)
         : base(id)
     {
         ChildId = childId;
+        JourneyId = journeyId;
         Date = date;
         SetTitle(title);
-        Subject = subject;
+        SetSubject(subject);
         Order = order < 0 ? 0 : order;
         SourceTemplateItemId = sourceTemplateItemId;
+        RewardItemId = rewardItemId;
+        RewardGranted = false;
         IsCompleted = false;
         ReviewState = TaskReviewState.Normal;
     }
@@ -79,6 +85,9 @@ public class DailyTask : FullAuditedAggregateRoot<Guid>
     public void Revoke() => ReviewState = TaskReviewState.Revoked;
 
     public void Restore() => ReviewState = TaskReviewState.Normal;
+
+    public void MarkRewardGranted() => RewardGranted = true;
+    public void ClearRewardGranted() => RewardGranted = false;
 
     /// <summary>是否计入"已完成"（打勾完成且未被家长撤销）。</summary>
     public bool CountsAsCompleted => IsCompleted && ReviewState == TaskReviewState.Normal;

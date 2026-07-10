@@ -1,7 +1,9 @@
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Homework.Catalog;
 using Homework.Children;
+using Homework.Journeys;
 using Homework.Tasks;
 using Homework.Tasks.Dtos;
 using Shouldly;
@@ -16,18 +18,22 @@ namespace Homework.EntityFrameworkCore.Tasks;
 public class DailyTaskAppService_Tests : HomeworkEntityFrameworkCoreTestBase
 {
     private readonly IDailyTaskAppService _service;
-    private readonly IWeeklyTaskTemplateAppService _templates;
     private readonly IRepository<DailyTask, Guid> _dailyTaskRepository;
     private readonly IRepository<ChildProfile, Guid> _childRepo;
+    private readonly IRepository<Journey, Guid> _journeyRepo;
+    private readonly IRepository<JourneyTaskTemplateItem, Guid> _templateRepo;
+    private readonly IRepository<RewardItem, Guid> _rewardRepo;
     private readonly IGuidGenerator _guid;
     private readonly ICurrentPrincipalAccessor _principal;
 
     public DailyTaskAppService_Tests()
     {
         _service = GetRequiredService<IDailyTaskAppService>();
-        _templates = GetRequiredService<IWeeklyTaskTemplateAppService>();
         _dailyTaskRepository = GetRequiredService<IRepository<DailyTask, Guid>>();
         _childRepo = GetRequiredService<IRepository<ChildProfile, Guid>>();
+        _journeyRepo = GetRequiredService<IRepository<Journey, Guid>>();
+        _templateRepo = GetRequiredService<IRepository<JourneyTaskTemplateItem, Guid>>();
+        _rewardRepo = GetRequiredService<IRepository<RewardItem, Guid>>();
         _guid = GetRequiredService<IGuidGenerator>();
         _principal = GetRequiredService<ICurrentPrincipalAccessor>();
     }
@@ -37,7 +43,6 @@ public class DailyTaskAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         new Claim(AbpClaimTypes.UserId, id.ToString())
     }, "test"));
 
-    // simulate a child checking a task off (Phase 4 has the real check-in service; here go straight to the domain)
     private Task CompleteViaRepositoryAsync(Guid taskId) => WithUnitOfWorkAsync(async () =>
     {
         var t = await _dailyTaskRepository.GetAsync(taskId);
@@ -45,19 +50,37 @@ public class DailyTaskAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         await _dailyTaskRepository.UpdateAsync(t);
     });
 
+    private async Task<(Guid childId, Guid journeyId)> SeedChildWithActiveJourneyAsync(Guid parentId, DateOnly start)
+    {
+        var childId = _guid.Create();
+        var journeyId = _guid.Create();
+        await WithUnitOfWorkAsync(async () =>
+        {
+            await _childRepo.InsertAsync(new ChildProfile(childId, parentId, "娃", 3), autoSave: true);
+            var reward = new RewardItem(_guid.Create(), "能量果实", 12, 1); reward.Activate();
+            await _rewardRepo.InsertAsync(reward, autoSave: true);
+            var j = new Journey(journeyId, parentId, childId, "旅程", start, start.AddDays(60), _guid.Create());
+            j.Start(_guid.Create(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
+            await _journeyRepo.InsertAsync(j, autoSave: true);
+        });
+        return (childId, journeyId);
+    }
+
     [Fact]
     public async Task GetBoard_Generates_From_Template_And_Settles()
     {
         var pid = _guid.Create();
-        var childId = _guid.Create();
-        await WithUnitOfWorkAsync(async () => await _childRepo.InsertAsync(new ChildProfile(childId, pid, "娃", 3)));
         var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedChildWithActiveJourneyAsync(pid, monday);
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "语文", order: 0), autoSave: true);
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "数学", order: 1), autoSave: true);
+        });
 
         using (_principal.Change(Parent(pid)))
         {
-            await _templates.CreateAsync(new() { ChildId = childId, DayOfWeek = DayOfWeek.Monday, Title = "语文", Order = 0 });
-            await _templates.CreateAsync(new() { ChildId = childId, DayOfWeek = DayOfWeek.Monday, Title = "数学", Order = 1 });
-
             var board = await _service.GetBoardAsync(new() { ChildId = childId, Date = monday });
 
             board.Tasks.Count.ShouldBe(2);
@@ -72,13 +95,14 @@ public class DailyTaskAppService_Tests : HomeworkEntityFrameworkCoreTestBase
     public async Task Revoke_Recomputes_DailyScore_Down()
     {
         var pid = _guid.Create();
-        var childId = _guid.Create();
-        await WithUnitOfWorkAsync(async () => await _childRepo.InsertAsync(new ChildProfile(childId, pid, "娃", 3)));
         var date = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedChildWithActiveJourneyAsync(pid, date);
+
+        await WithUnitOfWorkAsync(async () =>
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "语文", order: 0), autoSave: true));
 
         using (_principal.Change(Parent(pid)))
         {
-            await _templates.CreateAsync(new() { ChildId = childId, DayOfWeek = DayOfWeek.Monday, Title = "语文", Order = 0 });
             var board = await _service.GetBoardAsync(new() { ChildId = childId, Date = date });
             var taskId = board.Tasks[0].Id;
             await CompleteViaRepositoryAsync(taskId);
@@ -97,13 +121,14 @@ public class DailyTaskAppService_Tests : HomeworkEntityFrameworkCoreTestBase
     public async Task Create_AdHoc_Task_Raises_Total_And_Breaks_Full()
     {
         var pid = _guid.Create();
-        var childId = _guid.Create();
-        await WithUnitOfWorkAsync(async () => await _childRepo.InsertAsync(new ChildProfile(childId, pid, "娃", 3)));
         var date = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedChildWithActiveJourneyAsync(pid, date);
+
+        await WithUnitOfWorkAsync(async () =>
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "语文", order: 0), autoSave: true));
 
         using (_principal.Change(Parent(pid)))
         {
-            await _templates.CreateAsync(new() { ChildId = childId, DayOfWeek = DayOfWeek.Monday, Title = "语文", Order = 0 });
             var board = await _service.GetBoardAsync(new() { ChildId = childId, Date = date });
             await CompleteViaRepositoryAsync(board.Tasks[0].Id);
             (await _service.GetBoardAsync(new() { ChildId = childId, Date = date })).IsFull.ShouldBeTrue();

@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Homework.Catalog;
+using Homework.Children;
+using Homework.Journeys;
 using Homework.Tasks;
 using Shouldly;
 using Volo.Abp.Domain.Repositories;
@@ -13,92 +16,83 @@ namespace Homework.EntityFrameworkCore.Tasks;
 public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
 {
     private readonly DailyTaskGenerator _generator;
-    private readonly IRepository<WeeklyTaskTemplateItem, Guid> _templateRepository;
-    private readonly IRepository<DailyTask, Guid> _dailyTaskRepository;
+    private readonly IRepository<Journey, Guid> _journeyRepo;
+    private readonly IRepository<JourneyTaskTemplateItem, Guid> _templateRepo;
+    private readonly IRepository<DailyTask, Guid> _dailyRepo;
+    private readonly IRepository<RewardItem, Guid> _rewardRepo;
     private readonly IRepository<Homework.Scoring.DailyScore, Guid> _dailyScoreRepository;
-    private readonly IGuidGenerator _guidGenerator;
-
-    private static readonly DateOnly Monday = new(2026, 7, 6); // 周一
-    private static readonly DateOnly Sunday = new(2026, 7, 5); // 周日（无模板）
+    private readonly IGuidGenerator _guid;
 
     public DailyTaskGenerator_Tests()
     {
         _generator = GetRequiredService<DailyTaskGenerator>();
-        _templateRepository = GetRequiredService<IRepository<WeeklyTaskTemplateItem, Guid>>();
-        _dailyTaskRepository = GetRequiredService<IRepository<DailyTask, Guid>>();
+        _journeyRepo = GetRequiredService<IRepository<Journey, Guid>>();
+        _templateRepo = GetRequiredService<IRepository<JourneyTaskTemplateItem, Guid>>();
+        _dailyRepo = GetRequiredService<IRepository<DailyTask, Guid>>();
+        _rewardRepo = GetRequiredService<IRepository<RewardItem, Guid>>();
         _dailyScoreRepository = GetRequiredService<IRepository<Homework.Scoring.DailyScore, Guid>>();
-        _guidGenerator = GetRequiredService<IGuidGenerator>();
+        _guid = GetRequiredService<IGuidGenerator>();
+    }
+
+    private async Task<(Guid childId, Guid journeyId)> SeedActiveJourneyAsync(DateOnly start)
+    {
+        var childId = _guid.Create();
+        var journeyId = _guid.Create();
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var reward = new RewardItem(_guid.Create(), "能量果实", 12, 1); reward.Activate();
+            await _rewardRepo.InsertAsync(reward, autoSave: true);
+            var j = new Journey(journeyId, _guid.Create(), childId, "旅程", start, start.AddDays(60), _guid.Create());
+            j.Start(_guid.Create(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
+            await _journeyRepo.InsertAsync(j, autoSave: true);
+        });
+        return (childId, journeyId);
     }
 
     [Fact]
-    public async Task EnsureDay_Generates_One_Task_Per_Active_Template_Item_In_Order()
+    public async Task EnsureDay_Generates_From_Active_Journey_Templates_With_Resolved_Reward()
     {
-        var childId = _guidGenerator.Create();
+        var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(monday);
         await WithUnitOfWorkAsync(async () =>
         {
-            // 周一：2 个启用项（乱序 Order）+ 1 个停用项（应被跳过）
-            await _templateRepository.InsertAsync(Template(childId, DayOfWeek.Monday, "语文", order: 1));
-            await _templateRepository.InsertAsync(Template(childId, DayOfWeek.Monday, "数学", order: 0));
-            await _templateRepository.InsertAsync(Template(childId, DayOfWeek.Monday, "停用课", order: 2, active: false));
+            var t = new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "语文", order: 0);
+            // RewardIsRandom = true by default → resolver picks the one active RewardItem
+            await _templateRepo.InsertAsync(t, autoSave: true);
         });
 
-        await WithUnitOfWorkAsync(async () =>
-        {
-            var created = await _generator.EnsureDayAsync(childId, Monday);
+        var tasks = await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, monday));
+        tasks.Count.ShouldBe(1);
+        tasks[0].JourneyId.ShouldBe(journeyId);
+        tasks[0].RewardItemId.ShouldNotBeNull();
+    }
 
-            created.Count.ShouldBe(2); // 停用项被跳过
-            created.Select(t => t.Title).ShouldBe(new[] { "数学", "语文" }); // 按 Order 升序
-            created.ShouldAllBe(t => t.ChildId == childId && t.Date == Monday && !t.IsCompleted);
-        });
-
-        await WithUnitOfWorkAsync(async () =>
-        {
-            var rows = await _dailyTaskRepository.GetListAsync(t => t.ChildId == childId && t.Date == Monday);
-            rows.Count.ShouldBe(2);
-        });
+    [Fact]
+    public async Task EnsureDay_No_Active_Journey_Generates_Nothing()
+    {
+        var childId = _guid.Create();
+        var tasks = await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, new DateOnly(2026, 7, 6)));
+        tasks.ShouldBeEmpty();
     }
 
     [Fact]
     public async Task EnsureDay_Is_Idempotent()
     {
-        var childId = _guidGenerator.Create();
+        var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(monday);
         await WithUnitOfWorkAsync(async () =>
-        {
-            await _templateRepository.InsertAsync(Template(childId, DayOfWeek.Monday, "语文", order: 0));
-            await _templateRepository.InsertAsync(Template(childId, DayOfWeek.Monday, "数学", order: 1));
-        });
-
-        await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, Monday));
-        await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, Monday)); // 再次调用不应重复生成
-
-        await WithUnitOfWorkAsync(async () =>
-        {
-            var rows = await _dailyTaskRepository.GetListAsync(t => t.ChildId == childId && t.Date == Monday);
-            rows.Count.ShouldBe(2);
-        });
-    }
-
-    [Fact]
-    public async Task EnsureDay_With_No_Matching_Template_Generates_Nothing()
-    {
-        var childId = _guidGenerator.Create();
-        await WithUnitOfWorkAsync(async () =>
-        {
-            // 只建了周一模板；周日没有模板
-            await _templateRepository.InsertAsync(Template(childId, DayOfWeek.Monday, "语文", order: 0));
-        });
-
-        await WithUnitOfWorkAsync(async () =>
-        {
-            var created = await _generator.EnsureDayAsync(childId, Sunday);
-            created.Count.ShouldBe(0);
-        });
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "语文"), autoSave: true));
+        await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, monday));
+        await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, monday));
+        var count = await WithUnitOfWorkAsync(async () => (await _dailyRepo.GetListAsync(x => x.ChildId == childId && x.Date == monday)).Count);
+        count.ShouldBe(1);
     }
 
     [Fact]
     public async Task SettlePastDays_Backfills_A_GapFree_Ledger()
     {
-        var childId = _guidGenerator.Create();
+        var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(monday);
         var mon = new DateOnly(2026, 7, 6);
         var tue = new DateOnly(2026, 7, 7);
         var wed = new DateOnly(2026, 7, 8);
@@ -109,14 +103,14 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
         await WithUnitOfWorkAsync(async () =>
         {
             // 周一~周三：吃饱（各 2 个已完成任务）
-            await SeedFedDayAsync(childId, mon, 2);
-            await SeedFedDayAsync(childId, tue, 2);
-            await SeedFedDayAsync(childId, wed, 2);
+            await SeedFedDayAsync(childId, journeyId, mon, 2);
+            await SeedFedDayAsync(childId, journeyId, tue, 2);
+            await SeedFedDayAsync(childId, journeyId, wed, 2);
             // 周四：整天没做 —— 不建 DailyTask，但当天有 2 个启用模板
-            await _templateRepository.InsertAsync(Template(childId, DayOfWeek.Thursday, "语文", order: 0));
-            await _templateRepository.InsertAsync(Template(childId, DayOfWeek.Thursday, "数学", order: 1));
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Thursday, "语文", order: 0), autoSave: true);
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Thursday, "数学", order: 1), autoSave: true);
             // 周五：做完
-            await SeedFedDayAsync(childId, fri, 2);
+            await SeedFedDayAsync(childId, journeyId, fri, 2);
             // 周日：无模板无任务 → 休息日
         });
 
@@ -153,11 +147,12 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
     [Fact]
     public async Task SettlePastDays_Is_Idempotent()
     {
-        var childId = _guidGenerator.Create();
+        var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(monday);
         var mon = new DateOnly(2026, 7, 6);
         var wed = new DateOnly(2026, 7, 8);
 
-        await WithUnitOfWorkAsync(async () => await SeedFedDayAsync(childId, mon, 2));
+        await WithUnitOfWorkAsync(async () => await SeedFedDayAsync(childId, journeyId, mon, 2));
 
         await WithUnitOfWorkAsync(async () => await _generator.SettlePastDaysAsync(childId, mon, wed));
         await WithUnitOfWorkAsync(async () => await _generator.SettlePastDaysAsync(childId, mon, wed)); // 再跑一次
@@ -173,16 +168,16 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
     [Fact]
     public async Task SettleDay_Settles_A_Single_Day_From_Its_DailyTasks()
     {
-        var childId = _guidGenerator.Create();
         var date = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(date);
 
         await WithUnitOfWorkAsync(async () =>
         {
             // 2 tasks, one completed -> C=1/N=2 -> stars=ceil(1/2*5)=3, not full
-            var t1 = new DailyTask(_guidGenerator.Create(), childId, date, "语文", order: 0);
+            var t1 = new DailyTask(_guid.Create(), childId, journeyId, date, "语文", order: 0);
             t1.Complete(new DateTime(2026, 7, 6, 18, 0, 0));
-            await _dailyTaskRepository.InsertAsync(t1);
-            await _dailyTaskRepository.InsertAsync(new DailyTask(_guidGenerator.Create(), childId, date, "数学", order: 1));
+            await _dailyRepo.InsertAsync(t1);
+            await _dailyRepo.InsertAsync(new DailyTask(_guid.Create(), childId, journeyId, date, "数学", order: 1));
         });
 
         await WithUnitOfWorkAsync(async () => await _generator.SettleDayAsync(childId, date));
@@ -197,24 +192,13 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
         });
     }
 
-    private async Task SeedFedDayAsync(Guid childId, DateOnly date, int count)
+    private async Task SeedFedDayAsync(Guid childId, Guid journeyId, DateOnly date, int count)
     {
         for (var i = 0; i < count; i++)
         {
-            var task = new DailyTask(_guidGenerator.Create(), childId, date, $"任务{i}", order: i);
+            var task = new DailyTask(_guid.Create(), childId, journeyId, date, $"任务{i}", order: i);
             task.Complete(new DateTime(2026, 7, 6, 18, 0, 0));
-            await _dailyTaskRepository.InsertAsync(task);
+            await _dailyRepo.InsertAsync(task);
         }
-    }
-
-    private WeeklyTaskTemplateItem Template(Guid childId, DayOfWeek dayOfWeek, string title, int order, bool active = true)
-    {
-        var item = new WeeklyTaskTemplateItem(_guidGenerator.Create(), childId, dayOfWeek, title, order: order);
-        if (!active)
-        {
-            item.Deactivate();
-        }
-
-        return item;
     }
 }

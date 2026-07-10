@@ -119,6 +119,7 @@ public class HomeworkDbContext :
             b.Property(x => x.Title).IsRequired().HasMaxLength(128);
             b.Property(x => x.Subject).HasMaxLength(64);
             b.HasIndex(x => new { x.ChildId, x.Date });
+            b.HasIndex(x => new { x.JourneyId, x.Date });
         });
 
         builder.Entity<DailyScore>(b =>
