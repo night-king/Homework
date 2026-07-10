@@ -20,13 +20,6 @@ public partial class ChildProfileMapper : MapperBase<ChildProfile, ChildProfileD
 }
 
 [Mapper]
-public partial class WeeklyTaskTemplateItemMapper : MapperBase<WeeklyTaskTemplateItem, WeeklyTaskTemplateItemDto>
-{
-    public override partial WeeklyTaskTemplateItemDto Map(WeeklyTaskTemplateItem source);
-    public override partial void Map(WeeklyTaskTemplateItem source, WeeklyTaskTemplateItemDto destination);
-}
-
-[Mapper]
 public partial class DailyTaskMapper : MapperBase<DailyTask, DailyTaskDto>
 {
     public override partial DailyTaskDto Map(DailyTask source);

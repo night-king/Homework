@@ -20,7 +20,6 @@ namespace Homework.EntityFrameworkCore.Accounts;
 public class OwnershipIsolation_Tests : HomeworkEntityFrameworkCoreTestBase
 {
     private readonly IChildProfileAppService _children;
-    private readonly IWeeklyTaskTemplateAppService _templates;
     private readonly IDailyTaskAppService _dailyTasks;
     private readonly IRepository<Journey, Guid> _journeyRepo;
     private readonly IRepository<JourneyTaskTemplateItem, Guid> _journeyTemplateRepo;
@@ -31,7 +30,6 @@ public class OwnershipIsolation_Tests : HomeworkEntityFrameworkCoreTestBase
     public OwnershipIsolation_Tests()
     {
         _children = GetRequiredService<IChildProfileAppService>();
-        _templates = GetRequiredService<IWeeklyTaskTemplateAppService>();
         _dailyTasks = GetRequiredService<IDailyTaskAppService>();
         _journeyRepo = GetRequiredService<IRepository<Journey, Guid>>();
         _journeyTemplateRepo = GetRequiredService<IRepository<JourneyTaskTemplateItem, Guid>>();
@@ -52,11 +50,10 @@ public class OwnershipIsolation_Tests : HomeworkEntityFrameworkCoreTestBase
         var pB = _guid.Create();
         var monday = new DateOnly(2026, 7, 6); // a Monday
 
-        Guid childOfA, templateOfA, taskOfA;
+        Guid childOfA, taskOfA;
         using (_principal.Change(Parent(pA)))
         {
             childOfA = (await _children.CreateAsync(new() { DisplayName = "A娃", Grade = 3 })).Id;
-            templateOfA = (await _templates.CreateAsync(new() { ChildId = childOfA, DayOfWeek = DayOfWeek.Monday, Title = "语文", Order = 0 })).Id;
 
             // Set up an Active Journey + JourneyTaskTemplateItem so GetBoard generates a task
             var journeyId = _guid.Create();
@@ -79,8 +76,6 @@ public class OwnershipIsolation_Tests : HomeworkEntityFrameworkCoreTestBase
         using (_principal.Change(Parent(pB)))
         {
             await Should.ThrowAsync<EntityNotFoundException>(async () => await _children.GetAsync(childOfA));
-            await Should.ThrowAsync<EntityNotFoundException>(async () => await _templates.GetListAsync(new() { ChildId = childOfA }));
-            await Should.ThrowAsync<EntityNotFoundException>(async () => await _templates.UpdateAsync(templateOfA, new() { Title = "改", Order = 0, IsActive = true }));
             await Should.ThrowAsync<EntityNotFoundException>(async () => await _dailyTasks.GetBoardAsync(new() { ChildId = childOfA, Date = monday }));
             await Should.ThrowAsync<EntityNotFoundException>(async () => await _dailyTasks.UpdateAsync(taskOfA, new() { Title = "改", Order = 0 }));
         }
