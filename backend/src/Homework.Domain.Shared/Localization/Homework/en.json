@@ -55,6 +55,10 @@
     "RewardText": "Reward",
     "StartDate": "Start Date",
     "EndDate": "End Date",
-    "CreateGoal": "New Goal"
+    "CreateGoal": "New Goal",
+    "Permission:Catalog": "Catalog",
+    "Permission:Catalog.Pets": "Manage Pets",
+    "Permission:Catalog.RewardItems": "Manage Reward Items",
+    "Permission:Catalog.Medals": "Manage Medals"
   }
 }

@@ -55,6 +55,10 @@
     "RewardText": "奖励",
     "StartDate": "开始日期",
     "EndDate": "结束日期",
-    "CreateGoal": "新建目标"
+    "CreateGoal": "新建目标",
+    "Permission:Catalog": "图鉴管理",
+    "Permission:Catalog.Pets": "宠物图鉴",
+    "Permission:Catalog.RewardItems": "奖励道具图鉴",
+    "Permission:Catalog.Medals": "勋章图鉴"
   }
 }
