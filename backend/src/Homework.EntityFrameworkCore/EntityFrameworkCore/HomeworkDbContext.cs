@@ -35,7 +35,6 @@ public class HomeworkDbContext :
     public DbSet<WeeklyTaskTemplateItem> WeeklyTaskTemplateItems { get; set; }
     public DbSet<DailyTask> DailyTasks { get; set; }
     public DbSet<DailyScore> DailyScores { get; set; }
-    public DbSet<FamilyGoal> FamilyGoals { get; set; }
     public DbSet<RewardItem> RewardItems { get; set; }
     public DbSet<Medal> Medals { get; set; }
     public DbSet<PetSpecies> PetSpecies { get; set; }
@@ -124,14 +123,6 @@ public class HomeworkDbContext :
             b.ToTable(HomeworkConsts.DbTablePrefix + "DailyScores", HomeworkConsts.DbSchema);
             b.ConfigureByConvention();
             b.HasIndex(x => new { x.ChildId, x.Date }).IsUnique();
-        });
-
-        builder.Entity<FamilyGoal>(b =>
-        {
-            b.ToTable(HomeworkConsts.DbTablePrefix + "FamilyGoals", HomeworkConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
-            b.Property(x => x.RewardText).HasMaxLength(256);
         });
 
         builder.Entity<RewardItem>(b =>
