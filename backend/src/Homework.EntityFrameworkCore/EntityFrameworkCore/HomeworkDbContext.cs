@@ -40,6 +40,7 @@ public class HomeworkDbContext :
     public DbSet<Medal> Medals { get; set; }
     public DbSet<PetSpecies> PetSpecies { get; set; }
     public DbSet<Journey> Journeys { get; set; }
+    public DbSet<JourneyTaskTemplateItem> JourneyTaskTemplateItems { get; set; }
 
     #region Entities from the modules
 
@@ -199,6 +200,15 @@ public class HomeworkDbContext :
             b.ToTable(HomeworkConsts.DbTablePrefix + "JourneyBackpackItems", HomeworkConsts.DbSchema);
             b.ConfigureByConvention();
             b.HasKey(x => new { x.JourneyId, x.RewardItemId });
+        });
+
+        builder.Entity<JourneyTaskTemplateItem>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "JourneyTaskTemplateItems", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Subject).HasMaxLength(64);
+            b.HasIndex(x => new { x.JourneyId, x.DayOfWeek });
         });
     }
 }

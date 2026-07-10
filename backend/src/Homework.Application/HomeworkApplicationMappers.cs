@@ -64,3 +64,10 @@ public partial class PetSpeciesMapper : MapperBase<PetSpecies, PetSpeciesDto>
     [MapperIgnoreTarget(nameof(PetSpeciesDto.Forms))]
     public override partial void Map(PetSpecies source, PetSpeciesDto destination);
 }
+
+[Mapper]
+public partial class JourneyTaskTemplateItemMapper : MapperBase<JourneyTaskTemplateItem, JourneyTaskTemplateItemDto>
+{
+    public override partial JourneyTaskTemplateItemDto Map(JourneyTaskTemplateItem source);
+    public override partial void Map(JourneyTaskTemplateItem source, JourneyTaskTemplateItemDto destination);
+}
