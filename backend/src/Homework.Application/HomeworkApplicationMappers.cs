@@ -1,3 +1,5 @@
+using Homework.Catalog;
+using Homework.Catalog.Dtos;
 using Homework.Children;
 using Homework.Children.Dtos;
 using Homework.Tasks;
@@ -29,4 +31,14 @@ public partial class DailyTaskMapper : MapperBase<DailyTask, DailyTaskDto>
 {
     public override partial DailyTaskDto Map(DailyTask source);
     public override partial void Map(DailyTask source, DailyTaskDto destination);
+}
+
+[Mapper]
+public partial class RewardItemMapper : MapperBase<RewardItem, RewardItemDto>
+{
+    [MapperIgnoreTarget(nameof(RewardItemDto.IconUrl))]
+    public override partial RewardItemDto Map(RewardItem source);
+
+    [MapperIgnoreTarget(nameof(RewardItemDto.IconUrl))]
+    public override partial void Map(RewardItem source, RewardItemDto destination);
 }

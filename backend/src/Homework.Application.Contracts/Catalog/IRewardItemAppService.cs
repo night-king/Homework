@@ -1,0 +1,17 @@
+using System;
+using System.Threading.Tasks;
+using Homework.Catalog.Dtos;
+using Volo.Abp.Application.Dtos;
+using Volo.Abp.Application.Services;
+
+namespace Homework.Catalog;
+
+public interface IRewardItemAppService : IApplicationService
+{
+    Task<ListResultDto<RewardItemDto>> GetListAsync();
+    Task<ListResultDto<RewardItemDto>> GetActiveListAsync();
+    Task<RewardItemDto> GetAsync(Guid id);
+    Task<RewardItemDto> CreateAsync(CreateUpdateRewardItemDto input);
+    Task<RewardItemDto> UpdateAsync(Guid id, CreateUpdateRewardItemDto input);
+    Task DeleteAsync(Guid id);
+}

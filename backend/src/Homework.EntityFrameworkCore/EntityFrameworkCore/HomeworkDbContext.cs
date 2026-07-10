@@ -1,3 +1,4 @@
+using Homework.Catalog;
 using Homework.Children;
 using Homework.Scoring;
 using Homework.Tasks;
@@ -35,6 +36,7 @@ public class HomeworkDbContext :
     public DbSet<DailyTask> DailyTasks { get; set; }
     public DbSet<DailyScore> DailyScores { get; set; }
     public DbSet<FamilyGoal> FamilyGoals { get; set; }
+    public DbSet<RewardItem> RewardItems { get; set; }
 
     #region Entities from the modules
 
@@ -128,6 +130,16 @@ public class HomeworkDbContext :
             b.ConfigureByConvention();
             b.Property(x => x.Title).IsRequired().HasMaxLength(128);
             b.Property(x => x.RewardText).HasMaxLength(256);
+        });
+
+        builder.Entity<RewardItem>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "RewardItems", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(64);
+            b.Property(x => x.IconObjectKey).HasMaxLength(256);
+            b.Property(x => x.Glyph).HasMaxLength(8);
+            b.HasIndex(x => new { x.IsActive, x.DisplayOrder });
         });
     }
 }
