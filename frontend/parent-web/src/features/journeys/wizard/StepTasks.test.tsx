@@ -42,4 +42,12 @@ describe('StepTasks', () => {
     fireEvent.click(screen.getByTestId('remove-task-k1'))
     expect(setTasks.mock.calls[0][0]).toEqual([])
   })
+
+  it('picks a specific reward item and sets rewardItemId', () => {
+    const setTasks = vi.fn()
+    const task = { ...newTaskDraft(1, 0), key: 'k1', rewardMode: 'specific' as const }
+    render(<StepTasks state={{ ...emptyWizardState('c1'), tasks: [task] }} setTasks={setTasks} rewardItems={rewards} />)
+    fireEvent.click(screen.getByTestId('reward-item-k1-r1'))
+    expect((setTasks.mock.calls[0][0] as WizardTaskDraft[])[0].rewardItemId).toBe('r1')
+  })
 })
