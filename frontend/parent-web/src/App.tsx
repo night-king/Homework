@@ -15,6 +15,7 @@ import { JourneysPage } from '@/features/journeys/JourneysPage'
 import { JourneyNewPage } from '@/features/journeys/JourneyNewPage'
 import { JourneyEditPage } from '@/features/journeys/JourneyEditPage'
 import { PetSpeciesEditPage } from '@/features/catalog/PetSpeciesEditPage'
+import { CatalogPage } from '@/features/catalog/CatalogPage'
 
 export default function App() {
   useEffect(() => { useAuthStore.getState().initialize() }, [])
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/journeys" element={<JourneysPage />} />
           <Route path="/journeys/new" element={<JourneyNewPage />} />
           <Route path="/journeys/:id/edit" element={<JourneyEditPage />} />
+          <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/catalog/pets/:id" element={<PetSpeciesEditPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/home" replace />} />
