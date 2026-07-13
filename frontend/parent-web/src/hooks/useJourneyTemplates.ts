@@ -14,8 +14,21 @@ export function useJourneyTemplateMutations(journeyId: string) {
   const invalidate = () => qc.invalidateQueries({ queryKey: journeyTemplatesKey(journeyId) })
   const onErr = (e: unknown) => toast.error(getErrorMessage(e))
   return {
-    create: useMutation({ mutationFn: (d: CreateJourneyTaskTemplateItemDto) => createJourneyTemplate(d), onSuccess: () => void invalidate(), onError: onErr }),
-    update: useMutation({ mutationFn: (a: { id: string; dto: UpdateJourneyTaskTemplateItemDto }) => updateJourneyTemplate(a.id, a.dto), onSuccess: () => void invalidate(), onError: onErr }),
-    remove: useMutation({ mutationFn: (id: string) => deleteJourneyTemplate(id), onSuccess: () => void invalidate(), onError: onErr }),
+    create: useMutation({
+      mutationFn: (d: CreateJourneyTaskTemplateItemDto) => createJourneyTemplate(d),
+      onSuccess: () => { void invalidate(); toast.success('已添加') },
+      onError: onErr,
+    }),
+    update: useMutation({
+      mutationFn: (a: { id: string; dto: UpdateJourneyTaskTemplateItemDto }) =>
+        updateJourneyTemplate(a.id, a.dto),
+      onSuccess: () => { void invalidate(); toast.success('已保存') },
+      onError: onErr,
+    }),
+    remove: useMutation({
+      mutationFn: (id: string) => deleteJourneyTemplate(id),
+      onSuccess: () => { void invalidate(); toast.success('已删除') },
+      onError: onErr,
+    }),
   }
 }
