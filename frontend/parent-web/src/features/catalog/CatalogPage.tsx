@@ -11,7 +11,9 @@ type TabKey = 'reward-items' | 'medals' | 'pets'
 
 export function CatalogPage() {
   const { t } = useTranslation()
-  const has = useAuthStore((s) => s.hasPermission)
+  const permissions = useAuthStore((s) => s.permissions)
+  const permissionsLoaded = useAuthStore((s) => s.permissionsLoaded)
+  const has = (name: string) => !!permissions[name]
 
   const allTabs: { key: TabKey; testId: string; label: string; perm: string }[] = [
     { key: 'reward-items', testId: 'tab-reward-items', label: t('catalog.tabRewardItems'), perm: CatalogPermissions.RewardItems },
@@ -22,6 +24,7 @@ export function CatalogPage() {
 
   const [active, setActive] = useState<TabKey | null>(tabs[0]?.key ?? null)
 
+  if (!permissionsLoaded) return <div className="py-12 text-center text-muted">{t('common.loading')}</div>
   if (!hasAnyCatalog(has)) return <Navigate to="/home" replace />
   const current = active && tabs.some((tab) => tab.key === active) ? active : tabs[0]?.key ?? null
 

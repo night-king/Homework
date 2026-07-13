@@ -32,7 +32,8 @@ export function PetSpeciesEditPage() {
       setName(species.name); setCode(species.code); setAccentColor(species.accentColor ?? '')
       setDescription(species.description ?? ''); setDisplayOrder(species.displayOrder)
     }
-  }, [species])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [species?.id])
 
   if (isLoading || !species) return <div className="py-12 text-center text-muted">{t('common.loading')}</div>
 

@@ -6,6 +6,7 @@ import type { AppUser } from '@/types/homework'
 interface AuthState {
   user: AppUser | null
   permissions: Record<string, boolean>
+  permissionsLoaded: boolean
   isAuthenticated: boolean
   isInitializing: boolean
   login: (username: string, password: string) => Promise<void>
@@ -19,6 +20,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   permissions: {},
+  permissionsLoaded: false,
   isAuthenticated: false,
   isInitializing: true,
   login: async (username, password) => {
@@ -30,9 +32,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await registerApi(input)
     await get().login(input.userName, input.password)
   },
-  logout: () => { tokenStore.clear(); set({ user: null, permissions: {}, isAuthenticated: false }) },
+  logout: () => { tokenStore.clear(); set({ user: null, permissions: {}, permissionsLoaded: false, isAuthenticated: false }) },
   hasPermission: (name) => !!get().permissions[name],
-  loadPermissions: async () => { try { set({ permissions: await getApplicationConfiguration() }) } catch { /* ignore */ } },
+  loadPermissions: async () => {
+    try { set({ permissions: await getApplicationConfiguration() }) }
+    catch { /* ignore */ }
+    finally { set({ permissionsLoaded: true }) }
+  },
   initialize: async () => {
     const token = tokenStore.access
     if (token) {

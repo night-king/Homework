@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, act, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
@@ -23,14 +23,14 @@ beforeEach(() => vi.clearAllMocks())
 
 describe('CatalogPage', () => {
   it('shows only permitted tabs (medals only)', () => {
-    useAuthStore.setState({ permissions: { 'Homework.Catalog.Medals': true } })
+    useAuthStore.setState({ permissions: { 'Homework.Catalog.Medals': true }, permissionsLoaded: true })
     ui(<CatalogPage />)
     expect(screen.getByTestId('tab-medals')).toBeInTheDocument()
     expect(screen.queryByTestId('tab-reward-items')).toBeNull()
     expect(screen.queryByTestId('tab-pets')).toBeNull()
   })
   it('redirects to /home when no catalog permission', () => {
-    useAuthStore.setState({ permissions: {} })
+    useAuthStore.setState({ permissions: {}, permissionsLoaded: true })
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     render(
       <QueryClientProvider client={qc}>
@@ -44,5 +44,23 @@ describe('CatalogPage', () => {
     )
     expect(screen.getByText('home-page')).toBeInTheDocument()
     expect(screen.queryByTestId('tab-medals')).toBeNull()
+  })
+  it('does not redirect before permissions load, then shows tabs once loaded', async () => {
+    useAuthStore.setState({ permissions: {}, permissionsLoaded: false })
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/catalog']}>
+          <Routes>
+            <Route path="/catalog" element={<ConfirmProvider><CatalogPage /></ConfirmProvider>} />
+            <Route path="/home" element={<div>home-page</div>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+    expect(screen.queryByText('home-page')).toBeNull()           // not redirected while loading
+    act(() => useAuthStore.setState({ permissions: { 'Homework.Catalog.Medals': true }, permissionsLoaded: true }))
+    await waitFor(() => expect(screen.getByTestId('tab-medals')).toBeInTheDocument())
+    expect(screen.queryByText('home-page')).toBeNull()
   })
 })

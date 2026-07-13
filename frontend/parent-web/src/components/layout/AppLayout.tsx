@@ -17,8 +17,8 @@ export function AppLayout() {
   const { t } = useTranslation()
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const isInitializing = useAuthStore((s) => s.isInitializing)
-  const has = useAuthStore((s) => s.hasPermission)
-  const navItems = [...nav, ...(hasAnyCatalog(has) ? [{ to: '/catalog', icon: Boxes, key: 'nav.catalog' }] : [])]
+  const permissions = useAuthStore((s) => s.permissions)
+  const navItems = [...nav, ...(hasAnyCatalog((n) => !!permissions[n]) ? [{ to: '/catalog', icon: Boxes, key: 'nav.catalog' }] : [])]
   if (isInitializing) return <div className="grid h-full place-items-center text-muted">加载中…</div>
   if (!isAuthenticated) return <Navigate to="/login" replace />
   return (
