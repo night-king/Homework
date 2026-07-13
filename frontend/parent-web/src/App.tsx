@@ -13,6 +13,7 @@ import { ChildrenPage } from '@/features/children/ChildrenPage'
 import { WeeklyTemplatePage } from '@/features/schedule/WeeklyTemplatePage'
 import { DailyBoardPage } from '@/features/board/DailyBoardPage'
 import { FamilyGoalsPage } from '@/features/goals/FamilyGoalsPage'
+import { JourneysPage } from '@/features/journeys/JourneysPage'
 
 export default function App() {
   useEffect(() => { useAuthStore.getState().initialize() }, [])
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/children" element={<ChildrenPage />} />
           <Route path="/schedule" element={<WeeklyTemplatePage />} />
           <Route path="/board" element={<DailyBoardPage />} />
+          <Route path="/journeys" element={<JourneysPage />} />
           <Route path="/goals" element={<FamilyGoalsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/home" replace />} />
