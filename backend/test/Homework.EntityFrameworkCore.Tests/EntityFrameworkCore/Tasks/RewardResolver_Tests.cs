@@ -35,7 +35,10 @@ public class RewardResolver_Tests : HomeworkEntityFrameworkCoreTestBase
     [Fact]
     public async Task Random_Empty_Pool_Returns_Null()
     {
-        // no active reward items seeded in a fresh scope
+        // 图鉴现在有全局开发种子数据(CatalogSampleDataSeedContributor 每次测试启动都会播种)，
+        // 先清空 RewardItem 表以还原"空池"这一前提。
+        await WithUnitOfWorkAsync(() => _rewardRepo.DeleteAsync(x => true, autoSave: true));
+
         (await _resolver.ResolveAsync(null, isRandom: true)).ShouldBeNull();
     }
 
@@ -45,6 +48,9 @@ public class RewardResolver_Tests : HomeworkEntityFrameworkCoreTestBase
         RewardItem active = null!;
         await WithUnitOfWorkAsync(async () =>
         {
+            // 同上：先清空全局种子道具，保证"仅一个 active 道具"的前提成立。
+            await _rewardRepo.DeleteAsync(x => true, autoSave: true);
+
             active = new RewardItem(_guid.Create(), "闪光浆果", 12, 1);
             active.Activate();
             await _rewardRepo.InsertAsync(active, autoSave: true);
