@@ -6,12 +6,7 @@ export interface CreateChildDto { displayName: string; grade: number; avatarKey?
 export interface UpdateChildProfileDto { displayName: string; grade: number; avatarKey?: string | null }
 export interface SetChildPinDto { pin?: string | null }  // "^\d{4}$" or null/empty to clear
 
-// ---- Weekly template ----
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6  // Sun..Sat
-export interface WeeklyTaskTemplateItemDto { id: string; childId: string; dayOfWeek: DayOfWeek; title: string; subject?: string | null; order: number; estimatedMinutes?: number | null; isActive: boolean }
-export interface CreateWeeklyTaskTemplateItemDto { childId: string; dayOfWeek: DayOfWeek; title: string; subject?: string | null; order: number; estimatedMinutes?: number | null }
-export interface UpdateWeeklyTaskTemplateItemDto { title: string; subject?: string | null; order: number; estimatedMinutes?: number | null; isActive: boolean }
-export interface GetWeeklyTemplateInput { childId: string; dayOfWeek?: DayOfWeek }
 
 // ---- Daily task / board ----
 export type TaskReviewState = 0 | 1  // Normal | Revoked
@@ -48,10 +43,6 @@ export interface RewardItemDto { id: string; name: string; iconUrl?: string | nu
 export interface MedalDto { id: string; name: string; description?: string | null; imageUrl?: string | null; isActive: boolean; displayOrder: number }
 export interface PetFormDto { level: number; name: string; spriteUrl?: string | null; revealText?: string | null; growthToNext?: number | null; evolveVideoUrl?: string | null; scale?: number | null }
 export interface PetSpeciesDto { id: string; name: string; code: string; coverUrl?: string | null; accentColor?: string | null; description?: string | null; isActive: boolean; displayOrder: number; forms: PetFormDto[] }
-
-// ---- Family goal ----
-export interface FamilyGoalDto { id: string; title: string; targetStars: number; rewardText?: string | null; startDate: string; endDate: string; achievedTime?: string | null; currentStars: number; isAchieved: boolean; progressPercent: number }
-export interface CreateUpdateFamilyGoalDto { title: string; targetStars: number; rewardText?: string | null; startDate: string; endDate: string }
 
 // ---- Auth ----
 export interface AppUser { id: string; userName: string; email?: string }

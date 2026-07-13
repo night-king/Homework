@@ -3,9 +3,7 @@
   "nav": {
     "home": "首页",
     "children": "孩子",
-    "schedule": "每周模板",
     "board": "每日看板",
-    "goals": "家庭目标",
     "journeys": "旅程"
   },
   "common": {
@@ -31,12 +29,6 @@
     "grade": "年级",
     "hasPin": "已设 PIN",
     "noPin": "未设 PIN"
-  },
-  "schedule": {
-    "title": "每周任务模板",
-    "addItem": "添加",
-    "empty": "暂无模板任务",
-    "noChildren": "请先在「孩子」页面添加孩子档案"
   },
   "board": {
     "title": "每日看板",
@@ -99,13 +91,6 @@
     "reviewTasks": "任务安排",
     "reviewNoTasks": "本旅程暂无任务(可稍后在编辑页添加)",
     "days": { "0": "周日", "1": "周一", "2": "周二", "3": "周三", "4": "周四", "5": "周五", "6": "周六" }
-  },
-  "goals": {
-    "title": "家庭目标",
-    "add": "新建目标",
-    "empty": "还没有家庭目标，建一个吧",
-    "achieved": "已达成 🎉",
-    "stars": "星星"
   },
   "account": {
     "profile": "个人资料",

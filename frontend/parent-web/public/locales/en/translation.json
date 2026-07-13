@@ -3,9 +3,7 @@
   "nav": {
     "home": "Home",
     "children": "Children",
-    "schedule": "Weekly Template",
     "board": "Daily Board",
-    "goals": "Family Goals",
     "journeys": "Journeys"
   },
   "common": {
@@ -31,12 +29,6 @@
     "grade": "Grade",
     "hasPin": "PIN set",
     "noPin": "No PIN"
-  },
-  "schedule": {
-    "title": "Weekly Template",
-    "addItem": "Add",
-    "empty": "No template tasks",
-    "noChildren": "Please add a child first"
   },
   "board": {
     "title": "Daily Board",
@@ -99,13 +91,6 @@
     "reviewTasks": "Task schedule",
     "reviewNoTasks": "No tasks yet (you can add them later on the edit page)",
     "days": { "0": "Sun", "1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri", "6": "Sat" }
-  },
-  "goals": {
-    "title": "Family Goals",
-    "add": "New goal",
-    "empty": "No family goals yet",
-    "achieved": "Achieved 🎉",
-    "stars": "Stars"
   },
   "account": {
     "profile": "Profile",
