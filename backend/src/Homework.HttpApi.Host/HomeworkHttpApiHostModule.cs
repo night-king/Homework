@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ using Volo.Abp.Security.Claims;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.BlobStoring.Aliyun;
+using Volo.Abp.BlobStoring.FileSystem;
 using Volo.Abp.UI.Navigation.Urls;
 
 namespace Homework;
@@ -41,7 +43,8 @@ namespace Homework;
     typeof(AbpAspNetCoreMvcUiThemeSharedModule),    // Account.Web 的依赖，必须留
     typeof(AbpAspNetCoreSerilogModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpBlobStoringAliyunModule)
+    typeof(AbpBlobStoringAliyunModule),
+    typeof(AbpBlobStoringFileSystemModule)
     )]
 public class HomeworkHttpApiHostModule : AbpModule
 {
@@ -102,25 +105,37 @@ public class HomeworkHttpApiHostModule : AbpModule
             options.SetDefaultCulture("zh-Hans");
         });
 
-        ConfigureBlobStoring(configuration);
+        var blobBasePath = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath, "App_Data", "blobs");
+        ConfigureBlobStoring(configuration, blobBasePath);
     }
 
-    private void ConfigureBlobStoring(IConfiguration configuration)
+    private void ConfigureBlobStoring(IConfiguration configuration, string fileSystemBasePath)
     {
+        // 配了真实 Aliyun 凭证 → 走 OSS；否则兜底为本地文件系统 blob，
+        // 让开发环境无需 OSS 也能跑图鉴/上传（ABP 的 set_AccessKeyId 会拒绝空串，故必须条件化）。
+        var hasAliyun = !string.IsNullOrWhiteSpace(configuration["Aliyun:AccessKeyId"]);
+
         Configure<AbpBlobStoringOptions>(options =>
         {
             options.Containers.ConfigureDefault(container =>
             {
-                container.UseAliyun(aliyun =>
+                if (hasAliyun)
                 {
-                    aliyun.AccessKeyId = configuration["Aliyun:AccessKeyId"] ?? string.Empty;
-                    aliyun.AccessKeySecret = configuration["Aliyun:AccessKeySecret"] ?? string.Empty;
-                    aliyun.Endpoint = configuration["Aliyun:Oss:Endpoint"] ?? string.Empty;
-                    // ABP Aliyun provider: ContainerName = OSS bucket name (10.5.0 has no BucketName property)
-                    aliyun.ContainerName = configuration["Aliyun:Oss:BucketName"] ?? string.Empty;
-                    // 公有读 Bucket 由运维预先创建；不由应用自动建桶。
-                    aliyun.CreateContainerIfNotExists = false;
-                });
+                    container.UseAliyun(aliyun =>
+                    {
+                        aliyun.AccessKeyId = configuration["Aliyun:AccessKeyId"]!;
+                        aliyun.AccessKeySecret = configuration["Aliyun:AccessKeySecret"] ?? string.Empty;
+                        aliyun.Endpoint = configuration["Aliyun:Oss:Endpoint"] ?? string.Empty;
+                        // ABP Aliyun provider: ContainerName = OSS bucket name (10.5.0 has no BucketName property)
+                        aliyun.ContainerName = configuration["Aliyun:Oss:BucketName"] ?? string.Empty;
+                        // 公有读 Bucket 由运维预先创建；不由应用自动建桶。
+                        aliyun.CreateContainerIfNotExists = false;
+                    });
+                }
+                else
+                {
+                    container.UseFileSystem(fs => fs.BasePath = fileSystemBasePath);
+                }
             });
         });
     }
