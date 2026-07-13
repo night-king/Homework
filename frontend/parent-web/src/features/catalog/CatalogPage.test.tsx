@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 
@@ -29,9 +29,20 @@ describe('CatalogPage', () => {
     expect(screen.queryByTestId('tab-reward-items')).toBeNull()
     expect(screen.queryByTestId('tab-pets')).toBeNull()
   })
-  it('redirects when no catalog permission', () => {
+  it('redirects to /home when no catalog permission', () => {
     useAuthStore.setState({ permissions: {} })
-    ui(<CatalogPage />)
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/catalog']}>
+          <Routes>
+            <Route path="/catalog" element={<CatalogPage />} />
+            <Route path="/home" element={<div>home-page</div>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+    expect(screen.getByText('home-page')).toBeInTheDocument()
     expect(screen.queryByTestId('tab-medals')).toBeNull()
   })
 })
