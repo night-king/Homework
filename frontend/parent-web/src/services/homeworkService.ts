@@ -4,6 +4,9 @@ import type {
   WeeklyTaskTemplateItemDto, CreateWeeklyTaskTemplateItemDto, UpdateWeeklyTaskTemplateItemDto, GetWeeklyTemplateInput,
   DailyTaskDto, CreateDailyTaskDto, UpdateDailyTaskDto, GetDailyBoardInput, DailyBoardDto,
   FamilyGoalDto, CreateUpdateFamilyGoalDto,
+  JourneyDto, CreateJourneyDto, UpdateJourneyDto,
+  JourneyTaskTemplateItemDto, CreateJourneyTaskTemplateItemDto, UpdateJourneyTaskTemplateItemDto, GetJourneyTemplateInput,
+  RewardItemDto, MedalDto, PetSpeciesDto,
 } from '@/types/homework'
 
 // ---- child-profile ----
@@ -36,3 +39,23 @@ export const getGoal = (id: string) => api.get<FamilyGoalDto>(`/api/app/family-g
 export const createGoal = (dto: CreateUpdateFamilyGoalDto) => api.post<FamilyGoalDto>('/api/app/family-goal', dto).then((r) => r.data)
 export const updateGoal = (id: string, dto: CreateUpdateFamilyGoalDto) => api.put<FamilyGoalDto>(`/api/app/family-goal/${id}`, dto).then((r) => r.data)
 export const deleteGoal = (id: string) => api.delete(`/api/app/family-goal/${id}`)
+
+// ---- journey ----
+export const listJourneys = (childId: string) =>
+  api.get<ListResult<JourneyDto>>('/api/app/journey', { params: { childId } }).then((r) => r.data.items)
+export const getJourney = (id: string) => api.get<JourneyDto>(`/api/app/journey/${id}`).then((r) => r.data)
+export const createJourney = (dto: CreateJourneyDto) => api.post<JourneyDto>('/api/app/journey', dto).then((r) => r.data)
+export const updateJourney = (id: string, dto: UpdateJourneyDto) => api.put<JourneyDto>(`/api/app/journey/${id}`, dto).then((r) => r.data)
+export const deleteJourney = (id: string) => api.delete(`/api/app/journey/${id}`)
+
+// ---- journey-task-template ----
+export const listJourneyTemplates = (input: GetJourneyTemplateInput) =>
+  api.get<ListResult<JourneyTaskTemplateItemDto>>('/api/app/journey-task-template', { params: input }).then((r) => r.data.items)
+export const createJourneyTemplate = (dto: CreateJourneyTaskTemplateItemDto) => api.post<JourneyTaskTemplateItemDto>('/api/app/journey-task-template', dto).then((r) => r.data)
+export const updateJourneyTemplate = (id: string, dto: UpdateJourneyTaskTemplateItemDto) => api.put<JourneyTaskTemplateItemDto>(`/api/app/journey-task-template/${id}`, dto).then((r) => r.data)
+export const deleteJourneyTemplate = (id: string) => api.delete(`/api/app/journey-task-template/${id}`)
+
+// ---- catalog (read-only active lists) ----
+export const listActiveRewardItems = () => api.get<ListResult<RewardItemDto>>('/api/app/reward-item/active-list').then((r) => r.data.items)
+export const listActiveMedals = () => api.get<ListResult<MedalDto>>('/api/app/medal/active-list').then((r) => r.data.items)
+export const listActivePetSpecies = () => api.get<ListResult<PetSpeciesDto>>('/api/app/pet-species/active-list').then((r) => r.data.items)
