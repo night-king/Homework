@@ -2,8 +2,9 @@
 
 > 活文档（living doc）。总设计规格见 `specs/2026-07-10-child-journey-pet-backend-design.md`；
 > 第一期计划 `plans/2026-07-10-phase1-catalog-oss.md`；第二期计划 `plans/2026-07-10-phase2-journey-growth.md`。
-> 最近更新：2026-07-13（第三期 Slice A —— 家长端旅程体验 完成）。
-> 第三期设计 `specs/2026-07-11-phase3a-parent-journey-ux-design.md`；计划 `plans/2026-07-11-phase3a-parent-journey-ux.md`。
+> 最近更新：2026-07-13（第三期 Slice A 家长端旅程 + Slice C 图鉴管理后台 均完成）。
+> Slice A 设计/计划 `specs/2026-07-11-phase3a-parent-journey-ux-design.md`、`plans/2026-07-11-phase3a-parent-journey-ux.md`；
+> Slice C 设计/计划 `specs/2026-07-13-phase3c-catalog-admin-design.md`、`plans/2026-07-13-phase3c-catalog-admin.md`。
 
 ---
 
@@ -11,9 +12,10 @@
 
 - **第一期（图鉴 + OSS）✅ 已完成**，已合入本地 `main`。三套全局图鉴 + Aliyun OSS + `IAssetUrlResolver` + 3 迁移。
 - **第二期（旅程 + 成长闭环）✅ 已完成**，已 fast-forward 合入**本地 `main`**（HEAD `b28a094`，**尚未 push**）。交付：`Journey` 聚合(重塑 FamilyGoal，含阈值快照+背包)、喂养/单级进化/满级完成、`JourneyManager` 单旅程约束、`RewardResolver`(指定/加权随机/空池兜底)、任务引擎重挂旅程(`JourneyTaskTemplateItem` + `DailyTask` 加 JourneyId/Reward + 生成器旅程域内生成)、家长 `JourneyAppService` + 运行时 `JourneyPlayAppService`(开始/看板/背包/收藏/完成/喂养)、4 个 EF 迁移。经 opus 整分支终审：重复发奖漏洞已修复+回归测试。
-- **第三期 Slice A（家长端旅程体验：修复 + 创建旅程向导 + 只读消费图鉴 + 后端图鉴开发种子）✅ 已完成**，已 fast-forward 合入**本地 `main`**（HEAD `cd976e2`，**尚未 push**）。经 opus 整分支终审，2 项 Important（删除旅程时孤儿模板、指定奖励路径缺测试）已修复。
-- 测试：后端 Domain 56 + EFCore 61、前端 vitest 52、`npm run build` / `typecheck` 全绿。（Domain 56 不变；EFCore 58 → 61：+2 图鉴种子测试 +1 删除级联测试。）
-- **第三期 Slice B（孩子端接线）/ Slice C（图鉴管理后台）尚未开始**。
+- **第三期 Slice A（家长端旅程体验）✅ 已完成**，fast-forward 合入本地 `main`。经 opus 终审 2 项 Important（删除旅程时孤儿模板、指定奖励路径缺测试）已修复。
+- **第三期 Slice C（图鉴管理后台）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `b65611c`，**尚未 push**）。`parent-web` 内 admin 权限门控的道具/勋章/宠物 CRUD + 上传 + 启停；两段式宠物编辑（5 形态 + 封面 + 精灵图 + 进化视频 + 完整度门控）。**后端未改**。经 opus 终审：权限门控响应式化（避免刷新时管理员被踢）+ 宠物基础信息不被刷新覆盖 已修复。
+- 测试：后端 Domain 56 + EFCore 61（未变）、前端 vitest **74**、`npm run build` / `typecheck` 全绿。
+- **第三期 Slice B（孩子端接线）尚未开始**——见 §2.3。
 
 ---
 
@@ -24,7 +26,8 @@
 - [ ] **设定 `App:AssetCdnBaseUrl`**：必须对齐 OSS 实际对象路径。host 模式（多租户禁用）下前缀为 `host/`，`catalog` 是 **Bucket 名**而非路径段。**先上传一个资产、在 OSS 控制台核对真实对象路径，再据此设 base**，否则资产 URL 会 404。（详见 spec §6 部署要点。）
 - [ ] **应用迁移到 Postgres**：`dotnet run --project backend/src/Homework.DbMigrator`（建 `AppRewardItems` / `AppMedals` / `AppPetSpecies` / `AppPetForms`）。
 - [ ] **上传体积上限**：进化 mp4 可能数 MB，配置请求体大小上限与超时。
-- [ ] （可选）想同步到 GitHub：`git push origin main`。
+- [ ] **修 Swagger/OpenAPI 500**：`Homework.HttpApi.Host.csproj` 显式钉了 `Microsoft.OpenApi 3.7.0`，与 `Volo.Abp.Swashbuckle 10.5.0` 不兼容 → `/swagger/v1/swagger.json` 返回 500（Slice C Task 1 发现）。前端不依赖 Swagger，但开发调试与 API 文档需要，建议移除该显式版本钉或对齐兼容版本。
+- [ ] （可选）想同步到 GitHub：`git push origin main`（第一、二、三期 A/C 均只在本地 `main`，未 push）。
 
 ---
 
@@ -86,9 +89,19 @@
 
 - [ ] `frontend/child-web-prototype` 由硬编码切换为消费真实 `JourneyPlayAppService`（选宠开始、每日看板、完成、喂养/进化过场、背包、收藏/勋章墙）。孩子无独立登录 → 跑在家长会话下选定孩子。
 
-### 2.4 Slice C —— 图鉴管理后台（未开始）
+### 2.4 Slice C —— 图鉴管理后台 ✅ 已完成（本地 `main`，HEAD `b65611c`，未 push）
 
-- [ ] 平台管理员 CRUD 宠物（5 形态 + 封面 + 4 进化视频）/ 奖励道具 / 勋章，含 OSS 上传；落地后取代 Slice A 的开发种子。
+- [x] `parent-web` 内 admin 权限门控（`Homework.Catalog.*`，`authStore.hasPermission`）的「图鉴管理」区：道具/勋章/宠物 CRUD + 上传 + 启停。**后端未改**（第一期已全备）。
+- [x] 两段式宠物编辑：创建 dialog（基础字段）→ `/catalog/pets/:id` 详情页（5 形态元数据 + 封面/精灵图/进化视频上传 + 完整度门控 + 启用/停用）。
+- [x] 共享 `FileUploadField`（multipart：字段名 `file`、`Content-Type` 置 `undefined` 让浏览器带 boundary、宠物 `level` 走 query）。上传契约经 Task 1 用路由探测确认。
+- [x] 权限门控响应式化（select `permissions` slice + `permissionsLoaded` 守卫，避免刷新时管理员被踢/导航缺失）;宠物基础信息 seed 仅按 `species.id` 一次（不被上传后 refetch 覆盖）。落地后 Slice A 开发种子从「必需」降为「新库便利」。
+
+**2.4a Slice C 遗留（来自 opus 终审，非阻塞，fast-follow）**
+- [ ] **管理端 toast 文案 i18n**：`已创建/已保存/…` 等成功提示为硬编码中文（**全应用既有惯例**，非本 slice 独有）→ 建议做一次全应用 toast i18n 收口，勿只改 catalog 造成不一致。
+- [ ] 各图鉴 create dialog 的必填校验错误直接显示字段标签（如「名称」「代码」）而非「请填写」类提示；宠物创建仅缺 name 时也显示 code 标签 → 加 `catalog.*Required` 文案。
+- [ ] 宠物详情页基础信息**保存无必填校验**（靠后端拒绝 + 错误 toast）;`usePetSpecies` 出错时无 error 态（无限 loading）→ 加 `isError` 分支。
+- [ ] `FileUploadField` 的 `onUpload` 拒绝未在组件内 `catch`（mutation `onError` 仍会 toast，仅控制台 unhandled rejection）;视频分支 + 上传中禁用态无测试;视频「已上传」标记复用 `catalog.evolveVideo`（通用视频场景语义不贴）。
+- [ ] 未用 i18n 键 `catalog.noPermission`/`delete`/`missingCover`/`missingSprite`;上传 service 参数 `level: number` 可收紧为 `PetFormLevel`;表单 `<Label>` 未 `htmlFor` 关联;部分面板/弹窗测试偏薄（edit 预填/删除确认/上传接线未测）。
 
 ---
 
