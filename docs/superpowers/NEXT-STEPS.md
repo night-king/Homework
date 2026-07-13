@@ -2,7 +2,8 @@
 
 > 活文档（living doc）。总设计规格见 `specs/2026-07-10-child-journey-pet-backend-design.md`；
 > 第一期计划 `plans/2026-07-10-phase1-catalog-oss.md`；第二期计划 `plans/2026-07-10-phase2-journey-growth.md`。
-> 最近更新：2026-07-10（第二期完成）。
+> 最近更新：2026-07-13（第三期 Slice A —— 家长端旅程体验 完成）。
+> 第三期设计 `specs/2026-07-11-phase3a-parent-journey-ux-design.md`；计划 `plans/2026-07-11-phase3a-parent-journey-ux.md`。
 
 ---
 
@@ -10,8 +11,9 @@
 
 - **第一期（图鉴 + OSS）✅ 已完成**，已合入本地 `main`。三套全局图鉴 + Aliyun OSS + `IAssetUrlResolver` + 3 迁移。
 - **第二期（旅程 + 成长闭环）✅ 已完成**，已 fast-forward 合入**本地 `main`**（HEAD `b28a094`，**尚未 push**）。交付：`Journey` 聚合(重塑 FamilyGoal，含阈值快照+背包)、喂养/单级进化/满级完成、`JourneyManager` 单旅程约束、`RewardResolver`(指定/加权随机/空池兜底)、任务引擎重挂旅程(`JourneyTaskTemplateItem` + `DailyTask` 加 JourneyId/Reward + 生成器旅程域内生成)、家长 `JourneyAppService` + 运行时 `JourneyPlayAppService`(开始/看板/背包/收藏/完成/喂养)、4 个 EF 迁移。经 opus 整分支终审：重复发奖漏洞已修复+回归测试。
-- 测试：Domain 56 + EFCore 58 全绿。
-- **第三期（家长创建旅程 UX + 孩子端接线）尚未开始**（需 brainstorm → plan）。
+- **第三期 Slice A（家长端旅程体验：修复 + 创建旅程向导 + 只读消费图鉴 + 后端图鉴开发种子）✅ 已完成**，已 fast-forward 合入**本地 `main`**（HEAD `cd976e2`，**尚未 push**）。经 opus 整分支终审，2 项 Important（删除旅程时孤儿模板、指定奖励路径缺测试）已修复。
+- 测试：后端 Domain 56 + EFCore 61、前端 vitest 52、`npm run build` / `typecheck` 全绿。（Domain 56 不变；EFCore 58 → 61：+2 图鉴种子测试 +1 删除级联测试。）
+- **第三期 Slice B（孩子端接线）/ Slice C（图鉴管理后台）尚未开始**。
 
 ---
 
@@ -59,10 +61,34 @@
 
 ---
 
-## 2. 第三期：家长创建旅程 UX + 孩子端接线（前端）
+## 2. 第三期（前端）
 
-- [ ] **家长端「创建旅程」向导**：命名 → 起止日期 → 周任务计划(每项奖励指定/随机) → 选勋章 → 预览发布。（诉求 5：体验要做好。）
-- [ ] **孩子端原型接真实 API**：`frontend/child-web-prototype` 由硬编码切换为消费真实接口（选宠、每日看板、完成、喂养、进化过场、收藏/勋章墙）。
+> 设计 `specs/2026-07-11-phase3a-parent-journey-ux-design.md`；计划 `plans/2026-07-11-phase3a-parent-journey-ux.md`（15 任务，子代理流水线执行 + opus 终审）。
+
+### 2.1 Slice A —— 家长端旅程体验 ✅ 已完成（本地 `main`，HEAD `cd976e2`，未 push）
+
+- [x] 家长端「创建旅程」4 步全页向导（基本信息 → 周任务计划[每项奖励指定/随机] → 选勋章 → 预览发布；部分失败落草稿 → 跳编辑页补齐）。（诉求 5）
+- [x] IA 归一为「旅程」区（Journeys 取代 Schedule+Goals）；JourneysPage / New / Edit（草稿复用向导，Active/Completed 只读）/ 首页改旅程为中心。
+- [x] 只读消费图鉴（`reward-item`/`medal`/`pet-species` 的 `active-list`）。
+- [x] 后端 `CatalogSampleDataSeedContributor`（空表才插样例道具/勋章，幂等）——上线前开发便利。
+- [x] 删除被 Phase 2 打断的 family-goal / weekly-template 前端遗留代码与文案；i18n zh-CN + en 同步。
+- [x] 终审修复：删除旅程时一并删其任务模板（避免孤儿，`JourneyAppService.DeleteAsync`）；补 StepTasks 指定奖励道具选择测试。
+
+### 2.2 Slice A 遗留 / 上线前（来自 opus 终审，非阻塞）
+
+- [ ] **端到端集成 smoke**：创建旅程 → 读回，验证 `DateOnly` 走 `"YYYY-MM-DD"` 序列化契约（默认 System.Text.Json 判为低风险，尚未跑真实后端验证）。
+- [ ] **种子环境开关**：`CatalogSampleDataSeedContributor`（连同既有 `ChildrenDataSeedContributor` 的 demo 账号 + 硬编码密码 `1q2w3E*`）考虑仅 `Development` 播种；上线前确认不把样例数据 / demo 账号带入正式库。
+- [ ] 向导部分失败时**失败的任务草稿未回填**编辑页（已持久化工作不丢、无孤儿草稿，仅失败项需家长重录）——可改进为把失败草稿带过去。
+- [ ] 测试基建备忘：`src/test-setup.ts` 全局 `vi.mock('@/i18n/config')`（避 react-i18next suspense 在 jsdom 挂起）；全局图鉴种子使每个 EFCore 测试图鉴表非空（断言空池的测试需先清表）；locales.test 只保证双语键**一致**，不保证「代码用到的键都存在」。
+- [ ] 若干 inert 小项：`GetJourneyListInput` 未用导出、`JourneysPage` 死 `disabled={!activeChild}`、`updateDtoFrom`/`toCreateTemplateDto` DRY 片段、新 zh-CN 半角标点（vs 全角）、`HomePage`/`saveJourneyEdits` 覆盖偏薄、首页去掉 `isRestDay` 指示。
+
+### 2.3 Slice B —— 孩子端接线（未开始）
+
+- [ ] `frontend/child-web-prototype` 由硬编码切换为消费真实 `JourneyPlayAppService`（选宠开始、每日看板、完成、喂养/进化过场、背包、收藏/勋章墙）。孩子无独立登录 → 跑在家长会话下选定孩子。
+
+### 2.4 Slice C —— 图鉴管理后台（未开始）
+
+- [ ] 平台管理员 CRUD 宠物（5 形态 + 封面 + 4 进化视频）/ 奖励道具 / 勋章，含 OSS 上传；落地后取代 Slice A 的开发种子。
 
 ---
 
