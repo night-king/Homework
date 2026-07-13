@@ -7,6 +7,12 @@ import {
   listJourneyTemplates, createJourneyTemplate,
   listActiveRewardItems, listActiveMedals, listActivePetSpecies,
 } from './homeworkService'
+import {
+  listAllRewardItems, createRewardItem, updateRewardItem, deleteRewardItem, uploadRewardItemIcon,
+  listAllMedals, createMedal, uploadMedalImage,
+  listAllPetSpecies, getPetSpecies, createPetSpecies, setPetForm,
+  uploadPetCover, uploadPetFormSprite, uploadPetFormEvolveVideo, activatePetSpecies, deactivatePetSpecies,
+} from './homeworkService'
 
 beforeEach(() => vi.clearAllMocks())
 describe('homeworkService', () => {
@@ -64,5 +70,66 @@ describe('homeworkService', () => {
     expect(api.get).toHaveBeenCalledWith('/api/app/reward-item/active-list')
     await listActiveMedals(); expect(api.get).toHaveBeenCalledWith('/api/app/medal/active-list')
     await listActivePetSpecies(); expect(api.get).toHaveBeenCalledWith('/api/app/pet-species/active-list')
+  })
+  it('listAllRewardItems GETs full list and unwraps items', async () => {
+    ;(api.get as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { items: [{ id: 'r1' }] } })
+    expect(await listAllRewardItems()).toEqual([{ id: 'r1' }])
+    expect(api.get).toHaveBeenCalledWith('/api/app/reward-item')
+  })
+  it('createRewardItem POSTs dto', async () => {
+    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 'r1' } })
+    const dto = { name: '书签', glyph: '✦', growthValue: 12, randomWeight: 1, displayOrder: 0, isActive: true }
+    await createRewardItem(dto)
+    expect(api.post).toHaveBeenCalledWith('/api/app/reward-item', dto)
+  })
+  it('updateRewardItem PUTs and deleteRewardItem DELETEs', async () => {
+    ;(api.put as ReturnType<typeof vi.fn>).mockResolvedValue({ data: {} })
+    await updateRewardItem('r1', { name: 'x', growthValue: 12, randomWeight: 1, displayOrder: 0, isActive: false })
+    expect(api.put).toHaveBeenCalledWith('/api/app/reward-item/r1', expect.objectContaining({ name: 'x' }))
+    await deleteRewardItem('r1'); expect(api.delete).toHaveBeenCalledWith('/api/app/reward-item/r1')
+  })
+  it('uploadRewardItemIcon posts FormData with file field and undefined Content-Type', async () => {
+    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 'r1' } })
+    const file = new File(['x'], 'i.png', { type: 'image/png' })
+    await uploadRewardItemIcon('r1', file)
+    const call = (api.post as ReturnType<typeof vi.fn>).mock.calls.at(-1)!
+    expect(call[0]).toBe('/api/app/reward-item/r1/upload-icon')
+    expect(call[1]).toBeInstanceOf(FormData)
+    expect((call[1] as FormData).get('file')).toBe(file)
+    expect(call[2].headers['Content-Type']).toBeUndefined()
+  })
+  it('listAllMedals GETs full list and unwraps items', async () => {
+    ;(api.get as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { items: [{ id: 'm1' }] } })
+    expect(await listAllMedals()).toEqual([{ id: 'm1' }])
+    expect(api.get).toHaveBeenCalledWith('/api/app/medal')
+  })
+  it('createMedal POSTs dto', async () => {
+    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 'm1' } })
+    const dto = { name: '勤奋勋章', description: '连续七天全勤', displayOrder: 0, isActive: true }
+    await createMedal(dto)
+    expect(api.post).toHaveBeenCalledWith('/api/app/medal', dto)
+  })
+  it('uploadMedalImage targets /upload-image', async () => {
+    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: {} })
+    await uploadMedalImage('m1', new File(['x'], 'm.png'))
+    expect((api.post as ReturnType<typeof vi.fn>).mock.calls.at(-1)![0]).toBe('/api/app/medal/m1/upload-image')
+  })
+  it('pet-species admin: list/get/create/setForm/uploads/activate paths', async () => {
+    ;(api.get as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { items: [], id: 'p1' } })
+    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 'p1' } })
+    await listAllPetSpecies(); expect(api.get).toHaveBeenCalledWith('/api/app/pet-species')
+    await getPetSpecies('p1'); expect(api.get).toHaveBeenCalledWith('/api/app/pet-species/p1')
+    await createPetSpecies({ name: '火龙', code: 'dragon', displayOrder: 0 })
+    expect(api.post).toHaveBeenCalledWith('/api/app/pet-species', expect.objectContaining({ code: 'dragon' }))
+    await setPetForm('p1', { level: 2, name: '幼龙' })
+    expect(api.post).toHaveBeenCalledWith('/api/app/pet-species/p1/set-form', expect.objectContaining({ level: 2 }))
+    await uploadPetFormSprite('p1', 3, new File(['x'], 's.png'))
+    expect((api.post as ReturnType<typeof vi.fn>).mock.calls.at(-1)![0]).toBe('/api/app/pet-species/p1/upload-form-sprite?level=3')
+    await uploadPetFormEvolveVideo('p1', 1, new File(['x'], 'v.mp4'))
+    expect((api.post as ReturnType<typeof vi.fn>).mock.calls.at(-1)![0]).toBe('/api/app/pet-species/p1/upload-form-evolve-video?level=1')
+    await uploadPetCover('p1', new File(['x'], 'c.png'))
+    expect((api.post as ReturnType<typeof vi.fn>).mock.calls.at(-1)![0]).toBe('/api/app/pet-species/p1/upload-cover')
+    await activatePetSpecies('p1'); expect(api.post).toHaveBeenCalledWith('/api/app/pet-species/p1/activate')
+    await deactivatePetSpecies('p1'); expect(api.post).toHaveBeenCalledWith('/api/app/pet-species/p1/deactivate')
   })
 })

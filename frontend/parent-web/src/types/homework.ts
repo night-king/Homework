@@ -44,6 +44,13 @@ export interface MedalDto { id: string; name: string; description?: string | nul
 export interface PetFormDto { level: number; name: string; spriteUrl?: string | null; revealText?: string | null; growthToNext?: number | null; evolveVideoUrl?: string | null; scale?: number | null }
 export interface PetSpeciesDto { id: string; name: string; code: string; coverUrl?: string | null; accentColor?: string | null; description?: string | null; isActive: boolean; displayOrder: number; forms: PetFormDto[] }
 
+// ---- Catalog (admin write) ----
+export interface CreateUpdateRewardItemDto { name: string; glyph?: string | null; growthValue: number; randomWeight: number; displayOrder: number; isActive: boolean }
+export interface CreateUpdateMedalDto { name: string; description?: string | null; displayOrder: number; isActive: boolean }
+export interface CreateUpdatePetSpeciesDto { name: string; code: string; accentColor?: string | null; description?: string | null; displayOrder: number }
+export type PetFormLevel = 1 | 2 | 3 | 4 | 5
+export interface SetPetFormDto { level: PetFormLevel; name: string; revealText?: string | null; growthToNext?: number | null; scale?: number | null }
+
 // ---- Auth ----
 export interface AppUser { id: string; userName: string; email?: string }
 export interface TokenResponse { access_token: string; refresh_token: string; expires_in: number; token_type: string }

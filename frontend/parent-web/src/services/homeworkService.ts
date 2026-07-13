@@ -5,6 +5,7 @@ import type {
   JourneyDto, CreateJourneyDto, UpdateJourneyDto,
   JourneyTaskTemplateItemDto, CreateJourneyTaskTemplateItemDto, UpdateJourneyTaskTemplateItemDto, GetJourneyTemplateInput,
   RewardItemDto, MedalDto, PetSpeciesDto,
+  CreateUpdateRewardItemDto, CreateUpdateMedalDto, CreateUpdatePetSpeciesDto, SetPetFormDto,
 } from '@/types/homework'
 
 // ---- child-profile ----
@@ -43,3 +44,37 @@ export const deleteJourneyTemplate = (id: string) => api.delete(`/api/app/journe
 export const listActiveRewardItems = () => api.get<ListResult<RewardItemDto>>('/api/app/reward-item/active-list').then((r) => r.data.items)
 export const listActiveMedals = () => api.get<ListResult<MedalDto>>('/api/app/medal/active-list').then((r) => r.data.items)
 export const listActivePetSpecies = () => api.get<ListResult<PetSpeciesDto>>('/api/app/pet-species/active-list').then((r) => r.data.items)
+
+// ---- upload helper (multipart; override the api instance's default application/json) ----
+function uploadFile<T>(url: string, file: File): Promise<T> {
+  const fd = new FormData()
+  fd.append('file', file)
+  return api.post<T>(url, fd, { headers: { 'Content-Type': undefined as unknown as string } }).then((r) => r.data)
+}
+
+// ---- reward-item (admin) ----
+export const listAllRewardItems = () => api.get<ListResult<RewardItemDto>>('/api/app/reward-item').then((r) => r.data.items)
+export const createRewardItem = (dto: CreateUpdateRewardItemDto) => api.post<RewardItemDto>('/api/app/reward-item', dto).then((r) => r.data)
+export const updateRewardItem = (id: string, dto: CreateUpdateRewardItemDto) => api.put<RewardItemDto>(`/api/app/reward-item/${id}`, dto).then((r) => r.data)
+export const deleteRewardItem = (id: string) => api.delete(`/api/app/reward-item/${id}`)
+export const uploadRewardItemIcon = (id: string, file: File) => uploadFile<RewardItemDto>(`/api/app/reward-item/${id}/upload-icon`, file)
+
+// ---- medal (admin) ----
+export const listAllMedals = () => api.get<ListResult<MedalDto>>('/api/app/medal').then((r) => r.data.items)
+export const createMedal = (dto: CreateUpdateMedalDto) => api.post<MedalDto>('/api/app/medal', dto).then((r) => r.data)
+export const updateMedal = (id: string, dto: CreateUpdateMedalDto) => api.put<MedalDto>(`/api/app/medal/${id}`, dto).then((r) => r.data)
+export const deleteMedal = (id: string) => api.delete(`/api/app/medal/${id}`)
+export const uploadMedalImage = (id: string, file: File) => uploadFile<MedalDto>(`/api/app/medal/${id}/upload-image`, file)
+
+// ---- pet-species (admin) ----
+export const listAllPetSpecies = () => api.get<ListResult<PetSpeciesDto>>('/api/app/pet-species').then((r) => r.data.items)
+export const getPetSpecies = (id: string) => api.get<PetSpeciesDto>(`/api/app/pet-species/${id}`).then((r) => r.data)
+export const createPetSpecies = (dto: CreateUpdatePetSpeciesDto) => api.post<PetSpeciesDto>('/api/app/pet-species', dto).then((r) => r.data)
+export const updatePetSpecies = (id: string, dto: CreateUpdatePetSpeciesDto) => api.put<PetSpeciesDto>(`/api/app/pet-species/${id}`, dto).then((r) => r.data)
+export const deletePetSpecies = (id: string) => api.delete(`/api/app/pet-species/${id}`)
+export const setPetForm = (id: string, dto: SetPetFormDto) => api.post<PetSpeciesDto>(`/api/app/pet-species/${id}/set-form`, dto).then((r) => r.data)
+export const uploadPetCover = (id: string, file: File) => uploadFile<PetSpeciesDto>(`/api/app/pet-species/${id}/upload-cover`, file)
+export const uploadPetFormSprite = (id: string, level: number, file: File) => uploadFile<PetSpeciesDto>(`/api/app/pet-species/${id}/upload-form-sprite?level=${level}`, file)
+export const uploadPetFormEvolveVideo = (id: string, level: number, file: File) => uploadFile<PetSpeciesDto>(`/api/app/pet-species/${id}/upload-form-evolve-video?level=${level}`, file)
+export const activatePetSpecies = (id: string) => api.post<PetSpeciesDto>(`/api/app/pet-species/${id}/activate`).then((r) => r.data)
+export const deactivatePetSpecies = (id: string) => api.post<PetSpeciesDto>(`/api/app/pet-species/${id}/deactivate`).then((r) => r.data)
