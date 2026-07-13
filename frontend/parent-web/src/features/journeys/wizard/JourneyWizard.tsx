@@ -39,8 +39,8 @@ export function JourneyWizard({ initialState, submitLabelKey, onSubmit, onDone, 
     return null
   }
   const stepErrorMessage: Record<string, string> = {
-    title: t('wizard.titleRequired'), dates: t('wizard.titleRequired'), dateOrder: t('wizard.dateOrderError'),
-    taskTitle: t('wizard.taskTitle'), taskReward: t('wizard.rewardSpecific'), medal: t('wizard.selectMedalRequired'),
+    title: t('wizard.titleRequired'), dates: t('wizard.datesRequired'), dateOrder: t('wizard.dateOrderError'),
+    taskTitle: t('wizard.taskTitleRequired'), taskReward: t('wizard.taskRewardRequired'), medal: t('wizard.selectMedalRequired'),
   }
 
   const goNext = () => {
