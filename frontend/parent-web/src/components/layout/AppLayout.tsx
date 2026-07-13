@@ -2,15 +2,14 @@ import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { UserMenu } from '@/components/UserMenu'
-import { Home, Users, CalendarDays, ClipboardCheck, Target } from 'lucide-react'
+import { Home, Users, ClipboardCheck, Map } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 const nav = [
   { to: '/home', icon: Home, key: 'nav.home' },
   { to: '/children', icon: Users, key: 'nav.children' },
-  { to: '/schedule', icon: CalendarDays, key: 'nav.schedule' },
   { to: '/board', icon: ClipboardCheck, key: 'nav.board' },
-  { to: '/goals', icon: Target, key: 'nav.goals' },
+  { to: '/journeys', icon: Map, key: 'nav.journeys' },
 ]
 
 export function AppLayout() {

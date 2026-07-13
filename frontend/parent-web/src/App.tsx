@@ -10,9 +10,7 @@ import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage'
 import { HomePage } from '@/features/home/HomePage'
 import { ChildrenPage } from '@/features/children/ChildrenPage'
-import { WeeklyTemplatePage } from '@/features/schedule/WeeklyTemplatePage'
 import { DailyBoardPage } from '@/features/board/DailyBoardPage'
-import { FamilyGoalsPage } from '@/features/goals/FamilyGoalsPage'
 import { JourneysPage } from '@/features/journeys/JourneysPage'
 import { JourneyNewPage } from '@/features/journeys/JourneyNewPage'
 import { JourneyEditPage } from '@/features/journeys/JourneyEditPage'
@@ -31,12 +29,10 @@ export default function App() {
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/children" element={<ChildrenPage />} />
-          <Route path="/schedule" element={<WeeklyTemplatePage />} />
           <Route path="/board" element={<DailyBoardPage />} />
           <Route path="/journeys" element={<JourneysPage />} />
           <Route path="/journeys/new" element={<JourneyNewPage />} />
           <Route path="/journeys/:id/edit" element={<JourneyEditPage />} />
-          <Route path="/goals" element={<FamilyGoalsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
