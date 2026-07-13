@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Homework.Children;
 using Homework.Journeys.Dtos;
 using Homework.Permissions;
+using Homework.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Repositories;
@@ -15,11 +16,14 @@ namespace Homework.Journeys;
 public class JourneyAppService : HomeworkAppService, IJourneyAppService
 {
     private readonly IRepository<Journey, Guid> _repository;
+    private readonly IRepository<JourneyTaskTemplateItem, Guid> _templateRepository;
     private readonly ChildProfileManager _childManager;
 
-    public JourneyAppService(IRepository<Journey, Guid> repository, ChildProfileManager childManager)
+    public JourneyAppService(IRepository<Journey, Guid> repository,
+        IRepository<JourneyTaskTemplateItem, Guid> templateRepository, ChildProfileManager childManager)
     {
         _repository = repository;
+        _templateRepository = templateRepository;
         _childManager = childManager;
     }
 
@@ -59,7 +63,8 @@ public class JourneyAppService : HomeworkAppService, IJourneyAppService
     public async Task DeleteAsync(Guid id)
     {
         var journey = await GetOwnedAsync(id);
-        await _repository.DeleteAsync(journey);
+        await _templateRepository.DeleteAsync(t => t.JourneyId == id, autoSave: true);
+        await _repository.DeleteAsync(journey, autoSave: true);
     }
 
     private async Task<Journey> GetOwnedAsync(Guid id)

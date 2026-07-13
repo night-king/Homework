@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Homework.Children;
 using Homework.Journeys;
 using Homework.Journeys.Dtos;
+using Homework.Tasks;
+using Homework.Tasks.Dtos;
 using Shouldly;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
@@ -127,5 +129,51 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
             await Should.ThrowAsync<EntityNotFoundException>(async () =>
                 await _service.GetAsync(journeyId));
         }
+    }
+
+    [Fact]
+    public async Task Delete_Also_Removes_Its_Task_Templates()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var templateService = GetRequiredService<Homework.Tasks.IJourneyTaskTemplateAppService>();
+        var templateRepo = GetRequiredService<IRepository<JourneyTaskTemplateItem, Guid>>();
+        Guid journeyId;
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var journey = await _service.CreateAsync(new CreateJourneyDto
+            {
+                ChildId = childId, Title = "旅程",
+                StartDate = new DateOnly(2026, 7, 1), EndDate = new DateOnly(2026, 8, 31),
+                MedalId = _guid.Create()
+            });
+            journeyId = journey.Id;
+            await templateService.CreateAsync(new CreateJourneyTaskTemplateItemDto
+            {
+                JourneyId = journeyId, DayOfWeek = DayOfWeek.Monday, Title = "背单词", Order = 0, RewardIsRandom = true
+            });
+            await templateService.CreateAsync(new CreateJourneyTaskTemplateItemDto
+            {
+                JourneyId = journeyId, DayOfWeek = DayOfWeek.Tuesday, Title = "读书", Order = 0, RewardIsRandom = true
+            });
+        }
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var items = await templateRepo.GetListAsync(t => t.JourneyId == journeyId);
+            items.Count.ShouldBe(2);
+        });
+
+        using (_principal.Change(Parent(pid)))
+        {
+            await _service.DeleteAsync(journeyId);
+        }
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var items = await templateRepo.GetListAsync(t => t.JourneyId == journeyId);
+            items.Count.ShouldBe(0);
+        });
     }
 }
