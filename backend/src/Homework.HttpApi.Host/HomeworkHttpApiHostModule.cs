@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
 using OpenIddict.Validation.AspNetCore;
+using Homework.Catalog;
 using Homework.EntityFrameworkCore;
 using Homework.MultiTenancy;
 using Volo.Abp;
@@ -273,6 +275,43 @@ public class HomeworkHttpApiHostModule : AbpModule
 
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
-        app.UseConfiguredEndpoints();
+        app.UseConfiguredEndpoints(endpoints =>
+        {
+            // dev 便利：本地把 CatalogBlobContainer 的资产按 object key 通过 HTTP 提供，
+            // 让 AssetUrlResolver 生成的 {AssetCdnBaseUrl}/{key} 在本地能解析（生产走真 CDN，本端点不注册）。
+            // AllowAnonymous：资产设计即「公有读」，<img>/<video> 不带 bearer。
+            if (env.IsDevelopment())
+            {
+                endpoints.MapGet("/blob/{**key}", async (
+                    string key,
+                    IBlobContainer<CatalogBlobContainer> blob,
+                    HttpContext http) =>
+                {
+                    var bytes = await blob.GetAllBytesOrNullAsync(key);
+                    if (bytes == null)
+                    {
+                        http.Response.StatusCode = StatusCodes.Status404NotFound;
+                        return;
+                    }
+
+                    http.Response.ContentType = BlobContentType(key);
+                    http.Response.Headers.CacheControl = "public, max-age=3600";
+                    await http.Response.Body.WriteAsync(bytes);
+                }).WithMetadata(new AllowAnonymousAttribute());
+            }
+        });
     }
+
+    private static string BlobContentType(string key) =>
+        Path.GetExtension(key).ToLowerInvariant() switch
+        {
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".webp" => "image/webp",
+            ".gif" => "image/gif",
+            ".svg" => "image/svg+xml",
+            ".mp4" => "video/mp4",
+            ".webm" => "video/webm",
+            _ => "application/octet-stream",
+        };
 }
