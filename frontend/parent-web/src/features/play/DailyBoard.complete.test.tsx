@@ -10,6 +10,7 @@ vi.mock('@/services/playService', () => ({
   getPlayDailyBoard: (...a: unknown[]) => getPlayDailyBoard(...a),
   completeTask: (...a: unknown[]) => completeTask(...a),
   uncompleteTask: (...a: unknown[]) => uncompleteTask(...a),
+  getBackpack: vi.fn().mockResolvedValue([]),
 }))
 vi.mock('@/services/homeworkService', () => ({ listActivePetSpecies: vi.fn().mockResolvedValue([]) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))

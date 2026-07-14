@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { usePlayBoard, useActivePetSpecies, usePlayMutations } from '@/hooks/usePlay'
 import { currentForm, growthRatio } from './petStage'
+import { Backpack } from './Backpack'
 import type { JourneyDto } from '@/types/homework'
 
 // 本地日期 YYYY-MM-DD（不带时区）
@@ -84,6 +85,10 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
           ))
         )}
       </section>
+
+      {journey.petSpeciesId && (
+        <Backpack childId={childId} journeyId={journey.id} />
+      )}
     </div>
   )
 }

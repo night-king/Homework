@@ -4,7 +4,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 
 const getPlayDailyBoard = vi.fn()
-vi.mock('@/services/playService', () => ({ getPlayDailyBoard: (...a: unknown[]) => getPlayDailyBoard(...a) }))
+vi.mock('@/services/playService', () => ({
+  getPlayDailyBoard: (...a: unknown[]) => getPlayDailyBoard(...a),
+  getBackpack: vi.fn().mockResolvedValue([]),
+}))
 vi.mock('@/services/homeworkService', () => ({
   listActivePetSpecies: vi.fn().mockResolvedValue([
     { id: 'p1', name: '火龙', code: 'dragon', forms: [{ level: 2, name: '破壳萌龙', spriteUrl: 'http://x/2.png', growthToNext: 60, scale: 0.72 }] },
