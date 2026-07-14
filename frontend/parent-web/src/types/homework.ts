@@ -54,3 +54,35 @@ export interface SetPetFormDto { level: PetFormLevel; name: string; revealText?:
 // ---- Auth ----
 export interface AppUser { id: string; userName: string; email?: string }
 export interface TokenResponse { access_token: string; refresh_token: string; expires_in: number; token_type: string }
+
+// ---- child play (Phase 3B) ----
+export interface StartJourneyDto { childId: string; journeyId: string; petSpeciesId: string }
+export interface FeedDto { childId: string; journeyId: string; rewardItemId: string }
+export interface FeedResultDto {
+  evolved: boolean
+  newLevel: number
+  revealText?: string | null
+  evolveVideoUrl?: string | null
+  completed: boolean
+  currentLevel: number
+  growthPoints: number
+}
+export interface BackpackItemDto {
+  rewardItemId: string
+  name: string
+  iconUrl?: string | null
+  glyph?: string | null
+  quantity: number
+  growthValue: number
+}
+export interface CollectionEntryDto {
+  journeyId: string
+  title: string
+  petSpeciesId: string
+  petName: string
+  petFinalSpriteUrl?: string | null
+  medalId: string
+  medalName: string
+  medalImageUrl?: string | null
+  completedTime: string
+}
