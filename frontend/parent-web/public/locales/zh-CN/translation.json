@@ -5,7 +5,8 @@
     "children": "孩子",
     "board": "每日看板",
     "journeys": "旅程",
-    "catalog": "图鉴管理"
+    "catalog": "图鉴管理",
+    "play": "孩子模式"
   },
   "common": {
     "save": "保存",
@@ -138,5 +139,34 @@
     "profile": "个人资料",
     "changePassword": "修改密码",
     "logout": "退出登录"
+  },
+  "play": {
+    "pickChildTitle": "谁来玩呀？",
+    "enterPlayground": "进入乐园",
+    "backToParent": "交还家长",
+    "loading": "加载中…",
+    "noJourneyTitle": "还没有冒险",
+    "noJourneyBody": "让爸爸妈妈先创建一个旅程 ✨",
+    "chooseAdventureTitle": "选择你的冒险",
+    "pickPetTitle": "选择你的伙伴",
+    "start": "开始冒险",
+    "today": "今天",
+    "restDay": "今天休息，好好放松~",
+    "locked": "未开启",
+    "stars": "今日星星",
+    "progress": "今日进度",
+    "goComplete": "去完成",
+    "done": "已完成",
+    "rewardEarned": "获得 {{name}}！",
+    "backpackTitle": "背包",
+    "backpackEmpty": "背包空空的，快去完成任务吧",
+    "feed": "喂养",
+    "growth": "成长值",
+    "evolveReveal": "进化！",
+    "completedTitle": "满级达成！",
+    "completedBody": "你的伙伴已成长到最终形态，勋章已收入图鉴 🏅",
+    "collectionTitle": "收藏墙",
+    "collectionEmpty": "还没有完成的旅程，继续加油！",
+    "skip": "跳过"
   }
 }

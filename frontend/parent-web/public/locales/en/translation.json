@@ -5,7 +5,8 @@
     "children": "Children",
     "board": "Daily Board",
     "journeys": "Journeys",
-    "catalog": "Catalog"
+    "catalog": "Catalog",
+    "play": "Kid mode"
   },
   "common": {
     "save": "Save",
@@ -138,5 +139,34 @@
     "profile": "Profile",
     "changePassword": "Change Password",
     "logout": "Log out"
+  },
+  "play": {
+    "pickChildTitle": "Who's playing?",
+    "enterPlayground": "Enter playground",
+    "backToParent": "Back to parent",
+    "loading": "Loading…",
+    "noJourneyTitle": "No adventure yet",
+    "noJourneyBody": "Ask a parent to create a journey first ✨",
+    "chooseAdventureTitle": "Choose your adventure",
+    "pickPetTitle": "Choose your companion",
+    "start": "Start adventure",
+    "today": "Today",
+    "restDay": "Rest day — take it easy!",
+    "locked": "Locked",
+    "stars": "Stars today",
+    "progress": "Today's progress",
+    "goComplete": "Do it",
+    "done": "Done",
+    "rewardEarned": "Got {{name}}!",
+    "backpackTitle": "Backpack",
+    "backpackEmpty": "Backpack is empty — go finish tasks",
+    "feed": "Feed",
+    "growth": "Growth",
+    "evolveReveal": "Evolved!",
+    "completedTitle": "Max level reached!",
+    "completedBody": "Your companion reached its final form. Medal added to your collection 🏅",
+    "collectionTitle": "Collection",
+    "collectionEmpty": "No completed journeys yet. Keep going!",
+    "skip": "Skip"
   }
 }

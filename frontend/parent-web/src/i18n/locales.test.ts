@@ -18,6 +18,8 @@ describe('locales', () => {
       expect(flat).toContain('wizard.publish')
       expect(flat).toContain('wizard.days.0')
       expect(flat).toContain('wizard.days.6')
+      expect(flat).toContain('nav.play')
+      expect(flat).toContain('play.pickChildTitle')
     }
   })
   it('zh and en have identical key sets', () => {
