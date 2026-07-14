@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { usePlayBoard, useActivePetSpecies, usePlayMutations } from '@/hooks/usePlay'
 import { currentForm, growthRatio } from './petStage'
 import { Backpack } from './Backpack'
-import type { JourneyDto } from '@/types/homework'
+import { EvolutionCutscene } from './EvolutionCutscene'
+import type { JourneyDto, FeedResultDto, BackpackItemDto } from '@/types/homework'
 
 // 本地日期 YYYY-MM-DD（不带时区）
 function todayStr(): string {
@@ -18,7 +19,8 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
   const date = useMemo(todayStr, [])
   const board = usePlayBoard(childId, date)
   const species = useActivePetSpecies()
-  const { complete, uncomplete } = usePlayMutations(childId, journey.id)
+  const { complete, uncomplete, feed } = usePlayMutations(childId, journey.id)
+  const [cutscene, setCutscene] = useState<FeedResultDto | null>(null)
 
   const mySpecies = (species.data ?? []).find((s) => s.id === journey.petSpeciesId)
   const form = currentForm(mySpecies, journey.currentLevel)
@@ -30,6 +32,13 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
     } else {
       complete.mutate(taskId, { onSuccess: () => toast.success(t('play.rewardEarned', { name: t('play.feed') })) })
     }
+  }
+
+  const onFeed = (item: BackpackItemDto) => {
+    feed.mutate(
+      { childId, journeyId: journey.id, rewardItemId: item.rewardItemId },
+      { onSuccess: (r) => { if (r.evolved || r.completed) setCutscene(r) } },
+    )
   }
 
   return (
@@ -87,8 +96,9 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
       </section>
 
       {journey.petSpeciesId && (
-        <Backpack childId={childId} journeyId={journey.id} />
+        <Backpack childId={childId} journeyId={journey.id} onFeed={onFeed} />
       )}
+      {cutscene && <EvolutionCutscene result={cutscene} onClose={() => setCutscene(null)} />}
     </div>
   )
 }

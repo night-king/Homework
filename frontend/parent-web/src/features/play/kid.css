@@ -45,3 +45,12 @@
 .kid-backpack-glyph { font-size: 2rem; }
 .kid-backpack-name { font-size: .8rem; color: #4a2e12; }
 .kid-backpack-qty { font-size: .75rem; font-weight: 700; color: #ff7a37; }
+
+.kid-evo { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; gap: 16px; background: rgba(20,10,0,0.72); }
+.kid-evo-card { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #fff; text-align: center; padding: 24px; }
+.kid-evo-video { width: min(90vw, 480px); border-radius: 16px; }
+.kid-evo-emoji { font-size: 4rem; }
+.kid-evo-reveal { font-size: 1.1rem; font-weight: 700; }
+.kid-evo-flash { animation: kidEvoFlash 1.2s ease-in-out; }
+@keyframes kidEvoFlash { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.15); filter: brightness(1.8); } }
+.kid-evo-close { padding: 8px 20px; border: none; border-radius: 999px; background: #fff; color: #7a4a1e; font-weight: 700; cursor: pointer; }
