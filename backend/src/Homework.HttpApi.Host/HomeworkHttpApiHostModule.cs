@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi;
 using OpenIddict.Validation.AspNetCore;
 using Homework.Catalog;
+using Homework.Dev;
 using Homework.EntityFrameworkCore;
 using Homework.MultiTenancy;
 using Volo.Abp;
@@ -300,6 +301,13 @@ public class HomeworkHttpApiHostModule : AbpModule
                 }).WithMetadata(new AllowAnonymousAttribute());
             }
         });
+    }
+
+    public override async Task OnPostApplicationInitializationAsync(ApplicationInitializationContext context)
+    {
+        // dev 便利：Host 启动后种入孩子端 demo 数据（物种+美术+Draft 旅程）。仅 Development + Seed:PlayDemo。
+        using var scope = context.ServiceProvider.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<PlayDemoSeeder>().SeedAsync();
     }
 
     private static string BlobContentType(string key) =>
