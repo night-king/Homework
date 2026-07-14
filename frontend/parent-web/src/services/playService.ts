@@ -7,7 +7,7 @@ import type {
 const base = '/api/app/journey-play'
 
 export const getActiveJourney = (childId: string) =>
-  api.get<JourneyDto | null>(`${base}/active`, { params: { childId } }).then((r) => r.data)
+  api.get<JourneyDto | null>(`${base}/active/${childId}`).then((r) => r.data)
 
 export const startJourney = (dto: StartJourneyDto) =>
   api.post<JourneyDto>(`${base}/start`, dto).then((r) => r.data)
@@ -19,7 +19,7 @@ export const getBackpack = (childId: string, journeyId: string) =>
   api.get<ListResult<BackpackItemDto>>(`${base}/backpack`, { params: { childId, journeyId } }).then((r) => r.data.items)
 
 export const getCollection = (childId: string) =>
-  api.get<ListResult<CollectionEntryDto>>(`${base}/collection`, { params: { childId } }).then((r) => r.data.items)
+  api.get<ListResult<CollectionEntryDto>>(`${base}/collection/${childId}`).then((r) => r.data.items)
 
 export const completeTask = (childId: string, taskId: string) =>
   api.post<DailyTaskDto>(`${base}/complete-task`, null, { params: { childId, taskId } }).then((r) => r.data)

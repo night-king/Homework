@@ -11,7 +11,7 @@ describe('playService', () => {
   it('getActiveJourney → GET journey-play/active with childId, null passes through', async () => {
     mockApi.get.mockResolvedValue({ data: null })
     const r = await play.getActiveJourney('c1')
-    expect(mockApi.get).toHaveBeenCalledWith('/api/app/journey-play/active', { params: { childId: 'c1' } })
+    expect(mockApi.get).toHaveBeenCalledWith('/api/app/journey-play/active/c1')
     expect(r).toBeNull()
   })
 
@@ -38,7 +38,7 @@ describe('playService', () => {
   it('getCollection → GET journey-play/collection, unwraps items', async () => {
     mockApi.get.mockResolvedValue({ data: { items: [] } })
     await play.getCollection('c1')
-    expect(mockApi.get).toHaveBeenCalledWith('/api/app/journey-play/collection', { params: { childId: 'c1' } })
+    expect(mockApi.get).toHaveBeenCalledWith('/api/app/journey-play/collection/c1')
   })
 
   it('completeTask / uncompleteTask → POST with childId+taskId params', async () => {
