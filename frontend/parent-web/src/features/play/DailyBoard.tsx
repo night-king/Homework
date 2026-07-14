@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { usePlayBoard, useActivePetSpecies, usePlayMutations } from '@/hooks/usePlay'
@@ -67,6 +68,10 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
         <span>⭐ {t('play.stars')}：{board.data?.stars ?? 0}</span>
         <span>📈 {t('play.progress')}：{board.data?.tasksCompleted ?? 0}/{board.data?.tasksTotal ?? 0}</span>
       </section>
+
+      <Link data-testid="open-collection" className="kid-collection-link" to={`/play/${childId}/collection`}>
+        🏆 {t('play.collectionTitle')}
+      </Link>
 
       {/* 任务列表（完成接线在 Task 11 加，本 task 仅渲染） */}
       <section className="kid-tasks">

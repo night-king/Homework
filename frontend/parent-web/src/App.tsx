@@ -19,6 +19,7 @@ import { CatalogPage } from '@/features/catalog/CatalogPage'
 import { KidLayout } from '@/features/play/KidLayout'
 import { KidPickChildPage } from '@/features/play/KidPickChildPage'
 import { KidGameShell } from '@/features/play/KidGameShell'
+import { Collection } from '@/features/play/Collection'
 
 export default function App() {
   useEffect(() => { useAuthStore.getState().initialize() }, [])
@@ -33,6 +34,7 @@ export default function App() {
         <Route element={<KidLayout />}>
           <Route path="/play" element={<KidPickChildPage />} />
           <Route path="/play/:childId" element={<KidGameShell />} />
+          <Route path="/play/:childId/collection" element={<Collection />} />
         </Route>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/home" replace />} />
