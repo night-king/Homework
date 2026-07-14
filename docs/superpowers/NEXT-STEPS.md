@@ -2,9 +2,10 @@
 
 > 活文档（living doc）。总设计规格见 `specs/2026-07-10-child-journey-pet-backend-design.md`；
 > 第一期计划 `plans/2026-07-10-phase1-catalog-oss.md`；第二期计划 `plans/2026-07-10-phase2-journey-growth.md`。
-> 最近更新：2026-07-13（第三期 Slice A 家长端旅程 + Slice C 图鉴管理后台 均完成）。
+> 最近更新：2026-07-14（第三期 **Slice B 孩子端接线 完成** → 第三期全部完成）。
 > Slice A 设计/计划 `specs/2026-07-11-phase3a-parent-journey-ux-design.md`、`plans/2026-07-11-phase3a-parent-journey-ux.md`；
-> Slice C 设计/计划 `specs/2026-07-13-phase3c-catalog-admin-design.md`、`plans/2026-07-13-phase3c-catalog-admin.md`。
+> Slice C 设计/计划 `specs/2026-07-13-phase3c-catalog-admin-design.md`、`plans/2026-07-13-phase3c-catalog-admin.md`；
+> Slice B 设计/计划 `specs/2026-07-14-phase3b-child-play-wiring-design.md`、`plans/2026-07-14-phase3b-child-play-wiring.md`。
 
 ---
 
@@ -14,8 +15,8 @@
 - **第二期（旅程 + 成长闭环）✅ 已完成**，已 fast-forward 合入**本地 `main`**（HEAD `b28a094`，**尚未 push**）。交付：`Journey` 聚合(重塑 FamilyGoal，含阈值快照+背包)、喂养/单级进化/满级完成、`JourneyManager` 单旅程约束、`RewardResolver`(指定/加权随机/空池兜底)、任务引擎重挂旅程(`JourneyTaskTemplateItem` + `DailyTask` 加 JourneyId/Reward + 生成器旅程域内生成)、家长 `JourneyAppService` + 运行时 `JourneyPlayAppService`(开始/看板/背包/收藏/完成/喂养)、4 个 EF 迁移。经 opus 整分支终审：重复发奖漏洞已修复+回归测试。
 - **第三期 Slice A（家长端旅程体验）✅ 已完成**，fast-forward 合入本地 `main`。经 opus 终审 2 项 Important（删除旅程时孤儿模板、指定奖励路径缺测试）已修复。
 - **第三期 Slice C（图鉴管理后台）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `b65611c`，**尚未 push**）。`parent-web` 内 admin 权限门控的道具/勋章/宠物 CRUD + 上传 + 启停；两段式宠物编辑（5 形态 + 封面 + 精灵图 + 进化视频 + 完整度门控）。**后端未改**。经 opus 终审：权限门控响应式化（避免刷新时管理员被踢）+ 宠物基础信息不被刷新覆盖 已修复。
-- 测试：后端 Domain 56 + EFCore 61（未变）、前端 vitest **74**、`npm run build` / `typecheck` 全绿。
-- **第三期 Slice B（孩子端接线）尚未开始**——见 §2.3。
+- **第三期 Slice B（孩子端接线）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `ad9fcc8`，**尚未 push**）。`parent-web` 内嵌全屏「孩子模式」（`/play`、`/play/:childId`、`/play/:childId/collection`，`KidLayout` 自守卫）消费真实 `JourneyPlayAppService`：选宠开始 / 每日看板 / 完成→奖励入背包 / 喂养→进化过场/满级庆祝 / 收藏勋章墙；后端仅加 Development 便利（`/blob/{**key}` 静态端点 + `PlayDemoSeeder` 种火龙/光之英雄 2 物种 + demo Draft 旅程）。经 opus 整分支终审修复 1 Critical（`active`/`collection` 走 ABP 路径参数避免真机 404）。
+- 测试：前端 vitest **105**（+31）、`npm run build` / `typecheck` / `lint` 全绿；后端 Domain 56 + EFCore 61（未变，Slice B 未碰 play 领域/契约）。
 
 ---
 
@@ -85,9 +86,25 @@
 - [ ] 测试基建备忘：`src/test-setup.ts` 全局 `vi.mock('@/i18n/config')`（避 react-i18next suspense 在 jsdom 挂起）；全局图鉴种子使每个 EFCore 测试图鉴表非空（断言空池的测试需先清表）；locales.test 只保证双语键**一致**，不保证「代码用到的键都存在」。
 - [ ] 若干 inert 小项：`GetJourneyListInput` 未用导出、`JourneysPage` 死 `disabled={!activeChild}`、`updateDtoFrom`/`toCreateTemplateDto` DRY 片段、新 zh-CN 半角标点（vs 全角）、`HomePage`/`saveJourneyEdits` 覆盖偏薄、首页去掉 `isRestDay` 指示。
 
-### 2.3 Slice B —— 孩子端接线（未开始）
+### 2.3 Slice B —— 孩子端接线 ✅ 已完成（本地 `main`，HEAD `ad9fcc8`，未 push）
 
-- [ ] `frontend/child-web-prototype` 由硬编码切换为消费真实 `JourneyPlayAppService`（选宠开始、每日看板、完成、喂养/进化过场、背包、收藏/勋章墙）。孩子无独立登录 → 跑在家长会话下选定孩子。
+- [x] **不再编辑 `child-web-prototype` 原型**（那是纯 HTML 设计蓝本）；改为在 `parent-web` 内**新建全屏「孩子模式」React 区**（`features/play/*`），消费真实 `JourneyPlayAppService`。
+- [x] 入口两处：孩子管理页每卡「进入乐园」+ 全局 nav「孩子模式」→ 头像选择屏；`KidLayout` 自带鉴权守卫（`/play*` 在 `AppLayout` 外）。
+- [x] `KidGameShell` 状态机：`GetActive` → 有 Active 进看板 / 无 Active 有 ≥2 Draft 选择冒险 / 恰 1 Draft 选宠 / 空态。
+- [x] 每日看板（今日为主，宠物舞台+成长条+星星/进度+任务）、完成/取消（奖励入真实背包）、持久背包、喂养（一次一个 `Feed`）、进化过场（视频优先+CSS 兜底+reveal）、满级庆祝、收藏/勋章墙。
+- [x] 成长经济全服务端（客户端只反映 `growthPoints ÷ form.growthToNext`，无本地计算）；`playService`（8 接口）+ `usePlay` hooks（复用 `useCatalog`/`useJourneys` 避免缓存分裂）+ `play.*` 双语。
+- [x] 后端仅 Development 便利：`/blob/{**key}` 静态端点（用 `CatalogBlobContainer` 流式返回资产）+ `PlayDemoSeeder`（Host 启动、`Seed:PlayDemo` 门控，种火龙/光之英雄 2 物种含原型美术 + 哥哥 Draft 旅程）；`appsettings.Development.json` 设 `AssetCdnBaseUrl=https://localhost:44394/blob`。**未碰 play 领域/契约**。
+- [x] opus 整分支终审修复 1 **Critical**：`getActiveJourney`/`getCollection` 原用 query，但 ABP 对**单 `*Id` 参数**提升为路径段 → 改 `active/{childId}`、`collection/{childId}`（否则真机 404，核心闭环断）。双 `*Id`（backpack/complete/uncomplete）留 query 正确。
+
+**2.3a Slice B 遗留（来自终审三诊，非阻塞，fast-follow）**
+- [ ] **[真机 smoke]** playService 路由修复后，跑一次真实 host（配好 DbMigrator + Dev 种子）验证整条闭环（spec §9.3）；前端测试全走 mock，未触真实 ABP 路由（正是 Critical 漏网之因）。
+- [ ] **满级完成引导**：`completed=true` 关过场后 `active` 变 null → 落到空态，空态无收藏入口（`🏆 收藏墙` 链接只在看板上）→ 应在满级庆祝卡或空态加去收藏墙的入口（spec §5.8）。
+- [ ] **完成旅程后 `useChildJourneys` 未失效**：同会话内旅程完成后 drafts 缓存陈旧，状态机可能给已完成旅程再开 PickPet（`StartAsync` 会抛）；`staleTime:0` 重挂载自愈，边缘。可让 `feed`/完成路径也失效 `['journeys',childId]`。
+- [ ] **背包卡未显 `growthValue`**（spec §5 要求「图标/glyph + 数量 + 成长值」）→ 加 `+{growthValue}` 一行 + 断言。
+- [ ] 完成任务 toast `t('play.rewardEarned',{name:t('play.feed')})` 渲染「获得 喂养！」（动词当道具名）；`DailyTaskDto` 只带 `rewardItemId` 无名 → 需 id→name 查表才能正确显示，低优先。
+- [ ] KidPickChildPage 无「零孩子」空态；`Backpack.test` 未覆盖 `iconUrl<img>`/loading 分支；`usePlay` 测试偏薄；`usePlay` 手写 `['play','board',childId]` 前缀字面量（可复用 `playBoardKey` 前缀）。
+- [ ] `PlayDemoSeeder` catch 文案只提「DB 未迁移」但也吞 FileNotFound/BusinessException（`ex` 已 log，仅文案窄）；medal `GetListAsync` 全量再排序取一（dev 量级无碍）。
+- [ ] 孩子端 hooks 有意不发 success toast（孩子端 UX，非缺陷）；`/blob` 端点无 Content-Length/Range（dev shim，生产走真 CDN，均**不修**）。
 
 ### 2.4 Slice C —— 图鉴管理后台 ✅ 已完成（本地 `main`，HEAD `b65611c`，未 push）
 
