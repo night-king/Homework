@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Pencil, Key, Trash2, Users } from 'lucide-react'
 import { useChildren, useChildMutations } from '@/hooks/useChildren'
 import { useConfirm } from '@/components/ConfirmDialog'
@@ -13,6 +14,7 @@ export function ChildrenPage() {
   const { data: children = [], isLoading } = useChildren()
   const m = useChildMutations()
   const confirm = useConfirm()
+  const navigate = useNavigate()
 
   const [formOpen, setFormOpen] = useState(false)
   const [editingChild, setEditingChild] = useState<ChildProfileDto | null>(null)
@@ -65,6 +67,14 @@ export function ChildrenPage() {
                   </Badge>
                 </div>
                 <div className="flex gap-2 pt-1">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    data-testid={`enter-play-${child.id}`}
+                    onClick={() => navigate('/play/' + child.id)}
+                  >
+                    进入乐园
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => openForm(child)}>
                     <Pencil className="h-3.5 w-3.5" />
                     编辑
