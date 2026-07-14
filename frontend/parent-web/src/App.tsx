@@ -16,6 +16,9 @@ import { JourneyNewPage } from '@/features/journeys/JourneyNewPage'
 import { JourneyEditPage } from '@/features/journeys/JourneyEditPage'
 import { PetSpeciesEditPage } from '@/features/catalog/PetSpeciesEditPage'
 import { CatalogPage } from '@/features/catalog/CatalogPage'
+import { KidLayout } from '@/features/play/KidLayout'
+import { KidPickChildPage } from '@/features/play/KidPickChildPage'
+import { KidGameShell } from '@/features/play/KidGameShell'
 
 export default function App() {
   useEffect(() => { useAuthStore.getState().initialize() }, [])
@@ -27,6 +30,10 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route element={<KidLayout />}>
+          <Route path="/play" element={<KidPickChildPage />} />
+          <Route path="/play/:childId" element={<KidGameShell />} />
+        </Route>
         <Route element={<AppLayout />}>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<HomePage />} />
