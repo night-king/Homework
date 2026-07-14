@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { usePlayBoard, useActivePetSpecies } from '@/hooks/usePlay'
+import { toast } from 'sonner'
+import { usePlayBoard, useActivePetSpecies, usePlayMutations } from '@/hooks/usePlay'
 import { currentForm, growthRatio } from './petStage'
 import type { JourneyDto } from '@/types/homework'
 
@@ -16,10 +17,19 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
   const date = useMemo(todayStr, [])
   const board = usePlayBoard(childId, date)
   const species = useActivePetSpecies()
+  const { complete, uncomplete } = usePlayMutations(childId, journey.id)
 
   const mySpecies = (species.data ?? []).find((s) => s.id === journey.petSpeciesId)
   const form = currentForm(mySpecies, journey.currentLevel)
   const ratio = growthRatio(journey, form)
+
+  const toggleTask = (taskId: string, done: boolean) => {
+    if (done) {
+      uncomplete.mutate(taskId)
+    } else {
+      complete.mutate(taskId, { onSuccess: () => toast.success(t('play.rewardEarned', { name: t('play.feed') })) })
+    }
+  }
 
   return (
     <div className="kid-board">
@@ -61,7 +71,15 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
                 <div className="kid-task-title">{task.title}</div>
                 {task.subject && <div className="kid-task-subject">{task.subject}</div>}
               </div>
-              <span className="kid-task-state">{task.countsAsCompleted ? t('play.done') : t('play.goComplete')}</span>
+              <button
+                type="button"
+                data-testid={`task-toggle-${task.id}`}
+                className="kid-task-state"
+                disabled={complete.isPending || uncomplete.isPending}
+                onClick={() => toggleTask(task.id, task.countsAsCompleted)}
+              >
+                {task.countsAsCompleted ? t('play.done') : t('play.goComplete')}
+              </button>
             </div>
           ))
         )}
