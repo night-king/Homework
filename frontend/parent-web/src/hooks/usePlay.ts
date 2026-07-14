@@ -4,16 +4,16 @@ import {
   getActiveJourney, getPlayDailyBoard, getBackpack, getCollection,
   startJourney, completeTask, uncompleteTask, feed,
 } from '@/services/playService'
-import { listActivePetSpecies, listJourneys } from '@/services/homeworkService'
 import { getErrorMessage } from '@/services/api'
 import type { StartJourneyDto, FeedDto } from '@/types/homework'
+
+export { useActivePetSpecies } from './useCatalog'
+export { useJourneys as useChildJourneys } from './useJourneys'
 
 export const activeJourneyKey = (childId: string) => ['play', 'active', childId]
 export const playBoardKey = (childId: string, date: string) => ['play', 'board', childId, date]
 export const backpackKey = (childId: string, journeyId: string) => ['play', 'backpack', childId, journeyId]
 export const collectionKey = (childId: string) => ['play', 'collection', childId]
-export const childJourneysKey = (childId: string) => ['play', 'journeys', childId]
-export const activePetSpeciesKey = ['play', 'pet-species', 'active']
 
 export const useActiveJourney = (childId: string) =>
   useQuery({ queryKey: activeJourneyKey(childId), queryFn: () => getActiveJourney(childId), enabled: !!childId })
@@ -27,18 +27,12 @@ export const useBackpack = (childId: string, journeyId: string, enabled = true) 
 export const useCollection = (childId: string) =>
   useQuery({ queryKey: collectionKey(childId), queryFn: () => getCollection(childId), enabled: !!childId })
 
-export const useChildJourneys = (childId: string) =>
-  useQuery({ queryKey: childJourneysKey(childId), queryFn: () => listJourneys(childId), enabled: !!childId })
-
-export const useActivePetSpecies = () =>
-  useQuery({ queryKey: activePetSpeciesKey, queryFn: () => listActivePetSpecies(), staleTime: 5 * 60 * 1000 })
-
-export function usePlayMutations(childId: string, journeyId?: string) {
+export function usePlayMutations(childId: string, _journeyId?: string) {
   const qc = useQueryClient()
   const onErr = (e: unknown) => toast.error(getErrorMessage(e))
   const invalidateActive = () => qc.invalidateQueries({ queryKey: activeJourneyKey(childId) })
   const invalidateBoard = () => qc.invalidateQueries({ queryKey: ['play', 'board', childId] })
-  const invalidateBackpack = () => journeyId && qc.invalidateQueries({ queryKey: backpackKey(childId, journeyId) })
+  const invalidateBackpack = () => qc.invalidateQueries({ queryKey: ['play', 'backpack', childId] })
 
   return {
     start: useMutation({
