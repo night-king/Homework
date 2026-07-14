@@ -19,3 +19,4 @@
 .kid-pick-card:hover { transform: translateY(-4px) scale(1.03); }
 .kid-pick-avatar { font-size: 3.5rem; }
 .kid-pick-name { font-size: 1.1rem; font-weight: 700; color: #5a3512; }
+.kid-pick-cover { width: 120px; height: 120px; object-fit: contain; }
