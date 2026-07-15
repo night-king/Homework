@@ -166,6 +166,7 @@
     "completedTitle": "Max level reached!",
     "completedBody": "Your companion reached its final form. Medal added to your collection 🏅",
     "seeCollection": "See my collection",
+    "backToPlay": "Back to play",
     "collectionTitle": "Collection",
     "collectionEmpty": "No completed journeys yet. Keep going!",
     "skip": "Skip"

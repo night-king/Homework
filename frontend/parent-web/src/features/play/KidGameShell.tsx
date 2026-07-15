@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useActiveJourney, useChildJourneys } from '@/hooks/usePlay'
 import { DailyBoard } from './DailyBoard'
@@ -62,6 +62,11 @@ export function KidGameShell() {
         <div className="kid-center kid-empty" data-testid="play-empty">
           <h1 className="kid-pick-title">{t('play.noJourneyTitle')}</h1>
           <p>{t('play.noJourneyBody')}</p>
+          {/* 满级后永远不再有 active 旅程 → 看板不再出现，而收藏墙链接原本只挂在看板上。
+              这里是通往已得勋章的唯一持久入口。 */}
+          <Link data-testid="empty-see-collection" className="kid-collection-link" to={`/play/${childId}/collection`}>
+            🏆 {t('play.collectionTitle')}
+          </Link>
         </div>
       )
     }

@@ -83,8 +83,9 @@ describe('KidGameShell 满级完成', () => {
     fireEvent.click(screen.getByTestId('backpack-item-r1'))
     await waitFor(() => expect(screen.getByTestId('evo-completed')).toBeInTheDocument())
 
-    // 服务端此刻起不再有 active 旅程
+    // 服务端此刻起不再有 active 旅程（旧代码正是在这一步把庆祝连同看板一起卸载）
     flipToNoActive()
+    await waitFor(() => expect(getActiveJourney).toHaveBeenCalledTimes(2))
     await waitFor(() => expect(screen.queryByTestId('pet-sprite')).not.toBeInTheDocument())
 
     // 真正的断言：看板走了，庆祝不能跟着走

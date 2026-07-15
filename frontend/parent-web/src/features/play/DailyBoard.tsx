@@ -18,7 +18,8 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
   childId: string
   journey: JourneyDto
   // 喂养结果交给上层：满级会让本组件被卸载，庆祝不能挂在这里。
-  onFeedResult?: (result: FeedResultDto, journeyId: string) => void
+  // 必填：漏传就等于悄悄丢掉庆祝，这类失败正是本组件踩过的坑，交给编译器守。
+  onFeedResult: (result: FeedResultDto, journeyId: string) => void
 }) {
   const { t } = useTranslation()
   const date = useMemo(todayStr, [])
@@ -41,7 +42,7 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
   const onFeed = (item: BackpackItemDto) => {
     feed.mutate(
       { childId, journeyId: journey.id, rewardItemId: item.rewardItemId },
-      { onSuccess: (r) => onFeedResult?.(r, journey.id) },
+      { onSuccess: (r) => onFeedResult(r, journey.id) },
     )
   }
 
@@ -104,7 +105,7 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
       </section>
 
       {journey.petSpeciesId && (
-        <Backpack childId={childId} journeyId={journey.id} onFeed={onFeed} />
+        <Backpack childId={childId} journeyId={journey.id} onFeed={onFeed} disabled={feed.isPending} />
       )}
     </div>
   )

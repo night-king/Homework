@@ -2,7 +2,13 @@ import { useTranslation } from 'react-i18next'
 import { useBackpack } from '@/hooks/usePlay'
 import type { BackpackItemDto } from '@/types/homework'
 
-export function Backpack({ childId, journeyId, onFeed }: { childId: string; journeyId: string; onFeed?: (item: BackpackItemDto) => void }) {
+export function Backpack({ childId, journeyId, onFeed, disabled }: {
+  childId: string
+  journeyId: string
+  onFeed?: (item: BackpackItemDto) => void
+  // 喂养在途时锁住：连点会让第二次 mutate 顶掉第一次的 scoped onSuccess，庆祝就丢了
+  disabled?: boolean
+}) {
   const { t } = useTranslation()
   const { data: items = [], isLoading } = useBackpack(childId, journeyId)
 
@@ -19,6 +25,7 @@ export function Backpack({ childId, journeyId, onFeed }: { childId: string; jour
             type="button"
             data-testid={`backpack-item-${it.rewardItemId}`}
             className="kid-backpack-item"
+            disabled={disabled}
             onClick={() => onFeed?.(it)}
           >
             {it.iconUrl ? <img className="kid-backpack-icon" src={it.iconUrl} alt={it.name} /> : <span className="kid-backpack-glyph">{it.glyph ?? '🎁'}</span>}

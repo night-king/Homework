@@ -36,7 +36,7 @@ beforeEach(() => {
 
 describe('DailyBoard', () => {
   it('renders pet sprite, growth bar and today tasks', async () => {
-    ui(<DailyBoard childId="c1" journey={journey} />)
+    ui(<DailyBoard childId="c1" journey={journey} onFeedResult={vi.fn()} />)
     await waitFor(() => expect(screen.getByTestId('task-t1')).toBeInTheDocument())
     expect(screen.getByTestId('pet-sprite')).toBeInTheDocument()
     expect(screen.getByTestId('growth-bar')).toBeInTheDocument()

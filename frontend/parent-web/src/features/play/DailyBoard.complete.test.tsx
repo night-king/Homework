@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe('DailyBoard complete', () => {
   it('completing a task calls completeTask', async () => {
-    ui(<DailyBoard childId="c1" journey={journey} />)
+    ui(<DailyBoard childId="c1" journey={journey} onFeedResult={vi.fn()} />)
     await waitFor(() => expect(screen.getByTestId('task-toggle-t1')).toBeInTheDocument())
     fireEvent.click(screen.getByTestId('task-toggle-t1'))
     await waitFor(() => expect(completeTask).toHaveBeenCalledWith('c1', 't1'))

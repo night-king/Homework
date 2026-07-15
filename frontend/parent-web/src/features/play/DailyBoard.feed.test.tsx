@@ -41,4 +41,19 @@ describe('DailyBoard feed', () => {
     await waitFor(() => expect(feed).toHaveBeenCalledWith({ childId: 'c1', journeyId: 'j1', rewardItemId: 'r1' }))
     await waitFor(() => expect(onFeedResult).toHaveBeenCalledWith(result, 'j1'))
   })
+
+  // 孩子会连点。第二次 mutate 会让 MutationObserver 换掉 #mutateOptions，
+  // 第一次喂养的 scoped onSuccess 就永不触发 → 满级时庆祝丢失、还多一个报错 toast。
+  it('喂养进行中禁止再点，避免第二次 mutate 抢走第一次的成功回调', async () => {
+    feed.mockImplementation(() => new Promise(() => {})) // 一直挂起
+    const onFeedResult = vi.fn()
+    ui(<DailyBoard childId="c1" journey={journey} onFeedResult={onFeedResult} />)
+    await waitFor(() => expect(screen.getByTestId('backpack-item-r1')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByTestId('backpack-item-r1'))
+    await waitFor(() => expect(screen.getByTestId('backpack-item-r1')).toBeDisabled())
+    fireEvent.click(screen.getByTestId('backpack-item-r1'))
+
+    expect(feed).toHaveBeenCalledTimes(1)
+  })
 })

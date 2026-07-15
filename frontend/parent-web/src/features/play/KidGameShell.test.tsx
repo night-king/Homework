@@ -50,4 +50,14 @@ describe('KidGameShell 状态机', () => {
     ui(<KidGameShell />)
     await waitFor(() => expect(screen.getByTestId('play-empty')).toBeInTheDocument())
   })
+
+  // 满级后永远不再有 active 旅程 → 看板不再出现，而收藏墙链接原本只挂在看板上。
+  // 空态必须留一条通往勋章的持久入口，否则孩子拿到的勋章再也看不到。
+  it('空态保留去收藏墙的入口', async () => {
+    getActiveJourney.mockResolvedValue(null)
+    listJourneys.mockResolvedValue([])
+    ui(<KidGameShell />)
+    await waitFor(() => expect(screen.getByTestId('play-empty')).toBeInTheDocument())
+    expect(screen.getByTestId('empty-see-collection')).toHaveAttribute('href', '/play/c1/collection')
+  })
 })
