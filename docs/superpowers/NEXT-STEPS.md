@@ -2,7 +2,7 @@
 
 > 活文档（living doc）。总设计规格见 `specs/2026-07-10-child-journey-pet-backend-design.md`；
 > 第一期计划 `plans/2026-07-10-phase1-catalog-oss.md`；第二期计划 `plans/2026-07-10-phase2-journey-growth.md`。
-> 最近更新：2026-07-14（第三期 **Slice B 孩子端接线 完成** → 第三期全部完成）。
+> 最近更新：2026-07-15（**真机 smoke 已跑**：终审 Critical 修复获实锤验证；抓到并修复「满级庆祝不可达」；新发现记入 §2.3b）。
 > Slice A 设计/计划 `specs/2026-07-11-phase3a-parent-journey-ux-design.md`、`plans/2026-07-11-phase3a-parent-journey-ux.md`；
 > Slice C 设计/计划 `specs/2026-07-13-phase3c-catalog-admin-design.md`、`plans/2026-07-13-phase3c-catalog-admin.md`；
 > Slice B 设计/计划 `specs/2026-07-14-phase3b-child-play-wiring-design.md`、`plans/2026-07-14-phase3b-child-play-wiring.md`。
@@ -16,7 +16,8 @@
 - **第三期 Slice A（家长端旅程体验）✅ 已完成**，fast-forward 合入本地 `main`。经 opus 终审 2 项 Important（删除旅程时孤儿模板、指定奖励路径缺测试）已修复。
 - **第三期 Slice C（图鉴管理后台）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `b65611c`，**尚未 push**）。`parent-web` 内 admin 权限门控的道具/勋章/宠物 CRUD + 上传 + 启停；两段式宠物编辑（5 形态 + 封面 + 精灵图 + 进化视频 + 完整度门控）。**后端未改**。经 opus 终审：权限门控响应式化（避免刷新时管理员被踢）+ 宠物基础信息不被刷新覆盖 已修复。
 - **第三期 Slice B（孩子端接线）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `ad9fcc8`，**尚未 push**）。`parent-web` 内嵌全屏「孩子模式」（`/play`、`/play/:childId`、`/play/:childId/collection`，`KidLayout` 自守卫）消费真实 `JourneyPlayAppService`：选宠开始 / 每日看板 / 完成→奖励入背包 / 喂养→进化过场/满级庆祝 / 收藏勋章墙；后端仅加 Development 便利（`/blob/{**key}` 静态端点 + `PlayDemoSeeder` 种火龙/光之英雄 2 物种 + demo Draft 旅程）。经 opus 整分支终审修复 1 Critical（`active`/`collection` 走 ABP 路径参数避免真机 404）。
-- 测试：前端 vitest **105**（+31）、`npm run build` / `typecheck` / `lint` 全绿；后端 Domain 56 + EFCore 61（未变，Slice B 未碰 play 领域/契约）。
+- **真机 smoke（2026-07-15）✅ 已跑**，并在其中发现+修复「满级庆祝不可达」（分支 `fix/kid-completion-celebration`，HEAD `a61771a`）。真浏览器 + 真 ABP + 真 blob 验证：终审那个 Critical 的修复实锤有效（`active/{childId}`→204，旧写法→404）；选宠→任务生成→完成发奖→背包→喂养→3 次进化过场（视频真播）→满级庆祝→完成屏→收藏墙 全通，0 console 错误 / 0 4xx。新发现见 §2.3b。
+- 测试：前端 vitest **108**（+3 满级完成回归）、`npm run build` / `typecheck` / `lint` 全绿；后端 Domain 56 + EFCore 61（未变，本次修复未碰后端）。
 
 ---
 
@@ -97,14 +98,19 @@
 - [x] opus 整分支终审修复 1 **Critical**：`getActiveJourney`/`getCollection` 原用 query，但 ABP 对**单 `*Id` 参数**提升为路径段 → 改 `active/{childId}`、`collection/{childId}`（否则真机 404，核心闭环断）。双 `*Id`（backpack/complete/uncomplete）留 query 正确。
 
 **2.3a Slice B 遗留（来自终审三诊，非阻塞，fast-follow）**
-- [ ] **[真机 smoke]** playService 路由修复后，跑一次真实 host（配好 DbMigrator + Dev 种子）验证整条闭环（spec §9.3）；前端测试全走 mock，未触真实 ABP 路由（正是 Critical 漏网之因）。
-- [ ] **满级完成引导**：`completed=true` 关过场后 `active` 变 null → 落到空态，空态无收藏入口（`🏆 收藏墙` 链接只在看板上）→ 应在满级庆祝卡或空态加去收藏墙的入口（spec §5.8）。
+- [x] **[真机 smoke]** 已跑（2026-07-15，DbMigrator + Dev 种子 + 真浏览器 Playwright）。**终审 Critical 修复实锤有效**：`active/{childId}`→204、旧写法 `active?childId=`→404；`/blob` + `AssetCdnBaseUrl` 出图（封面/精灵 1024²、进化视频 1280×720）；闭环全通（选宠→任务生成→完成发奖→背包→喂养→3 次进化过场→收藏墙），0 console 错误 / 0 4xx。**并抓到 1 个 mock 测试结构上看不见的真 bug（见下条）+ 2 个新发现（§2.3b）。**
+- [x] **满级庆祝不可达（此前记为「引导缺失」，实际严重得多）** — 已修，commit `a61771a`。真相：满级时 `feed` 的 `onSuccess` → `invalidateActive` → `GetActive` 返 204 → shell 切走看板 → **庆祝 state 挂在 DailyBoard 里，随组件一起被卸载**，孩子只看到「还没有冒险」。修法：庆祝提升到 `KidGameShell`（分支之外渲染）+ 新增一次性 `JourneyCompleted`（满级形象 + 勋章 + 去收藏墙）+ `feed` 补 `invalidateCollection`。漏网之因：`DailyBoard.feed.test` 直接渲染看板不经 shell（卸载物理上不可能发生），`KidGameShell.test` 又把 DailyBoard 换成假占位 —— 两边各自绿，缝隙漏掉真 bug；回归测试须用闸门控住 refetch 时机，否则 `waitFor` 会抓到一闪而过的过场而假绿。
 - [ ] **完成旅程后 `useChildJourneys` 未失效**：同会话内旅程完成后 drafts 缓存陈旧，状态机可能给已完成旅程再开 PickPet（`StartAsync` 会抛）；`staleTime:0` 重挂载自愈，边缘。可让 `feed`/完成路径也失效 `['journeys',childId]`。
 - [ ] **背包卡未显 `growthValue`**（spec §5 要求「图标/glyph + 数量 + 成长值」）→ 加 `+{growthValue}` 一行 + 断言。
 - [ ] 完成任务 toast `t('play.rewardEarned',{name:t('play.feed')})` 渲染「获得 喂养！」（动词当道具名）；`DailyTaskDto` 只带 `rewardItemId` 无名 → 需 id→name 查表才能正确显示，低优先。
 - [ ] KidPickChildPage 无「零孩子」空态；`Backpack.test` 未覆盖 `iconUrl<img>`/loading 分支；`usePlay` 测试偏薄；`usePlay` 手写 `['play','board',childId]` 前缀字面量（可复用 `playBoardKey` 前缀）。
 - [ ] `PlayDemoSeeder` catch 文案只提「DB 未迁移」但也吞 FileNotFound/BusinessException（`ex` 已 log，仅文案窄）；medal `GetListAsync` 全量再排序取一（dev 量级无碍）。
 - [ ] 孩子端 hooks 有意不发 success toast（孩子端 UX，非缺陷）；`/blob` 端点无 Content-Length/Range（dev shim，生产走真 CDN，均**不修**）。
+
+**2.3b 真机 smoke 新发现（2026-07-15，均非本次修复范围）**
+- [ ] **删旅程遗留孤儿 `DailyTask`（真机复现）**：`JourneyAppService.DeleteAsync` 只级联删任务**模板**（Slice A 终审所加），已生成的 `DailyTask` 行留库。实测：删掉旅程 A 后新建旅程 B，孩子看板仍返回 **journeyId 指向已删除 A** 的任务，且这些遗留占住了那些日期 → **B 的任务再也生成不出来**。触发路径：家长删掉一个已跑起来的旅程再建新的。建议 `DeleteAsync` 一并删该旅程的 `DailyTask`（或生成器/看板按 active 旅程过滤）。
+- [ ] **`GetActive` 无旅程时返 204 而非 `200 + null`**：axios 把空响应体给成 `''`，`KidGameShell` 的 `if (active.data)` 因空串 falsy 而**恰好**走对分支 —— 能用，但属于撞对的，契约上应显式返回 null 或让 service 层归一。
+- [ ] i18n 语言由浏览器 locale 决定（`fallbackLng: zh-CN` + `detection: ['localStorage','navigator']`）：en-US 设备上孩子端为英文。**当前配置的正确行为**，仅记录；如需孩子端锁中文另议。
 
 ### 2.4 Slice C —— 图鉴管理后台 ✅ 已完成（本地 `main`，HEAD `b65611c`，未 push）
 
