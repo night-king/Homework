@@ -110,6 +110,9 @@
 
 **2.3b 真机 smoke 新发现（2026-07-15，均非本次修复范围）**
 - [x] **删旅程遗留孤儿 `DailyTask`（真机复现）** — 已修，commit `cd615c7`。`JourneyAppService.DeleteAsync` 原先只级联删任务**模板**（Slice A 终审所加），已生成的 `DailyTask` 行留库。实测：删掉旅程 A 后新建旅程 B，孩子看板仍返回 **journeyId 指向已删除 A** 的任务，且这些遗留占住了那些日期 → **B 的任务再也生成不出来**。触发路径：家长删掉一个已跑起来的旅程再建新的。修法：`DeleteAsync` 一并 `DeleteAsync(t => t.JourneyId == id)`；补 2 个测试（清空自己的任务 / 不误伤其它旅程），EFCore 61 → 63。真机复验：A 生成任务 → 删 A → 建 B → 看板任务全部归属 B。
+- [ ] **删旅程后 `DailyScore` 残留陈旧数据（opus 评审实测）**：`DailyScore` 按 `childId + date` 存、**不带 `journeyId`**，级联谓词够不着 → 已删旅程挣的星星/满勤仍留在账上（实测：删除前后 `total=1 completed=1 isFull=True stars=5` 不变）。**目前潜伏**：`DailyScore` 尚无任何仓储读取方（`StreakCalculator` 只被单测引用），且读取时 `ResolveDayTotalsAsync` 会重算 → 一旦把统计/连击接线就会腐化。修法：删任务后按旅程日期区间重新结算（`SettlePastDaysAsync(childId, journey.StartDate, journey.EndDate)`）。与刚关掉的孤儿 `DailyTask` 是**同一类** bug：残留物按不带 `journeyId` 的键存。
+- [ ] **删除契约前后端不一致（产品决策，待定）**：前端只允许删草稿（`JourneysPage.tsx:83` 用 `j.status === 0` 同时门控编辑与删除，确认文案也写「移除该**草稿**旅程」），但后端 `JourneyAppService.DeleteAsync` **无任何状态守卫**（评审实测：对 Active 旅程调用 → 放行）。两条契约互相矛盾。需定夺：(a) 后端补 draft-only 守卫对齐 UI（级联删任务降为纵深防御），或 (b) 承认允许删非草稿 —— 那就要一并重新结算 `DailyScore`，并注意**删除 Completed 旅程会静默抹掉孩子收藏墙上的勋章与满级宠物**，而当前确认弹窗完全没有提示。
+- [ ] **孤儿 `JourneyPetStage`/`Backpack` 子行（既有，非本次引入，无害）**：`HomeworkDbContext.cs:176-179` 配了 `OnDelete(Cascade)`，但 Journey 走**软删除**（UPDATE 而非 DELETE）→ DB 级联永不触发，子行也未被加载 → EF 追踪器也不级联（实测残留 5 行 `JourneyPetStage`）。仅占存储，不可见（只能经被过滤的 Journey 到达）。
 - [ ] **`GetActive` 无旅程时返 204 而非 `200 + null`**：axios 把空响应体给成 `''`，`KidGameShell` 的 `if (active.data)` 因空串 falsy 而**恰好**走对分支 —— 能用，但属于撞对的，契约上应显式返回 null 或让 service 层归一。
 - [ ] i18n 语言由浏览器 locale 决定（`fallbackLng: zh-CN` + `detection: ['localStorage','navigator']`）：en-US 设备上孩子端为英文。**当前配置的正确行为**，仅记录；如需孩子端锁中文另议。
 
