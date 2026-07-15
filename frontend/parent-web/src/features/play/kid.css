@@ -62,3 +62,14 @@
 .kid-collection-medal { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: #7a4a1e; }
 .kid-collection-medal-img { width: 28px; height: 28px; object-fit: contain; }
 .kid-collection-link { align-self: center; color: #7a4a1e; font-weight: 700; text-decoration: none; }
+
+/* .kid-center 是内容高，撑满一屏 align-content 才生效——满级这屏值得居中 */
+.kid-completed { min-height: 100dvh; align-content: center; gap: 12px; text-align: center; }
+.kid-completed-pet { width: min(52vw, 220px); height: min(52vw, 220px); object-fit: contain; animation: kidCompletedPop .6s ease-out; }
+@keyframes kidCompletedPop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+.kid-completed-journey { font-weight: 800; color: #4a2e12; }
+.kid-completed-medal { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #7a4a1e; }
+.kid-completed-medal-img { width: 40px; height: 40px; object-fit: contain; }
+.kid-completed-medal-glyph { font-size: 2rem; }
+.kid-completed-cta { padding: 10px 24px; border-radius: 999px; background: #ff7a37; color: #fff; font-weight: 800; text-decoration: none; }
+.kid-completed-dismiss { padding: 8px 20px; border: none; border-radius: 999px; background: rgba(255,255,255,0.85); color: #7a4a1e; font-weight: 700; cursor: pointer; }

@@ -165,6 +165,7 @@
     "evolveReveal": "Evolved!",
     "completedTitle": "Max level reached!",
     "completedBody": "Your companion reached its final form. Medal added to your collection 🏅",
+    "seeCollection": "See my collection",
     "collectionTitle": "Collection",
     "collectionEmpty": "No completed journeys yet. Keep going!",
     "skip": "Skip"

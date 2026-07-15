@@ -27,13 +27,18 @@ function ui(node: ReactNode) {
 const journey = { id: 'j1', childId: 'c1', status: 1, petSpeciesId: 'p1', currentLevel: 1, growthPoints: 0 } as never
 beforeEach(() => vi.clearAllMocks())
 
+// 过场本身不再由看板渲染（满级会连它一起卸载），改由 KidGameShell 承接；
+// 这里守住看板这一侧的契约：喂对了道具，并把结果原样交给上层。
+// 「过场真的出现」由 KidGameShell.completion.test.tsx 覆盖。
 describe('DailyBoard feed', () => {
-  it('feeding calls feed and shows cutscene on evolve', async () => {
-    feed.mockResolvedValue({ evolved: true, newLevel: 2, completed: false, currentLevel: 2, growthPoints: 3, revealText: '裂壳', evolveVideoUrl: null })
-    ui(<DailyBoard childId="c1" journey={journey} />)
+  it('feeding calls feed and hands the evolve result up with its journeyId', async () => {
+    const result = { evolved: true, newLevel: 2, completed: false, currentLevel: 2, growthPoints: 3, revealText: '裂壳', evolveVideoUrl: null }
+    feed.mockResolvedValue(result)
+    const onFeedResult = vi.fn()
+    ui(<DailyBoard childId="c1" journey={journey} onFeedResult={onFeedResult} />)
     await waitFor(() => expect(screen.getByTestId('backpack-item-r1')).toBeInTheDocument())
     fireEvent.click(screen.getByTestId('backpack-item-r1'))
     await waitFor(() => expect(feed).toHaveBeenCalledWith({ childId: 'c1', journeyId: 'j1', rewardItemId: 'r1' }))
-    await waitFor(() => expect(screen.getByTestId('evo-css')).toBeInTheDocument())
+    await waitFor(() => expect(onFeedResult).toHaveBeenCalledWith(result, 'j1'))
   })
 })

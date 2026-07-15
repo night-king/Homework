@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { usePlayBoard, useActivePetSpecies, usePlayMutations } from '@/hooks/usePlay'
 import { currentForm, growthRatio } from './petStage'
 import { Backpack } from './Backpack'
-import { EvolutionCutscene } from './EvolutionCutscene'
 import type { JourneyDto, FeedResultDto, BackpackItemDto } from '@/types/homework'
 
 // 本地日期 YYYY-MM-DD（不带时区）
@@ -15,13 +14,17 @@ function todayStr(): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
 
-export function DailyBoard({ childId, journey }: { childId: string; journey: JourneyDto }) {
+export function DailyBoard({ childId, journey, onFeedResult }: {
+  childId: string
+  journey: JourneyDto
+  // 喂养结果交给上层：满级会让本组件被卸载，庆祝不能挂在这里。
+  onFeedResult?: (result: FeedResultDto, journeyId: string) => void
+}) {
   const { t } = useTranslation()
   const date = useMemo(todayStr, [])
   const board = usePlayBoard(childId, date)
   const species = useActivePetSpecies()
   const { complete, uncomplete, feed } = usePlayMutations(childId, journey.id)
-  const [cutscene, setCutscene] = useState<FeedResultDto | null>(null)
 
   const mySpecies = (species.data ?? []).find((s) => s.id === journey.petSpeciesId)
   const form = currentForm(mySpecies, journey.currentLevel)
@@ -38,7 +41,7 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
   const onFeed = (item: BackpackItemDto) => {
     feed.mutate(
       { childId, journeyId: journey.id, rewardItemId: item.rewardItemId },
-      { onSuccess: (r) => { if (r.evolved || r.completed) setCutscene(r) } },
+      { onSuccess: (r) => onFeedResult?.(r, journey.id) },
     )
   }
 
@@ -103,7 +106,6 @@ export function DailyBoard({ childId, journey }: { childId: string; journey: Jou
       {journey.petSpeciesId && (
         <Backpack childId={childId} journeyId={journey.id} onFeed={onFeed} />
       )}
-      {cutscene && <EvolutionCutscene result={cutscene} onClose={() => setCutscene(null)} />}
     </div>
   )
 }

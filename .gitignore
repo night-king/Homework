@@ -262,6 +262,9 @@ backend/src/Homework.DbMigrator/Logs/*
 backend/src/Homework.Blazor.Server/Logs/*
 backend/src/Homework.Blazor.Server.Tiered/Logs/*
 
+# Aliyun 凭证为空时 blob 落到本地 FileSystem 提供者：dev 跑一次 Host 就会生成
+backend/src/Homework.HttpApi.Host/App_Data/
+
 # Use abp install-libs to restore.
 **/wwwroot/libs/*
 

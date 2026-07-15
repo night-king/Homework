@@ -33,6 +33,7 @@ export function usePlayMutations(childId: string, _journeyId?: string) {
   const invalidateActive = () => qc.invalidateQueries({ queryKey: activeJourneyKey(childId) })
   const invalidateBoard = () => qc.invalidateQueries({ queryKey: ['play', 'board', childId] })
   const invalidateBackpack = () => qc.invalidateQueries({ queryKey: ['play', 'backpack', childId] })
+  const invalidateCollection = () => qc.invalidateQueries({ queryKey: collectionKey(childId) })
 
   return {
     start: useMutation({
@@ -52,7 +53,8 @@ export function usePlayMutations(childId: string, _journeyId?: string) {
     }),
     feed: useMutation({
       mutationFn: (dto: FeedDto) => feed(dto),
-      onSuccess: () => { void invalidateActive(); void invalidateBackpack() },
+      // 满级会入收藏并发勋章，满级落地屏要立刻读到这条新记录
+      onSuccess: () => { void invalidateActive(); void invalidateBackpack(); void invalidateCollection() },
       onError: onErr,
     }),
   }
