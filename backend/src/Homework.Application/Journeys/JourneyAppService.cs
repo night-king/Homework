@@ -17,13 +17,16 @@ public class JourneyAppService : HomeworkAppService, IJourneyAppService
 {
     private readonly IRepository<Journey, Guid> _repository;
     private readonly IRepository<JourneyTaskTemplateItem, Guid> _templateRepository;
+    private readonly IRepository<DailyTask, Guid> _taskRepository;
     private readonly ChildProfileManager _childManager;
 
     public JourneyAppService(IRepository<Journey, Guid> repository,
-        IRepository<JourneyTaskTemplateItem, Guid> templateRepository, ChildProfileManager childManager)
+        IRepository<JourneyTaskTemplateItem, Guid> templateRepository,
+        IRepository<DailyTask, Guid> taskRepository, ChildProfileManager childManager)
     {
         _repository = repository;
         _templateRepository = templateRepository;
+        _taskRepository = taskRepository;
         _childManager = childManager;
     }
 
@@ -64,6 +67,9 @@ public class JourneyAppService : HomeworkAppService, IJourneyAppService
     {
         var journey = await GetOwnedAsync(id);
         await _templateRepository.DeleteAsync(t => t.JourneyId == id, autoSave: true);
+        // 已生成的每日任务也要走：看板按 childId + date 查，留下的话会返回指向已删除旅程的
+        // 任务，还占住那些日期让新旅程生成不出任务。
+        await _taskRepository.DeleteAsync(t => t.JourneyId == id, autoSave: true);
         await _repository.DeleteAsync(journey, autoSave: true);
     }
 

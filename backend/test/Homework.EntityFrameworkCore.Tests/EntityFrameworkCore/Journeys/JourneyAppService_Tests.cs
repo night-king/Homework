@@ -176,4 +176,98 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
             items.Count.ShouldBe(0);
         });
     }
+
+    /// <summary>
+    /// 删旅程只清模板不够：已生成的 DailyTask 会留成孤儿。真机复现过——看板按 childId+date 查，
+    /// 于是仍返回指向已删除旅程的任务，还占住那些日期让新旅程生成不出任务。
+    /// </summary>
+    [Fact]
+    public async Task Delete_Also_Removes_Its_Generated_Daily_Tasks()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var taskRepo = GetRequiredService<IRepository<DailyTask, Guid>>();
+        Guid journeyId;
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var journey = await _service.CreateAsync(new CreateJourneyDto
+            {
+                ChildId = childId, Title = "旅程",
+                StartDate = new DateOnly(2026, 7, 1), EndDate = new DateOnly(2026, 8, 31),
+                MedalId = _guid.Create()
+            });
+            journeyId = journey.Id;
+        }
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            await taskRepo.InsertAsync(new DailyTask(
+                _guid.Create(), childId, journeyId, new DateOnly(2026, 7, 6), "口算"));
+            await taskRepo.InsertAsync(new DailyTask(
+                _guid.Create(), childId, journeyId, new DateOnly(2026, 7, 7), "阅读"));
+        });
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var tasks = await taskRepo.GetListAsync(t => t.JourneyId == journeyId);
+            tasks.Count.ShouldBe(2);
+        });
+
+        using (_principal.Change(Parent(pid)))
+        {
+            await _service.DeleteAsync(journeyId);
+        }
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var tasks = await taskRepo.GetListAsync(t => t.JourneyId == journeyId);
+            tasks.Count.ShouldBe(0);
+        });
+    }
+
+    /// <summary>删旅程不能误伤同一个孩子在别的旅程下的任务。</summary>
+    [Fact]
+    public async Task Delete_Keeps_Daily_Tasks_Of_Other_Journeys()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var taskRepo = GetRequiredService<IRepository<DailyTask, Guid>>();
+        Guid doomedId, keptId;
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var doomed = await _service.CreateAsync(new CreateJourneyDto
+            {
+                ChildId = childId, Title = "要删的",
+                StartDate = new DateOnly(2026, 7, 1), EndDate = new DateOnly(2026, 8, 31),
+                MedalId = _guid.Create()
+            });
+            var kept = await _service.CreateAsync(new CreateJourneyDto
+            {
+                ChildId = childId, Title = "留着的",
+                StartDate = new DateOnly(2026, 9, 1), EndDate = new DateOnly(2026, 10, 31),
+                MedalId = _guid.Create()
+            });
+            doomedId = doomed.Id;
+            keptId = kept.Id;
+        }
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            await taskRepo.InsertAsync(new DailyTask(_guid.Create(), childId, doomedId, new DateOnly(2026, 7, 6), "口算"));
+            await taskRepo.InsertAsync(new DailyTask(_guid.Create(), childId, keptId, new DateOnly(2026, 9, 7), "阅读"));
+        });
+
+        using (_principal.Change(Parent(pid)))
+        {
+            await _service.DeleteAsync(doomedId);
+        }
+
+        await WithUnitOfWorkAsync(async () =>
+        {
+            (await taskRepo.GetListAsync(t => t.JourneyId == doomedId)).Count.ShouldBe(0);
+            (await taskRepo.GetListAsync(t => t.JourneyId == keptId)).Count.ShouldBe(1);
+        });
+    }
 }
