@@ -17,7 +17,7 @@
 - **第三期 Slice C（图鉴管理后台）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `b65611c`，**尚未 push**）。`parent-web` 内 admin 权限门控的道具/勋章/宠物 CRUD + 上传 + 启停；两段式宠物编辑（5 形态 + 封面 + 精灵图 + 进化视频 + 完整度门控）。**后端未改**。经 opus 终审：权限门控响应式化（避免刷新时管理员被踢）+ 宠物基础信息不被刷新覆盖 已修复。
 - **第三期 Slice B（孩子端接线）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `ad9fcc8`，**尚未 push**）。`parent-web` 内嵌全屏「孩子模式」（`/play`、`/play/:childId`、`/play/:childId/collection`，`KidLayout` 自守卫）消费真实 `JourneyPlayAppService`：选宠开始 / 每日看板 / 完成→奖励入背包 / 喂养→进化过场/满级庆祝 / 收藏勋章墙；后端仅加 Development 便利（`/blob/{**key}` 静态端点 + `PlayDemoSeeder` 种火龙/光之英雄 2 物种 + demo Draft 旅程）。经 opus 整分支终审修复 1 Critical（`active`/`collection` 走 ABP 路径参数避免真机 404）。
 - **真机 smoke（2026-07-15）✅ 已跑**，并在其中发现+修复「满级庆祝不可达」（分支 `fix/kid-completion-celebration`，HEAD `a61771a`）。真浏览器 + 真 ABP + 真 blob 验证：终审那个 Critical 的修复实锤有效（`active/{childId}`→204，旧写法→404）；选宠→任务生成→完成发奖→背包→喂养→3 次进化过场（视频真播）→满级庆祝→完成屏→收藏墙 全通，0 console 错误 / 0 4xx。新发现见 §2.3b。
-- 测试：前端 vitest **108**（+3 满级完成回归）、`npm run build` / `typecheck` / `lint` 全绿；后端 Domain 56 + EFCore 61（未变，本次修复未碰后端）。
+- 测试：前端 vitest **113**（+8：满级完成回归、连点守卫、空态入口、完成屏冷启动）、`npm run build` / `typecheck` / `lint` 全绿；后端 Domain 56 + EFCore 61（未变，本次修复未碰后端）。
 
 ---
 
@@ -99,7 +99,8 @@
 
 **2.3a Slice B 遗留（来自终审三诊，非阻塞，fast-follow）**
 - [x] **[真机 smoke]** 已跑（2026-07-15，DbMigrator + Dev 种子 + 真浏览器 Playwright）。**终审 Critical 修复实锤有效**：`active/{childId}`→204、旧写法 `active?childId=`→404；`/blob` + `AssetCdnBaseUrl` 出图（封面/精灵 1024²、进化视频 1280×720）；闭环全通（选宠→任务生成→完成发奖→背包→喂养→3 次进化过场→收藏墙），0 console 错误 / 0 4xx。**并抓到 1 个 mock 测试结构上看不见的真 bug（见下条）+ 2 个新发现（§2.3b）。**
-- [x] **满级庆祝不可达（此前记为「引导缺失」，实际严重得多）** — 已修，commit `a61771a`。真相：满级时 `feed` 的 `onSuccess` → `invalidateActive` → `GetActive` 返 204 → shell 切走看板 → **庆祝 state 挂在 DailyBoard 里，随组件一起被卸载**，孩子只看到「还没有冒险」。修法：庆祝提升到 `KidGameShell`（分支之外渲染）+ 新增一次性 `JourneyCompleted`（满级形象 + 勋章 + 去收藏墙）+ `feed` 补 `invalidateCollection`。漏网之因：`DailyBoard.feed.test` 直接渲染看板不经 shell（卸载物理上不可能发生），`KidGameShell.test` 又把 DailyBoard 换成假占位 —— 两边各自绿，缝隙漏掉真 bug；回归测试须用闸门控住 refetch 时机，否则 `waitFor` 会抓到一闪而过的过场而假绿。
+- [x] **满级庆祝不可达（此前记为「引导缺失」，实际严重得多）** — 已修，commit `a61771a`。真相：满级时 `feed` 的 `onSuccess` → `invalidateActive` → `GetActive` 返 204 → shell 切走看板 → **庆祝 state 挂在 DailyBoard 里，随组件一起被卸载**，孩子只看到「还没有冒险」。修法：庆祝提升到 `KidGameShell`（分支之外渲染）+ 新增一次性 `JourneyCompleted`（满级形象 + 勋章 + 去收藏墙）+ 空态补收藏入口（满级后看板永不再现，这是通往勋章的唯一持久入口）+ `feed` 补 `invalidateCollection`。漏网之因：`DailyBoard.feed.test` 直接渲染看板不经 shell（卸载物理上不可能发生），`KidGameShell.test` 又把 DailyBoard 换成假占位 —— 两边各自绿，缝隙漏掉真 bug；回归测试须用闸门控住 refetch 时机，否则 `waitFor` 会抓到一闪而过的过场而假绿。
+- [x] **喂养连点丢庆祝（opus 评审实测复现，commit `c6b8091`）** — 满级时 60ms 连点：第二次 `mutate` 换掉 `MutationObserver` 的 `#mutateOptions`，**第一次喂养的 scoped `onSuccess` 永不触发** → 没有庆祝；而 mutation 级 `invalidateActive` 照跑 → 204 → 空态；第二次喂养撞 `EnsureActive()` → 错误 toast。症状与原 bug 一字不差。**背包按钮是孩子端唯一没有 pending 守卫的入口**（`PickPet`/任务开关都有）→ 已补 `disabled={feed.isPending}`。教训：真机 smoke 是「成年人点一次」，结构上看不见连点，两类验证都需要。
 - [ ] **完成旅程后 `useChildJourneys` 未失效**：同会话内旅程完成后 drafts 缓存陈旧，状态机可能给已完成旅程再开 PickPet（`StartAsync` 会抛）；`staleTime:0` 重挂载自愈，边缘。可让 `feed`/完成路径也失效 `['journeys',childId]`。
 - [ ] **背包卡未显 `growthValue`**（spec §5 要求「图标/glyph + 数量 + 成长值」）→ 加 `+{growthValue}` 一行 + 断言。
 - [ ] 完成任务 toast `t('play.rewardEarned',{name:t('play.feed')})` 渲染「获得 喂养！」（动词当道具名）；`DailyTaskDto` 只带 `rewardItemId` 无名 → 需 id→name 查表才能正确显示，低优先。
