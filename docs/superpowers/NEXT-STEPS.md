@@ -17,7 +17,7 @@
 - **第三期 Slice C（图鉴管理后台）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `b65611c`，**尚未 push**）。`parent-web` 内 admin 权限门控的道具/勋章/宠物 CRUD + 上传 + 启停；两段式宠物编辑（5 形态 + 封面 + 精灵图 + 进化视频 + 完整度门控）。**后端未改**。经 opus 终审：权限门控响应式化（避免刷新时管理员被踢）+ 宠物基础信息不被刷新覆盖 已修复。
 - **第三期 Slice B（孩子端接线）✅ 已完成**，fast-forward 合入**本地 `main`**（HEAD `ad9fcc8`，**尚未 push**）。`parent-web` 内嵌全屏「孩子模式」（`/play`、`/play/:childId`、`/play/:childId/collection`，`KidLayout` 自守卫）消费真实 `JourneyPlayAppService`：选宠开始 / 每日看板 / 完成→奖励入背包 / 喂养→进化过场/满级庆祝 / 收藏勋章墙；后端仅加 Development 便利（`/blob/{**key}` 静态端点 + `PlayDemoSeeder` 种火龙/光之英雄 2 物种 + demo Draft 旅程）。经 opus 整分支终审修复 1 Critical（`active`/`collection` 走 ABP 路径参数避免真机 404）。
 - **真机 smoke（2026-07-15）✅ 已跑**，并在其中发现+修复「满级庆祝不可达」（分支 `fix/kid-completion-celebration`，HEAD `a61771a`）。真浏览器 + 真 ABP + 真 blob 验证：终审那个 Critical 的修复实锤有效（`active/{childId}`→204，旧写法→404）；选宠→任务生成→完成发奖→背包→喂养→3 次进化过场（视频真播）→满级庆祝→完成屏→收藏墙 全通，0 console 错误 / 0 4xx。新发现见 §2.3b。
-- 测试：前端 vitest **113**（+8：满级完成回归、连点守卫、空态入口、完成屏冷启动）、`npm run build` / `typecheck` / `lint` 全绿；后端 Domain 56 + EFCore 61（未变，本次修复未碰后端）。
+- 测试：前端 vitest **113**（+8：满级完成回归、连点守卫、空态入口、完成屏冷启动）、`npm run build` / `typecheck` / `lint` 全绿；后端 Domain 56 + EFCore **63**（+2：删旅程级联删任务）。
 
 ---
 
@@ -109,7 +109,7 @@
 - [ ] 孩子端 hooks 有意不发 success toast（孩子端 UX，非缺陷）；`/blob` 端点无 Content-Length/Range（dev shim，生产走真 CDN，均**不修**）。
 
 **2.3b 真机 smoke 新发现（2026-07-15，均非本次修复范围）**
-- [ ] **删旅程遗留孤儿 `DailyTask`（真机复现）**：`JourneyAppService.DeleteAsync` 只级联删任务**模板**（Slice A 终审所加），已生成的 `DailyTask` 行留库。实测：删掉旅程 A 后新建旅程 B，孩子看板仍返回 **journeyId 指向已删除 A** 的任务，且这些遗留占住了那些日期 → **B 的任务再也生成不出来**。触发路径：家长删掉一个已跑起来的旅程再建新的。建议 `DeleteAsync` 一并删该旅程的 `DailyTask`（或生成器/看板按 active 旅程过滤）。
+- [x] **删旅程遗留孤儿 `DailyTask`（真机复现）** — 已修，commit `cd615c7`。`JourneyAppService.DeleteAsync` 原先只级联删任务**模板**（Slice A 终审所加），已生成的 `DailyTask` 行留库。实测：删掉旅程 A 后新建旅程 B，孩子看板仍返回 **journeyId 指向已删除 A** 的任务，且这些遗留占住了那些日期 → **B 的任务再也生成不出来**。触发路径：家长删掉一个已跑起来的旅程再建新的。修法：`DeleteAsync` 一并 `DeleteAsync(t => t.JourneyId == id)`；补 2 个测试（清空自己的任务 / 不误伤其它旅程），EFCore 61 → 63。真机复验：A 生成任务 → 删 A → 建 B → 看板任务全部归属 B。
 - [ ] **`GetActive` 无旅程时返 204 而非 `200 + null`**：axios 把空响应体给成 `''`，`KidGameShell` 的 `if (active.data)` 因空串 falsy 而**恰好**走对分支 —— 能用，但属于撞对的，契约上应显式返回 null 或让 service 层归一。
 - [ ] i18n 语言由浏览器 locale 决定（`fallbackLng: zh-CN` + `detection: ['localStorage','navigator']`）：en-US 设备上孩子端为英文。**当前配置的正确行为**，仅记录；如需孩子端锁中文另议。
 
