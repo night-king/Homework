@@ -24,7 +24,7 @@ describe('dayStatus', () => {
     expect(dayStatus(day({ date: '2026-07-13', tasksCompleted: 0 }), TODAY)).toEqual({ tone: 'locked', labelKey: 'play.dayLocked' })
   })
   it('过去·全做完 → complete 已攻克', () => {
-    expect(dayStatus(day({ date: '2026-07-13', tasksCompleted: 3, isFull: true }), TODAY).tone).toBe('complete')
+    expect(dayStatus(day({ date: '2026-07-13', tasksCompleted: 3, isFull: true }), TODAY)).toEqual({ tone: 'complete', labelKey: 'play.dayConquered' })
   })
   it('过去·做了一部分 → active', () => {
     expect(dayStatus(day({ date: '2026-07-13', tasksCompleted: 1 }), TODAY).tone).toBe('active')
