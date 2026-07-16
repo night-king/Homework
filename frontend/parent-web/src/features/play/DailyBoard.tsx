@@ -8,6 +8,7 @@ import { Backpack } from './Backpack'
 import { KidTopBar } from './KidTopBar'
 import { PetStage } from './PetStage.tsx'
 import { GrowthPanel } from './GrowthPanel'
+import { QuestPanel } from './QuestPanel'
 import type { JourneyDto, FeedResultDto, BackpackItemDto } from '@/types/homework'
 
 // 本地日期 YYYY-MM-DD（不带时区）
@@ -85,32 +86,12 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
         </section>
 
         <aside className="kid-side-stack" data-testid="kid-side">
-          {/* 任务列表（完成接线在 Task 11 加，本 task 仅渲染） */}
-          <section className="kid-tasks">
-            {board.isLoading ? (
-              <div className="kid-center">{t('play.loading')}</div>
-            ) : board.data?.isRestDay ? (
-              <div className="kid-rest">{t('play.restDay')}</div>
-            ) : (
-              board.data?.tasks.map((task) => (
-                <div key={task.id} data-testid={`task-${task.id}`} className={`kid-task ${task.countsAsCompleted ? 'is-done' : ''}`}>
-                  <div className="kid-task-main">
-                    <div className="kid-task-title">{task.title}</div>
-                    {task.subject && <div className="kid-task-subject">{task.subject}</div>}
-                  </div>
-                  <button
-                    type="button"
-                    data-testid={`task-toggle-${task.id}`}
-                    className="kid-task-state"
-                    disabled={complete.isPending || uncomplete.isPending}
-                    onClick={() => toggleTask(task.id, task.countsAsCompleted)}
-                  >
-                    {task.countsAsCompleted ? t('play.done') : t('play.goComplete')}
-                  </button>
-                </div>
-              ))
-            )}
-          </section>
+          <QuestPanel
+            board={board.data}
+            loading={board.isLoading}
+            disabled={complete.isPending || uncomplete.isPending}
+            onToggle={toggleTask}
+          />
 
           {journey.petSpeciesId && (
             <Backpack childId={childId} journeyId={journey.id} onFeed={onFeed} disabled={feed.isPending} />

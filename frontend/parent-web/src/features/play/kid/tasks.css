@@ -1,0 +1,156 @@
+/* 今日委托面板：对照 child-web-prototype/child-homepage.html 移植(选择器改 kid-* 前缀，收进 .kid-shell，声明逐字保留)：
+   - .panel-head(1269–1281) → .kid-panel-head（`.quest-panel h3`(1211–1218)/`.panel-head p`(1277–1281 的 p 变体)/
+     `.quest-panel,.reward-panel,.growth-panel{padding:18px}`(1263–1268) 三个跨面板共享选择器不在本任务 Step 4 引用范围内，
+     未搬——留给共享面板基础样式所在的任务）
+   - .task-list(1283–1286) → .kid-task-list
+   - .task-card(1288–1306，含 .is-done / :hover) → .kid-task-card
+   - .task-meta(1308–1314) → .kid-task-meta
+   - .subject-badge(1316–1345，含 .math/.chinese/.english/.reading 四色) → .kid-subject-badge(修饰类 .math 等保持不变)
+   - .task-time(1347–1351) → .kid-task-time
+   - .task-title(1353–1358) → .kid-task-title
+   - .task-foot(1364–1370) → .kid-task-foot
+   - .task-reward(1372–1376，var(--brand-deep) 保持不变) → .kid-task-reward
+   - .task-button(1378–1387 的共享 base + 1389–1416 own，仅取 .task-button 部分，不含共享的 .feed-button) → .kid-task-button
+   - 断点 760px：.task-foot(2421–2424)、.task-button(2458–2461，仅取 .task-button，不含 .feed-button)
+
+   已核对 1263–1416 与文件其余部分，无与本文件选择器同名的第二处覆盖定义(唯一出现在
+   1263–1416 与两处 760px 断点，均已按上列范围搬入)。 */
+
+.kid-shell .kid-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.kid-shell .kid-task-list {
+  display: grid;
+  gap: 12px;
+}
+
+.kid-shell .kid-task-card {
+  border-radius: 20px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 20px rgba(45, 36, 20, 0.06);
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.kid-shell .kid-task-card.is-done {
+  background:
+    linear-gradient(180deg, rgba(255, 251, 231, 0.98), rgba(255, 238, 194, 0.95));
+  border-color: rgba(255, 196, 82, 0.55);
+}
+
+.kid-shell .kid-task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 24px rgba(45, 36, 20, 0.08);
+}
+
+.kid-shell .kid-task-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.kid-shell .kid-subject-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-weight: 900;
+  font-size: 0.84rem;
+  color: #17385b;
+  background: rgba(61, 166, 255, 0.18);
+}
+
+.kid-shell .kid-subject-badge.math {
+  background: rgba(61, 166, 255, 0.18);
+}
+
+.kid-shell .kid-subject-badge.chinese {
+  background: rgba(255, 122, 55, 0.16);
+  color: #8d3812;
+}
+
+.kid-shell .kid-subject-badge.english {
+  background: rgba(31, 190, 173, 0.18);
+  color: #09685d;
+}
+
+.kid-shell .kid-subject-badge.reading {
+  background: rgba(255, 197, 77, 0.22);
+  color: #7c5600;
+}
+
+.kid-shell .kid-task-time {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.kid-shell .kid-task-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.kid-shell .kid-task-foot {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.kid-shell .kid-task-reward {
+  color: var(--brand-deep);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.kid-shell .kid-task-button {
+  border: 0;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  border-radius: 16px;
+  transition: transform 160ms ease, filter 160ms ease, opacity 160ms ease;
+  padding: 12px 14px;
+  background:
+    linear-gradient(180deg, #ff964d, #f86128);
+  box-shadow: 0 12px 20px rgba(248, 97, 40, 0.24);
+  min-width: 124px;
+}
+
+.kid-shell .kid-task-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.kid-shell .kid-task-button:disabled {
+  cursor: default;
+  background: linear-gradient(180deg, #ffd56b, #ffb73c);
+  color: #724900;
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  /* 原型 2421–2424 */
+  .kid-shell .kid-task-foot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* 原型 2458–2461(仅取 .task-button，.feed-button 不在本文件范围) */
+  .kid-shell .kid-task-button {
+    width: 100%;
+  }
+}

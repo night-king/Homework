@@ -4,6 +4,7 @@
 @import './kid/topbar.css';
 @import './kid/stage.css';
 @import './kid/growth.css';
+@import './kid/tasks.css';
 
 /* 孩子端全屏沉浸底座；视觉细节可对照 child-web-prototype/child-homepage.html 的 :root/.app-shell */
 .kid-shell {
