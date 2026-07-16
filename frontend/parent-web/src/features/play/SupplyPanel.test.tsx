@@ -30,7 +30,7 @@ describe('SupplyPanel', () => {
     render(<SupplyPanel childId="c1" journeyId="j1" onFeed={onFeed} />, { wrapper: wrap(qc) })
     const btn = await screen.findByTestId('backpack-item-r1')
     fireEvent.click(btn)
-    expect(onFeed).toHaveBeenCalledWith(item)
+    expect(onFeed).toHaveBeenCalledWith(item, btn)
   })
 
   it('disabled 时道具按钮禁用(连点守卫)', async () => {

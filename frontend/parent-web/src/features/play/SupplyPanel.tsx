@@ -7,7 +7,7 @@ import type { BackpackItemDto } from '@/types/homework'
 export function SupplyPanel({ childId, journeyId, onFeed, disabled }: {
   childId: string
   journeyId: string
-  onFeed?: (item: BackpackItemDto) => void
+  onFeed?: (item: BackpackItemDto, sourceEl: HTMLElement) => void
   // 喂养在途时锁住：连点会让第二次 mutate 顶掉第一次的 scoped onSuccess，庆祝就丢了
   disabled?: boolean
 }) {
@@ -30,7 +30,7 @@ export function SupplyPanel({ childId, journeyId, onFeed, disabled }: {
               data-testid={`backpack-item-${it.rewardItemId}`}
               className="kid-reward-drop"
               disabled={disabled}
-              onClick={() => onFeed?.(it)}
+              onClick={(e) => onFeed?.(it, e.currentTarget)}
             >
               {it.iconUrl ? (
                 <img className="kid-reward-drop-icon" src={it.iconUrl} alt={it.name} />

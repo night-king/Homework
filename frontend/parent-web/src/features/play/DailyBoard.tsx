@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -9,6 +9,7 @@ import { KidTopBar } from './KidTopBar'
 import { PetStage } from './PetStage.tsx'
 import { GrowthPanel } from './GrowthPanel'
 import { QuestPanel } from './QuestPanel'
+import { launchFeedProjectile } from './feedProjectile'
 import type { JourneyDto, FeedResultDto, BackpackItemDto } from '@/types/homework'
 
 // 本地日期 YYYY-MM-DD（不带时区）
@@ -39,6 +40,8 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
   const today = useMemo(todayStr, [])
   const [selectedDate, setSelectedDate] = useState(today)
   const weekStart = useMemo(() => mondayOf(today), [today])
+  // 喂养投掷的落点：挂在 PetStage 的 .kid-pet-core 上
+  const petRef = useRef<HTMLDivElement>(null)
   const weekStrip = useWeekStrip(childId, weekStart)
   const board = usePlayBoard(childId, selectedDate)
   const species = useActivePetSpecies()
@@ -56,7 +59,8 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
     }
   }
 
-  const onFeed = (item: BackpackItemDto) => {
+  const onFeed = (item: BackpackItemDto, sourceEl: HTMLElement) => {
+    launchFeedProjectile(sourceEl, petRef.current, { iconUrl: item.iconUrl, glyph: item.glyph })
     feed.mutate(
       { childId, journeyId: journey.id, rewardItemId: item.rewardItemId },
       { onSuccess: (r) => onFeedResult(r, journey.id) },
@@ -76,7 +80,7 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
       <div className="kid-main-grid">
         <section className="kid-panel kid-stage-panel" data-testid="kid-main">
           {/* 宠物舞台：氛围层 + LV 横幅 + 形态名 + 精灵图(或蛋兜底) */}
-          <PetStage form={form} level={journey.currentLevel} />
+          <PetStage form={form} level={journey.currentLevel} petRef={petRef} />
 
           <GrowthPanel growthPoints={journey.growthPoints} form={form} nextForm={nextForm} />
 
