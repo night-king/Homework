@@ -90,25 +90,65 @@ public class DailyTaskGenerator : DomainService
         }
     }
 
+    /// <summary>
+    /// 批量读区间内每天的任务态势。<b>纯读，绝不生成任务</b>——周条要靠它显示未来日状态，
+    /// 一旦调 EnsureDay 就会提前把未来任务生成出来（spec §103 明令禁止）。
+    /// 整个区间只发两条查询（区间内全部任务 + 该旅程全部 active 模板），
+    /// 连续完成要扫 90 天，逐天查询会变成 180 次往返。
+    /// </summary>
+    public async Task<List<DayStatus>> ReadRangeAsync(Guid childId, DateOnly from, DateOnly to)
+    {
+        var result = new List<DayStatus>();
+        if (to < from)
+        {
+            return result;
+        }
+
+        var tasks = await _dailyTaskRepository.GetListAsync(
+            t => t.ChildId == childId && t.Date >= from && t.Date <= to);
+        var byDate = tasks.GroupBy(t => t.Date).ToDictionary(
+            g => g.Key,
+            g => (Total: g.Count(), Completed: g.Count(x => x.CountsAsCompleted)));
+
+        var journey = await _journeyRepository.FirstOrDefaultAsync(
+            j => j.ChildId == childId && j.Status == JourneyStatus.Active);
+
+        var templateCountByDow = new Dictionary<DayOfWeek, int>();
+        if (journey != null)
+        {
+            var journeyId = journey.Id;
+            var templates = await _templateRepository.GetListAsync(
+                t => t.JourneyId == journeyId && t.IsActive);
+            templateCountByDow = templates.GroupBy(t => t.DayOfWeek)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
+
+        for (var date = from; date <= to; date = date.AddDays(1))
+        {
+            if (byDate.TryGetValue(date, out var counts))
+            {
+                result.Add(new DayStatus(date, counts.Total, counts.Completed));
+                continue;
+            }
+
+            var total = 0;
+            // 与 GetActiveJourneyAsync 同一条件：Active 且 date 已进入 StartDate
+            if (journey != null && date >= journey.StartDate
+                && templateCountByDow.TryGetValue(date.DayOfWeek, out var templateCount))
+            {
+                total = templateCount;
+            }
+
+            result.Add(new DayStatus(date, total, 0));
+        }
+
+        return result;
+    }
+
     private async Task<(int Total, int Completed)> ResolveDayTotalsAsync(Guid childId, DateOnly date)
     {
-        var tasks = await _dailyTaskRepository.GetListAsync(t => t.ChildId == childId && t.Date == date);
-        if (tasks.Count > 0)
-        {
-            return (tasks.Count, tasks.Count(t => t.CountsAsCompleted));
-        }
-
-        var journey = await GetActiveJourneyAsync(childId, date);
-        if (journey == null)
-        {
-            return (0, 0);
-        }
-
-        var dow = date.DayOfWeek;
-        var journeyId = journey.Id;
-        var templateCount = await _templateRepository.CountAsync(
-            t => t.JourneyId == journeyId && t.DayOfWeek == dow && t.IsActive);
-        return (templateCount, 0);
+        var day = (await ReadRangeAsync(childId, date, date))[0];
+        return (day.TasksTotal, day.TasksCompleted);
     }
 
     /// <summary>该孩子当前 Active 旅程，且 date 已进入其 StartDate（Active 期间即使过 EndDate 也持续生成）。</summary>

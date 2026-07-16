@@ -192,6 +192,93 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
         });
     }
 
+    [Fact]
+    public async Task ReadRange_Reports_Template_Count_For_Ungenerated_Days_And_Never_Generates()
+    {
+        var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(monday);
+        await WithUnitOfWorkAsync(async () =>
+        {
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "语文", order: 0), autoSave: true);
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "数学", order: 1), autoSave: true);
+            // 周二无模板 → 休息日
+        });
+
+        var days = await WithUnitOfWorkAsync(async () =>
+            await _generator.ReadRangeAsync(childId, monday, monday.AddDays(1)));
+
+        days.Count.ShouldBe(2);
+        days[0].Date.ShouldBe(monday);
+        days[0].TasksTotal.ShouldBe(2);       // 来自模板，任务尚未生成
+        days[0].TasksCompleted.ShouldBe(0);
+        days[0].IsRestDay.ShouldBeFalse();
+        days[0].IsFull.ShouldBeFalse();
+        days[1].IsRestDay.ShouldBeTrue();     // 周二没有模板
+
+        // 最要紧的一条：读区间不许生成任何任务
+        var generated = await WithUnitOfWorkAsync(async () =>
+            await _dailyRepo.CountAsync(t => t.ChildId == childId));
+        generated.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task ReadRange_Uses_Real_Task_Counts_Once_Generated()
+    {
+        var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(monday);
+        await WithUnitOfWorkAsync(async () =>
+        {
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "语文", order: 0), autoSave: true);
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "数学", order: 1), autoSave: true);
+        });
+
+        // 走真实生成路径
+        var tasks = await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, monday));
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var t = await _dailyRepo.GetAsync(tasks[0].Id);
+            t.Complete(new DateTime(2026, 7, 6, 20, 0, 0, DateTimeKind.Utc));
+            await _dailyRepo.UpdateAsync(t, autoSave: true);
+        });
+
+        var days = await WithUnitOfWorkAsync(async () => await _generator.ReadRangeAsync(childId, monday, monday));
+        days[0].TasksTotal.ShouldBe(2);
+        days[0].TasksCompleted.ShouldBe(1);
+        days[0].IsFull.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ReadRange_No_Active_Journey_Is_All_Rest_Days()
+    {
+        var childId = _guid.Create();
+        var monday = new DateOnly(2026, 7, 6);
+
+        var days = await WithUnitOfWorkAsync(async () =>
+            await _generator.ReadRangeAsync(childId, monday, monday.AddDays(6)));
+
+        days.Count.ShouldBe(7);
+        days.ShouldAllBe(d => d.IsRestDay);
+    }
+
+    [Fact]
+    public async Task ReadRange_Days_Before_Journey_Start_Are_Rest_Days()
+    {
+        var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(monday);
+        await WithUnitOfWorkAsync(async () =>
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, DayOfWeek.Monday, "语文", order: 0), autoSave: true));
+
+        // 旅程开始前的那个周一：有模板、有 DayOfWeek 匹配，但不该算数
+        var earlier = monday.AddDays(-7);
+        var days = await WithUnitOfWorkAsync(async () => await _generator.ReadRangeAsync(childId, earlier, earlier));
+        days[0].IsRestDay.ShouldBeTrue();
+    }
+
     private async Task SeedFedDayAsync(Guid childId, Guid journeyId, DateOnly date, int count)
     {
         for (var i = 0; i < count; i++)
