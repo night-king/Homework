@@ -1,0 +1,228 @@
+/* 图鉴 modal：对照 child-web-prototype/child-homepage.html 移植(选择器改 kid-codex-* 前缀，收进 .kid-shell，声明逐字保留)：
+   一、modal 外壳(1670-1743 + 2290-2320)：
+   - .evolution-modal(1670-1687) → .kid-codex-modal(含 .is-open)
+   - .evolution-modal-panel(1689-1703) → .kid-codex-panel
+   - .evolution-modal-top(1705-1711，含 h3) → .kid-codex-top
+   - .evolution-modal-copy(1719-1724) → .kid-codex-copy
+   - .modal-close(1726-1737) → .kid-codex-close
+   - .evolution-modal-summary(2290-2296) → .kid-codex-summary
+   - .evolution-summary-card/.evolution-goal-card(2298-2320) → .kid-codex-summary-card/.kid-codex-goal-card
+   原型 .evolution-rail(1739-1743) 是纯 SVG 容器(display:block)，这里改卡片式横排，
+   不搬那三行，改用下方"卡片式 rail"里的 .kid-codex-rail 新规则。同段 .evolution-rail::before(1745-1747)
+   是死代码，跳过。
+
+   二、卡片式 rail + 阶卡(复活原型 purpose-built 但未接线的死 CSS 1749-1798 + 2253-2288)：
+   - .evolution-card(1749-1782，含 .is-current/.is-unlocked/.is-locked) → .kid-codex-stage(同名状态类保留)
+   - .evolution-state(1784-1794) → .kid-codex-state
+   - .evolution-lock(2253-2275，含 .is-next 变体) → .kid-codex-lock
+   - .evolution-card h4(2277-2281) → .kid-codex-stage h4
+   - .evolution-card p(2283-2288) → .kid-codex-stage p
+   跳过 .evolution-avatar*(1796+ 一路到 2245 附近的卡通脸死代码)与 .pet-dex-node(未在此范围内出现，按约定跳过)。
+
+   三、.kid-codex-rail 容器规则为新增(原型 rail 是 SVG，这里改卡片网格，无原型对应行)：
+   grid 五列，≤760px 两列，配 .kid-codex-sprite 118px 精灵图尺寸。 */
+
+.kid-shell .kid-codex-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(28, 18, 10, 0.46);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+  z-index: 40;
+  padding: 20px;
+}
+
+.kid-shell .kid-codex-modal.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.kid-shell .kid-codex-panel {
+  width: min(980px, calc(100vw - 32px));
+  max-height: min(86vh, 900px);
+  overflow: auto;
+  border-radius: 32px;
+  padding: 24px 24px 22px;
+  background:
+    radial-gradient(circle at 15% 12%, rgba(255, 213, 92, 0.22), transparent 22%),
+    linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 240, 215, 0.98));
+  border: 1px solid rgba(255, 233, 180, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    0 30px 60px rgba(43, 27, 10, 0.2);
+  position: relative;
+}
+
+.kid-shell .kid-codex-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+.kid-shell .kid-codex-top h3 {
+  margin: 6px 0 0;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  letter-spacing: -0.04em;
+}
+
+.kid-shell .kid-codex-copy {
+  margin: 8px 0 0;
+  color: var(--muted);
+  max-width: 620px;
+  line-height: 1.55;
+}
+
+.kid-shell .kid-codex-close {
+  border: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--ink);
+  font-size: 1.4rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 14px 24px rgba(44, 31, 16, 0.08);
+}
+
+.kid-shell .kid-codex-stage {
+  position: relative;
+  z-index: 1;
+  padding: 14px 12px 16px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 22px rgba(50, 34, 17, 0.07);
+  text-align: center;
+  min-height: 330px;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 10px;
+}
+
+.kid-shell .kid-codex-stage.is-current {
+  background:
+    linear-gradient(180deg, rgba(255, 245, 220, 0.98), rgba(255, 231, 187, 0.94));
+  border-color: rgba(255, 192, 83, 0.62);
+  box-shadow:
+    0 18px 30px rgba(255, 171, 58, 0.14),
+    0 0 0 2px rgba(255, 214, 114, 0.28);
+  transform: translateY(-8px);
+}
+
+.kid-shell .kid-codex-stage.is-unlocked {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 243, 0.96), rgba(255, 242, 211, 0.92));
+}
+
+.kid-shell .kid-codex-stage.is-locked {
+  background:
+    linear-gradient(180deg, rgba(249, 244, 232, 0.88), rgba(239, 231, 213, 0.82));
+}
+
+.kid-shell .kid-codex-state {
+  justify-self: center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #916113;
+}
+
+.kid-shell .kid-codex-lock {
+  width: 118px;
+  height: 118px;
+  margin: 0 auto;
+  border-radius: 34px;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(100, 91, 79, 0.18), rgba(245, 235, 215, 0.78));
+  border: 1px dashed rgba(127, 109, 78, 0.26);
+  color: rgba(86, 71, 52, 0.9);
+  font-size: 3.4rem;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+}
+
+.kid-shell .kid-codex-stage.is-next .kid-codex-lock {
+  background:
+    radial-gradient(circle at 50% 32%, rgba(255, 210, 94, 0.22), transparent 28%),
+    linear-gradient(180deg, rgba(245, 231, 203, 0.92), rgba(235, 222, 198, 0.86));
+  color: #7f5b22;
+  box-shadow: 0 12px 22px rgba(255, 185, 65, 0.12);
+}
+
+.kid-shell .kid-codex-stage h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.kid-shell .kid-codex-stage p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.kid-shell .kid-codex-summary {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.kid-shell .kid-codex-summary-card,
+.kid-shell .kid-codex-goal-card {
+  border-radius: 22px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 22px rgba(45, 31, 15, 0.07);
+}
+
+.kid-shell .kid-codex-summary-card strong,
+.kid-shell .kid-codex-goal-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.26rem;
+  letter-spacing: -0.03em;
+}
+
+.kid-shell .kid-codex-summary-card p,
+.kid-shell .kid-codex-goal-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* 卡片式 rail 容器：原型 rail 是 SVG，本文件新增(无原型对应行) */
+.kid-shell .kid-codex-rail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kid-shell .kid-codex-sprite {
+  width: 118px;
+  height: 118px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+@media (max-width: 760px) {
+  .kid-shell .kid-codex-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

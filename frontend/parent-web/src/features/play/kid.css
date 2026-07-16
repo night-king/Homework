@@ -7,6 +7,7 @@
 @import './kid/tasks.css';
 @import './kid/supply.css';
 @import './kid/projectile.css';
+@import './kid/codex.css';
 
 /* 孩子端全屏沉浸底座；视觉细节可对照 child-web-prototype/child-homepage.html 的 :root/.app-shell */
 .kid-shell {
