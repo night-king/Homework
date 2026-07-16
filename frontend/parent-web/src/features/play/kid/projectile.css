@@ -1,0 +1,27 @@
+/* 喂养投掷飞行体——挂 document.body,故不收进 .kid-shell 作用域。值逐字搬自原型 1644-1668。 */
+.kid-flying-drop {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 248, 221, 0.98), rgba(255, 222, 163, 0.94));
+  box-shadow: 0 16px 28px rgba(165, 91, 18, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  font-size: 1.2rem;
+  z-index: 80;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.86);
+  transition: transform 760ms cubic-bezier(0.2, 0.76, 0.2, 1), opacity 760ms ease;
+}
+.kid-flying-drop img { width: 30px; height: 30px; object-fit: contain; }
+.kid-flying-drop.is-flying {
+  opacity: 1;
+  transform: translate(calc(-50% + var(--fly-x)), calc(-50% + var(--fly-y))) scale(0.62) rotate(-18deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .kid-flying-drop { transition: opacity 200ms ease; }
+}
