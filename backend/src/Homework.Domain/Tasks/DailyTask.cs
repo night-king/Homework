@@ -12,6 +12,7 @@ public class DailyTask : FullAuditedAggregateRoot<Guid>
     public DateOnly Date { get; private set; }
     public string Title { get; private set; }
     public string? Subject { get; private set; }
+    public int? EstimatedMinutes { get; private set; }
     public int Order { get; private set; }
     public Guid? SourceTemplateItemId { get; private set; }
     public Guid JourneyId { get; private set; }
@@ -27,7 +28,8 @@ public class DailyTask : FullAuditedAggregateRoot<Guid>
 
     public DailyTask(
         Guid id, Guid childId, Guid journeyId, DateOnly date, [NotNull] string title,
-        string? subject = null, int order = 0, Guid? sourceTemplateItemId = null, Guid? rewardItemId = null)
+        string? subject = null, int order = 0, Guid? sourceTemplateItemId = null, Guid? rewardItemId = null,
+        int? estimatedMinutes = null)
         : base(id)
     {
         ChildId = childId;
@@ -38,6 +40,7 @@ public class DailyTask : FullAuditedAggregateRoot<Guid>
         Order = order < 0 ? 0 : order;
         SourceTemplateItemId = sourceTemplateItemId;
         RewardItemId = rewardItemId;
+        EstimatedMinutes = estimatedMinutes;
         RewardGranted = false;
         IsCompleted = false;
         ReviewState = TaskReviewState.Normal;
@@ -63,6 +66,12 @@ public class DailyTask : FullAuditedAggregateRoot<Guid>
         }
 
         Order = order;
+        return this;
+    }
+
+    public DailyTask SetEstimatedMinutes(int? minutes)
+    {
+        EstimatedMinutes = minutes;
         return this;
     }
 

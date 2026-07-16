@@ -10,6 +10,7 @@ public class DailyTaskDto : EntityDto<Guid>
     public DateOnly Date { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Subject { get; set; }
+    public int? EstimatedMinutes { get; set; }
     public int Order { get; set; }
     public bool IsCompleted { get; set; }
     public DateTime? CompletedTime { get; set; }

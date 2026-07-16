@@ -288,4 +288,26 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
             await _dailyRepo.InsertAsync(task);
         }
     }
+
+    [Fact]
+    public async Task EnsureDay_Copies_EstimatedMinutes_From_Template()
+    {
+        var monday = new DateOnly(2026, 7, 6);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(monday);
+        await WithUnitOfWorkAsync(async () =>
+        {
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(
+                _guid.Create(), journeyId, DayOfWeek.Monday, "数学作业本",
+                subject: "math", order: 0, estimatedMinutes: 25), autoSave: true);
+            await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(
+                _guid.Create(), journeyId, DayOfWeek.Monday, "朗读课文",
+                subject: "chinese", order: 1), autoSave: true);   // 不填时长
+        });
+
+        var tasks = await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, monday));
+
+        tasks.Count.ShouldBe(2);
+        tasks[0].EstimatedMinutes.ShouldBe(25);
+        tasks[1].EstimatedMinutes.ShouldBeNull();   // 模板没填 → 保持 null,不许兜底成 0
+    }
 }

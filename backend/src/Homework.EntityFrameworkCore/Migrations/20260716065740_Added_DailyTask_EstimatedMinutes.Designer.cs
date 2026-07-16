@@ -3,6 +3,7 @@ using System;
 using Homework.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Homework.Migrations
 {
     [DbContext(typeof(HomeworkDbContext))]
-    partial class HomeworkDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716065740_Added_DailyTask_EstimatedMinutes")]
+    partial class Added_DailyTask_EstimatedMinutes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

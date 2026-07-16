@@ -57,7 +57,7 @@ public class DailyTaskGenerator : DomainService
         {
             var rewardItemId = await _rewardResolver.ResolveAsync(t.RewardItemId, t.RewardIsRandom);
             var task = new DailyTask(GuidGenerator.Create(), childId, journeyId, date, t.Title,
-                t.Subject, t.Order, t.Id, rewardItemId);
+                t.Subject, t.Order, t.Id, rewardItemId, t.EstimatedMinutes);
             await _dailyTaskRepository.InsertAsync(task, autoSave: true);
             created.Add(task);
         }
