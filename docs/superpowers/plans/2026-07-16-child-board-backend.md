@@ -764,53 +764,77 @@ EOF
 
 - [ ] **Step 1: 写失败的测试**
 
-追加到 `JourneyPlay_Tests.cs`。**注意：这个测试的全部价值在于「漏做日必须断」——那正是直接读 `DailyScore` 账本会算错的场景**（账本没有补档，漏做日根本没有记录，会被当休息日桥接过去、天数照涨）：
+**两条铁律，违反了这两个测试就白写：**
+
+1. **必须调 `_service.GetWeekStripAsync`**，不许在测试里自己拼 `ReadRangeAsync` + `StreakCalculator`。自己拼等于把生产代码的组装逻辑抄一遍——`CalculateStreakAsync` 要是把 `today` 传错了，自拼版照样绿。那正是本项目要根除的假绿。
+2. **日期必须相对「今天」**。`CalculateStreakAsync` 内部用 `_clock.Now` 取今天，而测试环境**没有可控假时钟**（`IClock` 未被替换）。写死 `2026-07-06` 那种绝对日期，随着真实日期推移会漂成"很久以前"，断言必然失效。测试里用 `GetRequiredService<IClock>()` 取今天，**与生产同源**（不要用 `DateTime.Now`——跨时区/跨日会闪断）。
+
+先加一个七天全模板的助手（放在 `SeedStartedJourneyAsync` 之后）：
+
+```csharp
+    /// <summary>七天都有模板 → 没有休息日来混淆「漏做」与「休息」。</summary>
+    private static (DayOfWeek Dow, string Title, string? Subject, int? Minutes)[] EveryDayTemplates() =>
+        Enum.GetValues<DayOfWeek>()
+            .Select(d => (d, "口算", (string?)null, (int?)null))
+            .ToArray();
+```
+
+追加两个用例：
 
 ```csharp
     [Fact]
-    public async Task Streak_Breaks_On_A_Missed_Day()
+    public async Task WeekStrip_Streak_Counts_Consecutive_Full_Days()
     {
         var pid = _guid.Create();
         var childId = await SeedChildAsync(pid);
-        var start = new DateOnly(2026, 7, 6);            // 周一
-        // 周一到周三每天都有模板 → 「没做」才与「休息日」可区分
-        await SeedStartedJourneyAsync(pid, childId, start,
-            (DayOfWeek.Monday, "口算", null, null),
-            (DayOfWeek.Tuesday, "口算", null, null),
-            (DayOfWeek.Wednesday, "口算", null, null));
+        var today = DateOnly.FromDateTime(GetRequiredService<IClock>().Now);
+        await SeedStartedJourneyAsync(pid, childId, today.AddDays(-3), EveryDayTemplates());
 
-        // 周一:生成并全做完。周二:模板有,但从没打开过 → 漏做,任务根本没生成。
         using (_principal.Change(Parent(pid)))
         {
-            var mon = await _service.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = start });
-            foreach (var t in mon.Tasks)
+            // 前三天全做满(走真实路径:拉看板生成 → 逐条完成)
+            foreach (var offset in new[] { -3, -2, -1 })
             {
-                await _service.CompleteTaskAsync(childId, t.Id);
+                var board = await _service.GetDailyBoardAsync(
+                    new GetDailyBoardInput { ChildId = childId, Date = today.AddDays(offset) });
+                foreach (var t in board.Tasks)
+                {
+                    await _service.CompleteTaskAsync(childId, t.Id);
+                }
             }
+
+            var strip = await _service.GetWeekStripAsync(
+                new GetWeekStripInput { ChildId = childId, WeekStart = today });
+
+            strip.Streak.ShouldBe(3);   // 今天还没做 → 进行中,不计入也不断裂
         }
-
-        // today = 周三。周二被跳过 → 连续必须断在周二,不许把周一算进来。
-        // 这正是直接读 DailyScore 账本会算错的场景:周二没记录 → 被当休息日桥接 → 会错答成 1。
-        var wednesday = start.AddDays(2);
-        var days = await WithUnitOfWorkAsync(async () =>
-            await GetRequiredService<DailyTaskGenerator>().ReadRangeAsync(childId, start, wednesday));
-
-        var snapshots = days.Select(d => new DailyScoreSnapshot(d.Date, d.IsFull, d.IsRestDay));
-        StreakCalculator.CalculateCurrentStreak(snapshots, wednesday).ShouldBe(0);
     }
 
     [Fact]
-    public async Task WeekStrip_Exposes_Streak()
+    public async Task WeekStrip_Streak_Breaks_On_A_Missed_Day()
     {
         var pid = _guid.Create();
         var childId = await SeedChildAsync(pid);
-        var monday = new DateOnly(2026, 7, 6);
-        await SeedStartedJourneyAsync(pid, childId, monday, (DayOfWeek.Monday, "语文", null, null));
+        var today = DateOnly.FromDateTime(GetRequiredService<IClock>().Now);
+        await SeedStartedJourneyAsync(pid, childId, today.AddDays(-3), EveryDayTemplates());
 
         using (_principal.Change(Parent(pid)))
         {
-            var strip = await _service.GetWeekStripAsync(new GetWeekStripInput { ChildId = childId, WeekStart = monday });
-            strip.Streak.ShouldBeGreaterThanOrEqualTo(0);   // 字段存在且已接线
+            // 只做 today-3。today-2 / today-1 压根没打开过 → 任务从没生成 → 漏做。
+            var board = await _service.GetDailyBoardAsync(
+                new GetDailyBoardInput { ChildId = childId, Date = today.AddDays(-3) });
+            foreach (var t in board.Tasks)
+            {
+                await _service.CompleteTaskAsync(childId, t.Id);
+            }
+
+            var strip = await _service.GetWeekStripAsync(
+                new GetWeekStripInput { ChildId = childId, WeekStart = today });
+
+            // 这条就是整个 §4④ 的意义所在:
+            // 直接读 DailyScore 账本的话,today-1 / today-2 根本没记录 → 被当休息日桥接过去
+            // → 会把 today-3 那天算进来、错答成 1。从模板+任务当场推导才答得对。
+            strip.Streak.ShouldBe(0);
         }
     }
 ```
@@ -818,13 +842,12 @@ EOF
 `JourneyPlay_Tests.cs` 顶部需补 using：
 
 ```csharp
-using Homework.Scoring;   // DailyScoreSnapshot, StreakCalculator
-using Homework.Tasks;     // DailyTaskGenerator, DailyTask
+using Volo.Abp.Timing;   // IClock
 ```
 
 - [ ] **Step 2: 跑测试确认它失败**
 
-Run: `dotnet test test/Homework.EntityFrameworkCore.Tests --filter "FullyQualifiedName~WeekStrip_Exposes_Streak"`
+Run: `dotnet test test/Homework.EntityFrameworkCore.Tests --filter "FullyQualifiedName~WeekStrip_Streak"`
 Expected: **编译失败**，`'WeekStripDto' does not contain a definition for 'Streak'`
 
 - [ ] **Step 3: DTO 加字段**
