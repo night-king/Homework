@@ -1,0 +1,94 @@
+/* 移植自原型 child-homepage.html:77–158（.topbar/.profile/.avatar/.profile-label/.overline/
+   .hero-name/.top-stats/.stat-pill/.stat-value）+ 断点 2340–2347(1100px)、2406–2409(760px)。
+   改名 kid-*，收进 .kid-shell 作用域；声明逐字搬。 */
+
+.kid-shell .kid-topbar {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr minmax(220px, 320px);
+  gap: 18px;
+  padding: 16px 18px;
+  align-items: center;
+}
+
+.kid-shell .kid-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kid-shell .kid-avatar {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.46), transparent 28%),
+    linear-gradient(145deg, #ff954f, #f75d25);
+  box-shadow: 0 16px 26px rgba(247, 93, 37, 0.28);
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.kid-shell .kid-profile-label {
+  display: grid;
+  gap: 3px;
+}
+
+.kid-shell .kid-overline {
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.kid-shell .kid-hero-name {
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.kid-shell .kid-top-stats {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.kid-shell .kid-stat-pill {
+  min-width: 92px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  display: grid;
+  gap: 2px;
+  text-align: center;
+}
+
+.kid-shell .kid-stat-value {
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+@media (max-width: 1100px) {
+  /* 原型 2340–2347 */
+  .kid-shell .kid-topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .kid-shell .kid-top-stats {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  /* 原型 2406–2409 */
+  .kid-shell .kid-topbar {
+    padding: 14px;
+  }
+}

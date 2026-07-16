@@ -11,6 +11,7 @@ vi.mock('@/services/playService', () => ({
   feed: (...a: unknown[]) => feed(...a),
   getBackpack: (...a: unknown[]) => getBackpack(...a),
   getPlayDailyBoard: (...a: unknown[]) => getPlayDailyBoard(...a),
+  getWeekStrip: vi.fn().mockResolvedValue({ streak: 0, days: [] }),
 }))
 vi.mock('@/services/homeworkService', () => ({ listActivePetSpecies: vi.fn().mockResolvedValue([]) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
@@ -24,7 +25,7 @@ function ui(node: ReactNode) {
     </QueryClientProvider>,
   )
 }
-const journey = { id: 'j1', childId: 'c1', status: 1, petSpeciesId: 'p1', currentLevel: 1, growthPoints: 0 } as never
+const journey = { id: 'j1', childId: 'c1', title: '旅程', status: 1, petSpeciesId: 'p1', currentLevel: 1, growthPoints: 0 } as never
 beforeEach(() => vi.clearAllMocks())
 
 // 过场本身不再由看板渲染（满级会连它一起卸载），改由 KidGameShell 承接；

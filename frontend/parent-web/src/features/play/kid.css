@@ -1,6 +1,7 @@
 @import './kid/tokens.css';
 @import './kid/shell.css';
 @import './kid/daystrip.css';
+@import './kid/topbar.css';
 
 /* 孩子端全屏沉浸底座；视觉细节可对照 child-web-prototype/child-homepage.html 的 :root/.app-shell */
 .kid-shell {

@@ -2,14 +2,25 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { usePlayBoard, useActivePetSpecies, usePlayMutations } from '@/hooks/usePlay'
+import { usePlayBoard, useActivePetSpecies, usePlayMutations, useWeekStrip } from '@/hooks/usePlay'
 import { currentForm, growthRatio } from './petStage'
 import { Backpack } from './Backpack'
+import { KidTopBar } from './KidTopBar'
 import type { JourneyDto, FeedResultDto, BackpackItemDto } from '@/types/homework'
 
 // 本地日期 YYYY-MM-DD（不带时区）
 function todayStr(): string {
   const d = new Date()
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+// 本地日期所在周的周一(原型周条以周一起头)
+function mondayOf(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  const dow = d.getDay() // 0=周日
+  const diff = dow === 0 ? -6 : 1 - dow
+  d.setDate(d.getDate() + diff)
   const p = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
@@ -23,7 +34,9 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
 }) {
   const { t } = useTranslation()
   const today = useMemo(todayStr, [])
-  const [selectedDate] = useState(today) // Task 5 接 DayStrip 时改为带 setter
+  const [selectedDate, setSelectedDate] = useState(today)
+  const weekStart = useMemo(() => mondayOf(today), [today])
+  const weekStrip = useWeekStrip(childId, weekStart)
   const board = usePlayBoard(childId, selectedDate)
   const species = useActivePetSpecies()
   const { complete, uncomplete, feed } = usePlayMutations(childId, journey.id)
@@ -49,7 +62,14 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
 
   return (
     <div className="kid-board">
-      <div className="kid-topbar-slot">{/* Task 5 放 KidTopBar；本任务留空占位 */}</div>
+      <KidTopBar
+        childName={journey.title}
+        weekStrip={weekStrip.data}
+        board={board.data}
+        today={today}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+      />
       <div className="kid-main-grid">
         <section className="kid-panel kid-stage-panel" data-testid="kid-main">
           {/* 宠物舞台 */}
@@ -69,12 +89,6 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
               <div data-testid="growth-bar" className="kid-growth-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
             </div>
             <div className="kid-growth-label">{t('play.growth')} {journey.growthPoints}{form?.growthToNext ? ` / ${form.growthToNext}` : ''}</div>
-          </section>
-
-          {/* 状态条 */}
-          <section className="kid-stats">
-            <span>⭐ {t('play.stars')}：{board.data?.stars ?? 0}</span>
-            <span>📈 {t('play.progress')}：{board.data?.tasksCompleted ?? 0}/{board.data?.tasksTotal ?? 0}</span>
           </section>
 
           <Link data-testid="open-collection" className="kid-collection-link" to={`/play/${childId}/collection`}>

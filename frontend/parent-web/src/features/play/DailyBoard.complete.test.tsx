@@ -12,6 +12,7 @@ vi.mock('@/services/playService', () => ({
   completeTask: (...a: unknown[]) => completeTask(...a),
   uncompleteTask: (...a: unknown[]) => uncompleteTask(...a),
   getBackpack: vi.fn().mockResolvedValue([]),
+  getWeekStrip: vi.fn().mockResolvedValue({ streak: 0, days: [] }),
 }))
 vi.mock('@/services/homeworkService', () => ({ listActivePetSpecies: vi.fn().mockResolvedValue([]) }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
@@ -25,7 +26,7 @@ function ui(node: ReactNode) {
     </QueryClientProvider>,
   )
 }
-const journey = { id: 'j1', childId: 'c1', status: 1, petSpeciesId: null, currentLevel: 1, growthPoints: 0 } as never
+const journey = { id: 'j1', childId: 'c1', title: '旅程', status: 1, petSpeciesId: null, currentLevel: 1, growthPoints: 0 } as never
 beforeEach(() => {
   vi.clearAllMocks()
   getPlayDailyBoard.mockResolvedValue({
