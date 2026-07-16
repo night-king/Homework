@@ -137,6 +137,7 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
 
         return new WeekStripDto
         {
+            Streak = await CalculateStreakAsync(input.ChildId),
             Days = days.Select(d => new WeekDayDto
             {
                 Date = d.Date,
@@ -146,6 +147,35 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
                 IsFull = d.IsFull,
             }).ToList(),
         };
+    }
+
+    /// <summary>
+    /// 连续完成天数。<b>刻意不读 DailyScore 账本</b>：SettlePastDaysAsync 虽然实现了，
+    /// 但生产代码零调用（调用点全在测试里），所以账本只有「被拉取过的日子」有记录——
+    /// 孩子几天没开 app 就是几个洞，而 StreakCalculator 要求无缺口账本，
+    /// 洞会被当休息日桥接过去、天数照涨。且账本删旅程后会变脏（NEXT-STEPS §2.3b）。
+    /// 改由 ReadRangeAsync 从源头真相（模板 + 真实任务）当场合成无洞快照。
+    /// </summary>
+    private async Task<int> CalculateStreakAsync(Guid childId)
+    {
+        var journey = await _journeyRepository.FirstOrDefaultAsync(
+            j => j.ChildId == childId && j.Status == JourneyStatus.Active);
+        if (journey == null)
+        {
+            return 0;
+        }
+
+        var today = DateOnly.FromDateTime(_clock.Now);
+        // 90 天下限防止超长旅程拖垮查询；连续超过 90 天的场景当前产品不存在
+        var from = journey.StartDate > today.AddDays(-90) ? journey.StartDate : today.AddDays(-90);
+        if (from > today)
+        {
+            return 0;
+        }
+
+        var days = await _generator.ReadRangeAsync(childId, from, today);
+        var snapshots = days.Select(d => new Homework.Scoring.DailyScoreSnapshot(d.Date, d.IsFull, d.IsRestDay));
+        return Homework.Scoring.StreakCalculator.CalculateCurrentStreak(snapshots, today);
     }
 
     public async Task<ListResultDto<BackpackItemDto>> GetBackpackAsync(Guid childId, Guid journeyId)

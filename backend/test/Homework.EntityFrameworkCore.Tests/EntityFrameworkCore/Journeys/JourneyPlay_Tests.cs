@@ -12,6 +12,7 @@ using Shouldly;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Guids;
 using Volo.Abp.Security.Claims;
+using Volo.Abp.Timing;
 using Xunit;
 
 namespace Homework.EntityFrameworkCore.Journeys;
@@ -99,6 +100,68 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
             }
         });
         return journeyId;
+    }
+
+    /// <summary>七天都有模板 → 没有休息日来混淆「漏做」与「休息」。</summary>
+    private static (DayOfWeek Dow, string Title, string? Subject, int? Minutes)[] EveryDayTemplates() =>
+        Enum.GetValues<DayOfWeek>()
+            .Select(d => (d, "口算", (string?)null, (int?)null))
+            .ToArray();
+
+    [Fact]
+    public async Task WeekStrip_Streak_Counts_Consecutive_Full_Days()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var today = DateOnly.FromDateTime(GetRequiredService<IClock>().Now);
+        await SeedStartedJourneyAsync(pid, childId, today.AddDays(-3), EveryDayTemplates());
+
+        using (_principal.Change(Parent(pid)))
+        {
+            // 前三天全做满(走真实路径:拉看板生成 → 逐条完成)
+            foreach (var offset in new[] { -3, -2, -1 })
+            {
+                var board = await _service.GetDailyBoardAsync(
+                    new GetDailyBoardInput { ChildId = childId, Date = today.AddDays(offset) });
+                foreach (var t in board.Tasks)
+                {
+                    await _service.CompleteTaskAsync(childId, t.Id);
+                }
+            }
+
+            var strip = await _service.GetWeekStripAsync(
+                new GetWeekStripInput { ChildId = childId, WeekStart = today });
+
+            strip.Streak.ShouldBe(3);   // 今天还没做 → 进行中,不计入也不断裂
+        }
+    }
+
+    [Fact]
+    public async Task WeekStrip_Streak_Breaks_On_A_Missed_Day()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var today = DateOnly.FromDateTime(GetRequiredService<IClock>().Now);
+        await SeedStartedJourneyAsync(pid, childId, today.AddDays(-3), EveryDayTemplates());
+
+        using (_principal.Change(Parent(pid)))
+        {
+            // 只做 today-3。today-2 / today-1 压根没打开过 → 任务从没生成 → 漏做。
+            var board = await _service.GetDailyBoardAsync(
+                new GetDailyBoardInput { ChildId = childId, Date = today.AddDays(-3) });
+            foreach (var t in board.Tasks)
+            {
+                await _service.CompleteTaskAsync(childId, t.Id);
+            }
+
+            var strip = await _service.GetWeekStripAsync(
+                new GetWeekStripInput { ChildId = childId, WeekStart = today });
+
+            // 这条就是整个 §4④ 的意义所在:
+            // 直接读 DailyScore 账本的话,today-1 / today-2 根本没记录 → 被当休息日桥接过去
+            // → 会把 today-3 那天算进来、错答成 1。从模板+任务当场推导才答得对。
+            strip.Streak.ShouldBe(0);
+        }
     }
 
     [Fact]
