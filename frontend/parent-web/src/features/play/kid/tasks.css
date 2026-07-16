@@ -1,7 +1,11 @@
 /* 今日委托面板：对照 child-web-prototype/child-homepage.html 移植(选择器改 kid-* 前缀，收进 .kid-shell，声明逐字保留)：
-   - .panel-head(1269–1281) → .kid-panel-head（`.quest-panel h3`(1211–1218)/`.panel-head p`(1277–1281 的 p 变体)/
-     `.quest-panel,.reward-panel,.growth-panel{padding:18px}`(1263–1268) 三个跨面板共享选择器不在本任务 Step 4 引用范围内，
-     未搬——留给共享面板基础样式所在的任务）
+   - .panel-head(1269–1281) → .kid-panel-head（`.panel-head p`(1277–1281 的 p 变体)未搬——QuestPanel/
+     SupplyPanel 目前都不渲染 <p>，用不到）
+   - Task 10 补：`.quest-panel,.reward-panel,.growth-panel{padding:18px}`(1263–1268)/断点 760px 的
+     `padding:16px`(2414–2419) 当年被 Task 6/8/9 都当成"共享面板基础样式任务"的活儿踢皮球，而那个任务
+     从未存在，三个面板一直是 padding:0——这里补 .kid-quest-panel 的这份 padding(见下方独立规则)。
+     `.quest-panel h3`(1211–1218) 的 font-size/margin 也一并补在 .kid-panel-head h3 上；
+     font-weight 原型没写，是吃的浏览器 h3 默认加粗，被 Tailwind Preflight 清零后需要显式补 700。
    - .task-list(1283–1286) → .kid-task-list
    - .task-card(1288–1306，含 .is-done / :hover) → .kid-task-card
    - .task-meta(1308–1314) → .kid-task-meta
@@ -22,6 +26,19 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+/* Task 10 补：原型 `.quest-panel h3`(1211–1218)。font-weight 原型未显式写，吃的是浏览器 h3
+   默认加粗(700)，Tailwind Preflight 把它清零成 400 了，这里显式补回来。 */
+.kid-shell .kid-panel-head h3 {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+/* Task 10 补：原型 `.quest-panel,.reward-panel,.growth-panel{padding:18px}`(1263–1268) */
+.kid-shell .kid-quest-panel {
+  padding: 18px;
 }
 
 .kid-shell .kid-task-list {
@@ -144,6 +161,12 @@
 }
 
 @media (max-width: 760px) {
+  /* Task 10 补：原型 2414–2419(仅取 .quest-panel 部分，.stage/.reward-panel/.growth-panel
+     部分分别在 stage.css/supply.css/growth.css 里) */
+  .kid-shell .kid-quest-panel {
+    padding: 16px;
+  }
+
   /* 原型 2421–2424 */
   .kid-shell .kid-task-foot {
     flex-direction: column;

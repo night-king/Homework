@@ -7,7 +7,15 @@
    - .pet-core(2473–2482) / .pet-stage-mount(2539–2547)（取自 760px 断点块，本轮直接当默认值用，跳过 .pet-3d-stage）
    - .pet-stage-banner(2739–2755) / .pet-stage-level(2757–2771) / .pet-stage-hero-name(2773–2778)
    跳过（详见 task-6-brief 的 SKIP-LIST）：说话气泡/mood tag/evolve 按钮与卡片/pet-feedback/
-   pet-action-row/所有 evo-* overlay/`[data-mode=...]` 驱动的氛围覆盖——本轮氛围是静态的。 */
+   pet-action-row/所有 evo-* overlay/`[data-mode=...]` 驱动的氛围覆盖——本轮氛围是静态的。
+
+   Task 10 补：`.stage`(292–293) 的 padding:22px + 断点 760px(2414–2419 里 .stage 的部分) 的
+   padding:16px，当年被本任务(Task 6)踢皮球给一个从未存在的"共享面板基础样式任务"，导致
+   .kid-stage-panel 从来没有过 padding 规则——这里补上。 */
+
+.kid-shell .kid-stage-panel {
+  padding: 22px;
+}
 
 .kid-pet-stage {
   margin-top: 6px;
@@ -246,4 +254,12 @@
   display: grid;
   place-items: center;
   font-size: 5rem;
+}
+
+@media (max-width: 760px) {
+  /* Task 10 补：原型 2414–2419(仅取 .stage 部分，.quest-panel/.reward-panel/.growth-panel
+     部分分别在 tasks.css/supply.css/growth.css 里) */
+  .kid-shell .kid-stage-panel {
+    padding: 16px;
+  }
 }

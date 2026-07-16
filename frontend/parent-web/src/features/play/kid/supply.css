@@ -1,9 +1,9 @@
 /* 补给台面板：对照 child-web-prototype/child-homepage.html 移植(选择器改 kid-* 前缀，收进 .kid-shell，声明逐字保留)：
    - .reward-panel(1418–1422) → .kid-supply-panel
-     （`.quest-panel,.reward-panel,.growth-panel{padding:18px}`(1263–1268) 与断点 760px 里
-     `.stage,.quest-panel,.reward-panel,.growth-panel{padding:16px}`(2414–2419) 是三个面板共享的
-     公共选择器；tasks.css/growth.css 对 quest-panel/growth-panel 已同样未搬(见两文件头注释)——
-     留给共享面板基础样式所在的任务，本文件保持一致不搬）
+     Task 10 补：`.quest-panel,.reward-panel,.growth-panel{padding:18px}`(1263–1268)/断点 760px
+     `.stage,.quest-panel,.reward-panel,.growth-panel{padding:16px}`(2414–2419) 里 .reward-panel 的
+     部分，当年被本文件和 tasks.css 都当成"共享面板基础样式任务"的活儿踢皮球，而那个任务从未存在，
+     三个面板一直是 padding:0——这里补进 .kid-supply-panel 自己的规则里。
    - .reward-drop-list(1441–1452，含 .is-empty) → .kid-reward-drop-list
    - .reward-drop(1454–1477，含 .is-empty) → .kid-reward-drop
    - .reward-drop-icon(1479–1488) → .kid-reward-drop-icon
@@ -28,6 +28,7 @@
    均只有唯一一处定义，无需级联合并。 */
 
 .kid-shell .kid-supply-panel {
+  padding: 18px;
   background:
     radial-gradient(circle at 18% 18%, rgba(255, 197, 77, 0.22), transparent 30%),
     rgba(255, 252, 243, 0.9);
@@ -124,6 +125,11 @@
 }
 
 @media (max-width: 760px) {
+  /* Task 10 补：原型 2414–2419(仅取 .reward-panel 部分) */
+  .kid-shell .kid-supply-panel {
+    padding: 16px;
+  }
+
   /* 原型 2458–2461(仅取 .feed-button 部分，.task-button 部分已在 tasks.css 搬过) */
   .kid-shell .kid-feed-button {
     width: 100%;
