@@ -154,14 +154,6 @@
   letter-spacing: -0.06em;
 }
 
-.kid-shell .kid-codex-stage.is-next .kid-codex-lock {
-  background:
-    radial-gradient(circle at 50% 32%, rgba(255, 210, 94, 0.22), transparent 28%),
-    linear-gradient(180deg, rgba(245, 231, 203, 0.92), rgba(235, 222, 198, 0.86));
-  color: #7f5b22;
-  box-shadow: 0 12px 22px rgba(255, 185, 65, 0.12);
-}
-
 .kid-shell .kid-codex-stage h4 {
   margin: 0;
   font-size: 1.05rem;
