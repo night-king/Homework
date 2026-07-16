@@ -1,0 +1,25 @@
+/* 原型 child-homepage.html:8–32 的 :root 令牌,原样搬到 .kid-shell(不放 :root,避免泄漏进家长端 shadcn)。
+   变量名不改,各部件 var(--x) 从这里解析。 */
+.kid-shell {
+  --bg-top: #fff5d7;
+  --bg-bottom: #f4f8ff;
+  --paper: rgba(255, 251, 241, 0.88);
+  --paper-strong: rgba(255, 248, 230, 0.96);
+  --line: rgba(78, 53, 28, 0.12);
+  --ink: #2c221d;
+  --muted: #6f6256;
+  --brand: #ff7a37;
+  --brand-deep: #de5416;
+  --gold: #ffc54d;
+  --sky: #3da6ff;
+  --teal: #1fbead;
+  --mint: #dcfff4;
+  --success: #2eb769;
+  --danger: #ff825b;
+  --shadow-lg: 0 28px 60px rgba(163, 93, 13, 0.16);
+  --shadow-md: 0 16px 30px rgba(77, 58, 24, 0.12);
+  --radius-xl: 30px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --content-width: 1280px;
+}

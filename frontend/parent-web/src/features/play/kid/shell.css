@@ -1,0 +1,41 @@
+/* 原型 body 背景(child-homepage.html:46):奶油渐入淡蓝,不是一路橙到底 */
+.kid-shell {
+  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+}
+
+/* 移植自原型 .app-shell(child-homepage.html:62–67) */
+.kid-shell .kid-board {
+  width: min(var(--content-width), calc(100vw - 32px));
+  margin: 24px auto 40px;
+  display: grid;
+  gap: 18px;
+}
+/* 移植自原型 .panel(child-homepage.html:69–75) */
+.kid-shell .kid-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: var(--paper);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-md);
+}
+/* 移植自原型 .main-grid(child-homepage.html:285–290) */
+.kid-shell .kid-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 420px);
+  gap: 18px;
+  align-items: stretch;
+}
+/* 移植自原型 .side-stack(child-homepage.html:1257–1261) */
+.kid-shell .kid-side-stack {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+@media (max-width: 1100px) {
+  /* 原型 2349–2351:塌成单列 */
+  .kid-shell .kid-main-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  /* 原型 2402–2404 */
+  .kid-shell .kid-panel { border-radius: var(--radius-lg); }
+}

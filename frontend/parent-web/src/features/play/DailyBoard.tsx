@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -22,8 +22,9 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
   onFeedResult: (result: FeedResultDto, journeyId: string) => void
 }) {
   const { t } = useTranslation()
-  const date = useMemo(todayStr, [])
-  const board = usePlayBoard(childId, date)
+  const today = useMemo(todayStr, [])
+  const [selectedDate] = useState(today) // Task 5 接 DayStrip 时改为带 setter
+  const board = usePlayBoard(childId, selectedDate)
   const species = useActivePetSpecies()
   const { complete, uncomplete, feed } = usePlayMutations(childId, journey.id)
 
@@ -48,65 +49,72 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
 
   return (
     <div className="kid-board">
-      {/* 宠物舞台 */}
-      <section className="kid-stage">
-        {form?.spriteUrl ? (
-          <img
-            data-testid="pet-sprite"
-            className="kid-pet"
-            src={form.spriteUrl}
-            alt={form.name}
-            style={{ transform: `scale(${form.scale ?? 1})` }}
-          />
-        ) : (
-          <div data-testid="pet-sprite" className="kid-pet kid-pet-fallback">🥚</div>
-        )}
-        <div className="kid-growth">
-          <div data-testid="growth-bar" className="kid-growth-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
-        </div>
-        <div className="kid-growth-label">{t('play.growth')} {journey.growthPoints}{form?.growthToNext ? ` / ${form.growthToNext}` : ''}</div>
-      </section>
-
-      {/* 状态条 */}
-      <section className="kid-stats">
-        <span>⭐ {t('play.stars')}：{board.data?.stars ?? 0}</span>
-        <span>📈 {t('play.progress')}：{board.data?.tasksCompleted ?? 0}/{board.data?.tasksTotal ?? 0}</span>
-      </section>
-
-      <Link data-testid="open-collection" className="kid-collection-link" to={`/play/${childId}/collection`}>
-        🏆 {t('play.collectionTitle')}
-      </Link>
-
-      {/* 任务列表（完成接线在 Task 11 加，本 task 仅渲染） */}
-      <section className="kid-tasks">
-        {board.isLoading ? (
-          <div className="kid-center">{t('play.loading')}</div>
-        ) : board.data?.isRestDay ? (
-          <div className="kid-rest">{t('play.restDay')}</div>
-        ) : (
-          board.data?.tasks.map((task) => (
-            <div key={task.id} data-testid={`task-${task.id}`} className={`kid-task ${task.countsAsCompleted ? 'is-done' : ''}`}>
-              <div className="kid-task-main">
-                <div className="kid-task-title">{task.title}</div>
-                {task.subject && <div className="kid-task-subject">{task.subject}</div>}
-              </div>
-              <button
-                type="button"
-                data-testid={`task-toggle-${task.id}`}
-                className="kid-task-state"
-                disabled={complete.isPending || uncomplete.isPending}
-                onClick={() => toggleTask(task.id, task.countsAsCompleted)}
-              >
-                {task.countsAsCompleted ? t('play.done') : t('play.goComplete')}
-              </button>
+      <div className="kid-topbar-slot">{/* Task 5 放 KidTopBar；本任务留空占位 */}</div>
+      <div className="kid-main-grid">
+        <section className="kid-panel kid-stage-panel" data-testid="kid-main">
+          {/* 宠物舞台 */}
+          <section className="kid-stage">
+            {form?.spriteUrl ? (
+              <img
+                data-testid="pet-sprite"
+                className="kid-pet"
+                src={form.spriteUrl}
+                alt={form.name}
+                style={{ transform: `scale(${form.scale ?? 1})` }}
+              />
+            ) : (
+              <div data-testid="pet-sprite" className="kid-pet kid-pet-fallback">🥚</div>
+            )}
+            <div className="kid-growth">
+              <div data-testid="growth-bar" className="kid-growth-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
             </div>
-          ))
-        )}
-      </section>
+            <div className="kid-growth-label">{t('play.growth')} {journey.growthPoints}{form?.growthToNext ? ` / ${form.growthToNext}` : ''}</div>
+          </section>
 
-      {journey.petSpeciesId && (
-        <Backpack childId={childId} journeyId={journey.id} onFeed={onFeed} disabled={feed.isPending} />
-      )}
+          {/* 状态条 */}
+          <section className="kid-stats">
+            <span>⭐ {t('play.stars')}：{board.data?.stars ?? 0}</span>
+            <span>📈 {t('play.progress')}：{board.data?.tasksCompleted ?? 0}/{board.data?.tasksTotal ?? 0}</span>
+          </section>
+
+          <Link data-testid="open-collection" className="kid-collection-link" to={`/play/${childId}/collection`}>
+            🏆 {t('play.collectionTitle')}
+          </Link>
+        </section>
+
+        <aside className="kid-side-stack" data-testid="kid-side">
+          {/* 任务列表（完成接线在 Task 11 加，本 task 仅渲染） */}
+          <section className="kid-tasks">
+            {board.isLoading ? (
+              <div className="kid-center">{t('play.loading')}</div>
+            ) : board.data?.isRestDay ? (
+              <div className="kid-rest">{t('play.restDay')}</div>
+            ) : (
+              board.data?.tasks.map((task) => (
+                <div key={task.id} data-testid={`task-${task.id}`} className={`kid-task ${task.countsAsCompleted ? 'is-done' : ''}`}>
+                  <div className="kid-task-main">
+                    <div className="kid-task-title">{task.title}</div>
+                    {task.subject && <div className="kid-task-subject">{task.subject}</div>}
+                  </div>
+                  <button
+                    type="button"
+                    data-testid={`task-toggle-${task.id}`}
+                    className="kid-task-state"
+                    disabled={complete.isPending || uncomplete.isPending}
+                    onClick={() => toggleTask(task.id, task.countsAsCompleted)}
+                  >
+                    {task.countsAsCompleted ? t('play.done') : t('play.goComplete')}
+                  </button>
+                </div>
+              ))
+            )}
+          </section>
+
+          {journey.petSpeciesId && (
+            <Backpack childId={childId} journeyId={journey.id} onFeed={onFeed} disabled={feed.isPending} />
+          )}
+        </aside>
+      </div>
     </div>
   )
 }
