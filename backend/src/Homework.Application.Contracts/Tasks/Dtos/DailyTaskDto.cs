@@ -20,6 +20,14 @@ public class DailyTaskDto : EntityDto<Guid>
     public Guid JourneyId { get; set; }
     public Guid? RewardItemId { get; set; }
     public bool RewardGranted { get; set; }
+
+    /// <summary>
+    /// 以下三个奖励展示字段(RewardName / RewardGlyph / RewardIconUrl)只由看板端点
+    /// (GetDailyBoardAsync)反范式化填充；任务变更类接口(CompleteTaskAsync /
+    /// UncompleteTaskAsync,以及家长端 DailyTaskAppService 的看板/新建/更新等路径)
+    /// 返回的同一个 DTO 里这三个字段始终为 null。消费方要拿奖励名必须去看板取,
+    /// 不能从变更接口的返回值里读。
+    /// </summary>
     public string? RewardName { get; set; }
     public string? RewardGlyph { get; set; }
     public string? RewardIconUrl { get; set; }

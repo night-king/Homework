@@ -308,22 +308,28 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
 
         using (_principal.Change(Parent(pid)))
         {
-            // 先把周一的任务真实生成出来(走 GetDailyBoardAsync,而不是手插数据)
-            await _service.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+            // 先把周一的任务真实生成出来(走 GetDailyBoardAsync,而不是手插数据),并全部做完
+            var board = await _service.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+            foreach (var t in board.Tasks)
+            {
+                await _service.CompleteTaskAsync(childId, t.Id);
+            }
 
             var strip = await _service.GetWeekStripAsync(new GetWeekStripInput { ChildId = childId, WeekStart = monday });
 
             strip.Days.Count.ShouldBe(7);
-            // 周一:已生成 —— 走真实任务计数那条路径
+            // 周一:已生成、全部做完 —— 走真实任务计数那条路径,吃饱
             strip.Days[0].TasksTotal.ShouldBe(1);
-            strip.Days[0].TasksCompleted.ShouldBe(0);
+            strip.Days[0].TasksCompleted.ShouldBe(1);
             strip.Days[0].IsRestDay.ShouldBeFalse();
+            strip.Days[0].IsFull.ShouldBeTrue();
             // 周二:未生成、也没模板 —— 休息日
             strip.Days[1].IsRestDay.ShouldBeTrue();
-            // 周三:未生成、但有模板 —— 回退模板计数,完成数为 0
+            // 周三:未生成、但有模板 —— 回退模板计数,完成数为 0,没吃饱(反极性:防止 IsFull 被硬编码成 true)
             strip.Days[2].TasksTotal.ShouldBe(1);
             strip.Days[2].TasksCompleted.ShouldBe(0);
             strip.Days[2].IsRestDay.ShouldBeFalse();
+            strip.Days[2].IsFull.ShouldBeFalse();
         }
 
         // 周三这天应该仍然一行任务都没被生成
@@ -332,6 +338,33 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
         var generatedOnWednesday = await WithUnitOfWorkAsync(async () =>
             await taskRepo.CountAsync(t => t.ChildId == childId && t.Date == wednesday));
         generatedOnWednesday.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// spec 明令:没有 active 旅程的孩子,周条必须是「全休息日 + 全零计数 + 连胜 0」,
+    /// 不许报错、不许留白——这正是前端首次打开 app 会撞到的状态。
+    /// 之前只在生成器层(ReadRange_No_Active_Journey_Is_All_Rest_Days)验过,
+    /// 端点层(GetWeekStripAsync)从没被单独断言过。
+    /// </summary>
+    [Fact]
+    public async Task WeekStrip_No_Active_Journey_Is_All_Rest_Days_And_Zero_Streak()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var today = DateOnly.FromDateTime(GetRequiredService<IClock>().Now);
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var strip = await _service.GetWeekStripAsync(
+                new GetWeekStripInput { ChildId = childId, WeekStart = today });
+
+            strip.Days.Count.ShouldBe(7);
+            strip.Days.ShouldAllBe(d => d.IsRestDay);
+            strip.Days.ShouldAllBe(d => d.TasksTotal == 0);
+            strip.Days.ShouldAllBe(d => d.TasksCompleted == 0);
+            strip.Days.ShouldAllBe(d => !d.IsFull);
+            strip.Streak.ShouldBe(0);
+        }
     }
 
     [Fact]
