@@ -205,4 +205,102 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
             board.Tasks[0].EstimatedMinutes.ShouldBe(25);
         }
     }
+
+    [Fact]
+    public async Task WeekStrip_Reports_Seven_Days_And_Generates_Nothing_For_Future()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var monday = new DateOnly(2026, 7, 6);
+        await SeedStartedJourneyAsync(pid, childId, monday, (DayOfWeek.Monday, "语文", null, null));
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var strip = await _service.GetWeekStripAsync(new GetWeekStripInput { ChildId = childId, WeekStart = monday });
+
+            strip.Days.Count.ShouldBe(7);
+            strip.Days[0].Date.ShouldBe(monday);
+            strip.Days[6].Date.ShouldBe(monday.AddDays(6));
+            strip.Days[0].IsRestDay.ShouldBeFalse();      // 周一有模板
+            strip.Days[0].TasksTotal.ShouldBe(1);
+            strip.Days[1].IsRestDay.ShouldBeTrue();       // 只种了周一模板
+        }
+
+        // spec §103 的不变量:看了周条,一行未来任务都不许被生成出来
+        var taskRepo = GetRequiredService<IRepository<DailyTask, Guid>>();
+        var generated = await WithUnitOfWorkAsync(async () => await taskRepo.CountAsync(t => t.ChildId == childId));
+        generated.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task WeekStrip_Mixed_Range_Resolves_Generated_And_Ungenerated_Days_In_One_Call()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var monday = new DateOnly(2026, 7, 6);
+        // 周一、周三都有模板；周一会被提前生成任务,周三留着不生成
+        await SeedStartedJourneyAsync(pid, childId, monday,
+            (DayOfWeek.Monday, "语文", null, null),
+            (DayOfWeek.Wednesday, "数学", null, null));
+
+        using (_principal.Change(Parent(pid)))
+        {
+            // 先把周一的任务真实生成出来(走 GetDailyBoardAsync,而不是手插数据)
+            await _service.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+
+            var strip = await _service.GetWeekStripAsync(new GetWeekStripInput { ChildId = childId, WeekStart = monday });
+
+            strip.Days.Count.ShouldBe(7);
+            // 周一:已生成 —— 走真实任务计数那条路径
+            strip.Days[0].TasksTotal.ShouldBe(1);
+            strip.Days[0].TasksCompleted.ShouldBe(0);
+            strip.Days[0].IsRestDay.ShouldBeFalse();
+            // 周二:未生成、也没模板 —— 休息日
+            strip.Days[1].IsRestDay.ShouldBeTrue();
+            // 周三:未生成、但有模板 —— 回退模板计数,完成数为 0
+            strip.Days[2].TasksTotal.ShouldBe(1);
+            strip.Days[2].TasksCompleted.ShouldBe(0);
+            strip.Days[2].IsRestDay.ShouldBeFalse();
+        }
+
+        // 周三这天应该仍然一行任务都没被生成
+        var taskRepo = GetRequiredService<IRepository<DailyTask, Guid>>();
+        var wednesday = monday.AddDays(2);
+        var generatedOnWednesday = await WithUnitOfWorkAsync(async () =>
+            await taskRepo.CountAsync(t => t.ChildId == childId && t.Date == wednesday));
+        generatedOnWednesday.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task DailyBoard_Carries_Reward_Name_Even_When_Reward_Later_Deactivated()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var monday = new DateOnly(2026, 7, 6);
+        await SeedStartedJourneyAsync(pid, childId, monday, (DayOfWeek.Monday, "数学作业本", "math", 25));
+
+        Guid rewardItemId;
+        using (_principal.Change(Parent(pid)))
+        {
+            var board = await _service.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+            var withReward = board.Tasks.First(t => t.RewardItemId != null);
+            rewardItemId = withReward.RewardItemId!.Value;
+        }
+
+        // 奖励已经分配给任务之后再下架 —— 图鉴后台可以随时下架奖励项,
+        // 但已经发出去、卡片上要继续显示名字的历史任务不该跟着消失
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var reward = await _rewardRepo.GetAsync(rewardItemId);
+            reward.Deactivate();
+            await _rewardRepo.UpdateAsync(reward, autoSave: true);
+        });
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var board = await _service.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+            var task = board.Tasks.First(t => t.RewardItemId == rewardItemId);
+            task.RewardName.ShouldNotBeNullOrWhiteSpace();
+        }
+    }
 }

@@ -125,6 +125,29 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
         };
     }
 
+    /// <summary>
+    /// 周条七天状态。<b>刻意不调 EnsureDayAsync/SettleDayAsync</b>——那会把未来日的任务
+    /// 提前生成出来（spec §103 明令禁止）。数据全部由 ReadRangeAsync 纯读推导。
+    /// </summary>
+    public async Task<WeekStripDto> GetWeekStripAsync(GetWeekStripInput input)
+    {
+        await _childManager.EnsureChildOwnedAsync(input.ChildId);
+
+        var days = await _generator.ReadRangeAsync(input.ChildId, input.WeekStart, input.WeekStart.AddDays(6));
+
+        return new WeekStripDto
+        {
+            Days = days.Select(d => new WeekDayDto
+            {
+                Date = d.Date,
+                IsRestDay = d.IsRestDay,
+                TasksTotal = d.TasksTotal,
+                TasksCompleted = d.TasksCompleted,
+                IsFull = d.IsFull,
+            }).ToList(),
+        };
+    }
+
     public async Task<ListResultDto<BackpackItemDto>> GetBackpackAsync(Guid childId, Guid journeyId)
     {
         await _childManager.EnsureChildOwnedAsync(childId);

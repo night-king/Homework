@@ -12,6 +12,7 @@ public interface IJourneyPlayAppService : IApplicationService
     Task<JourneyDto?> GetActiveAsync(Guid childId);
     Task<JourneyDto> StartAsync(StartJourneyDto input);
     Task<DailyBoardDto> GetDailyBoardAsync(GetDailyBoardInput input);
+    Task<WeekStripDto> GetWeekStripAsync(GetWeekStripInput input);
     Task<ListResultDto<BackpackItemDto>> GetBackpackAsync(Guid childId, Guid journeyId);
     Task<ListResultDto<CollectionEntryDto>> GetCollectionAsync(Guid childId);
     Task<DailyTaskDto> CompleteTaskAsync(Guid childId, Guid taskId);
