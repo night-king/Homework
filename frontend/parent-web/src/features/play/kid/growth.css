@@ -1,0 +1,264 @@
+/* 成长槽面板：对照 child-web-prototype/child-homepage.html 移植(选择器改 kid-* 前缀，收进 .kid-shell，声明逐字保留)：
+   - .bottom-growth-panel(897–934) → .kid-growth-panel
+   - .bottom-growth-main(936–941) → .kid-growth-main
+   - .pet-growth-head(943–948) → .kid-growth-head
+   - .pet-growth-title(950–956) → .kid-growth-title
+   - .bottom-growth-copy(964–969) → .kid-growth-copy
+   - .bottom-growth-side(1613–1620) → .kid-growth-side
+   - .growth-track(1543–1567，含 ::before) → .kid-growth-track
+   - .growth-fill(1569–1595，含 .is-pulsing / ::after) → .kid-growth-fill
+   - .growth-stats(1597–1605) → .kid-growth-stats
+   - .mini-badges(1607–1611) → .kid-mini-badges
+   - .mini-badge(1622–1629) → .kid-mini-badge
+   - .mini-badge-label(1630–1636) → .kid-mini-badge-label
+   - .mini-badge-value(1637–1642) → .kid-mini-badge-value
+   - .growth-gallery-link(806–836，含 ::after / :hover / :focus-visible) → .kid-growth-gallery-link
+   - 断点 760px(2426–2433)
+   - keyframes rail-pulse(1166–1185)
+
+   .mini-badge 有第二处定义(2322–2330)，源码序在后、同选择器特异性，会在真实级联中
+   覆盖 1622–1629 里同名属性(仅 padding 重叠)，同时补上 1622–1629 没有的
+   border-radius/background/border/font-size/font-weight/color——本文件按级联结果合并成一条
+   .kid-mini-badge，而不是只搬 1622–1629(那只是级联前的半成品，不是原型实际渲染效果)。 */
+
+.kid-shell .kid-growth-panel {
+  margin-top: 14px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: minmax(320px, 1.4fr) minmax(180px, 0.6fr);
+  gap: 18px;
+  align-items: center;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(255, 249, 231, 0.96), rgba(255, 229, 178, 0.94) 48%, rgba(255, 241, 212, 0.96)),
+    radial-gradient(circle at 18% 12%, rgba(255, 202, 90, 0.32), transparent 30%),
+    radial-gradient(circle at 84% 88%, rgba(33, 212, 186, 0.18), transparent 26%);
+  border: 1px solid rgba(255, 201, 117, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 18px 34px rgba(145, 78, 9, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.kid-shell .kid-growth-panel::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 246, 213, 0.54);
+  pointer-events: none;
+}
+
+.kid-shell .kid-growth-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(110deg, transparent 0 22%, rgba(255, 255, 255, 0.2) 22% 28%, transparent 28% 58%, rgba(255, 145, 43, 0.12) 58% 64%, transparent 64% 100%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.kid-shell .kid-growth-main {
+  display: grid;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.kid-shell .kid-growth-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.kid-shell .kid-growth-title {
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a24e09;
+}
+
+.kid-shell .kid-growth-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.kid-shell .kid-growth-track {
+  height: 22px;
+  border-radius: 999px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(134, 77, 21, 0.28), rgba(255, 255, 255, 0.28)),
+    rgba(255, 250, 236, 0.82);
+  border: 1px solid rgba(255, 220, 158, 0.84);
+  box-shadow:
+    inset 0 3px 8px rgba(96, 66, 32, 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.72),
+    0 8px 18px rgba(255, 167, 58, 0.14);
+  position: relative;
+}
+
+.kid-shell .kid-growth-track::before {
+  content: "";
+  position: absolute;
+  inset: 3px 8px;
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 175, 53, 0.22) 0 10px, transparent 10px 22px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.kid-shell .kid-growth-fill {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, #ff842f 0%, #ffb743 26%, #ffe16b 58%, #23d8bf 100%);
+  transition: width 180ms ease;
+  position: relative;
+  box-shadow:
+    0 0 18px rgba(255, 188, 77, 0.28),
+    inset 0 0 14px rgba(255, 255, 255, 0.24);
+}
+
+.kid-shell .kid-growth-fill.is-pulsing {
+  animation: rail-pulse 560ms ease-out;
+}
+
+.kid-shell .kid-growth-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 8px;
+  bottom: 0;
+  width: 22px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.64), transparent);
+  opacity: 0.75;
+}
+
+.kid-shell .kid-growth-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 0.92rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.kid-shell .kid-mini-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kid-shell .kid-growth-side {
+  display: grid;
+  justify-items: end;
+  align-content: start;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 合并 1622–1629 与其覆盖定义 2322–2330(见文件头说明) */
+.kid-shell .kid-mini-badge {
+  min-width: 86px;
+  padding: 8px 12px;
+  display: inline-grid;
+  gap: 2px;
+  justify-items: start;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  font-size: 0.84rem;
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.kid-shell .kid-mini-badge-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(111, 98, 86, 0.9);
+}
+
+.kid-shell .kid-mini-badge-value {
+  font-size: 1.02rem;
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.kid-shell .kid-growth-gallery-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #7a531a;
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.kid-shell .kid-growth-gallery-link::after {
+  content: "→";
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.kid-shell .kid-growth-gallery-link:hover,
+.kid-shell .kid-growth-gallery-link:focus-visible {
+  transform: translateX(2px);
+  color: #28447f;
+}
+
+.kid-shell .kid-growth-gallery-link:focus-visible {
+  outline: 2px solid rgba(255, 217, 112, 0.9);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+@keyframes rail-pulse {
+  0% {
+    filter: brightness(1);
+    box-shadow:
+      0 0 18px rgba(255, 188, 77, 0.28),
+      inset 0 0 14px rgba(255, 255, 255, 0.24);
+  }
+  40% {
+    filter: brightness(1.18);
+    box-shadow:
+      0 0 30px rgba(255, 188, 77, 0.42),
+      inset 0 0 20px rgba(255, 255, 255, 0.38);
+  }
+  100% {
+    filter: brightness(1);
+    box-shadow:
+      0 0 18px rgba(255, 188, 77, 0.28),
+      inset 0 0 14px rgba(255, 255, 255, 0.24);
+  }
+}
+
+@media (max-width: 760px) {
+  /* 原型 2426–2433 */
+  .kid-shell .kid-growth-panel {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .kid-shell .kid-growth-side {
+    justify-items: start;
+  }
+}

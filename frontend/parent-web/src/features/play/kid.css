@@ -3,6 +3,7 @@
 @import './kid/daystrip.css';
 @import './kid/topbar.css';
 @import './kid/stage.css';
+@import './kid/growth.css';
 
 /* 孩子端全屏沉浸底座；视觉细节可对照 child-web-prototype/child-homepage.html 的 :root/.app-shell */
 .kid-shell {
@@ -29,9 +30,6 @@
 .kid-stage { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .kid-pet { width: 180px; height: 180px; object-fit: contain; transition: transform .3s; }
 .kid-pet-fallback { display: grid; place-items: center; font-size: 5rem; }
-.kid-growth { width: 240px; height: 14px; border-radius: 999px; background: rgba(255,255,255,0.6); overflow: hidden; }
-.kid-growth-fill { height: 100%; background: linear-gradient(90deg,#ffca5f,#ff8a3d); transition: width .4s; }
-.kid-growth-label { font-size: .85rem; color: #7a4a1e; }
 .kid-stats { display: flex; justify-content: center; gap: 20px; font-weight: 700; color: #7a4a1e; }
 .kid-tasks { display: flex; flex-direction: column; gap: 10px; }
 .kid-task { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.85); }

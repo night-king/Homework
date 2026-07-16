@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { usePlayBoard, useActivePetSpecies, usePlayMutations, useWeekStrip } from '@/hooks/usePlay'
-import { currentForm, growthRatio } from './petStage'
+import { currentForm } from './petStage'
 import { Backpack } from './Backpack'
 import { KidTopBar } from './KidTopBar'
 import { PetStage } from './PetStage.tsx'
+import { GrowthPanel } from './GrowthPanel'
 import type { JourneyDto, FeedResultDto, BackpackItemDto } from '@/types/homework'
 
 // 本地日期 YYYY-MM-DD（不带时区）
@@ -44,7 +45,7 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
 
   const mySpecies = (species.data ?? []).find((s) => s.id === journey.petSpeciesId)
   const form = currentForm(mySpecies, journey.currentLevel)
-  const ratio = growthRatio(journey, form)
+  const nextForm = currentForm(mySpecies, journey.currentLevel + 1)
 
   const toggleTask = (taskId: string, done: boolean) => {
     if (done) {
@@ -76,11 +77,7 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
           {/* 宠物舞台：氛围层 + LV 横幅 + 形态名 + 精灵图(或蛋兜底) */}
           <PetStage form={form} level={journey.currentLevel} />
 
-          {/* 成长条：暂留在 kid-main，Task 7 抽进 GrowthPanel */}
-          <div className="kid-growth">
-            <div data-testid="growth-bar" className="kid-growth-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
-          </div>
-          <div className="kid-growth-label">{t('play.growth')} {journey.growthPoints}{form?.growthToNext ? ` / ${form.growthToNext}` : ''}</div>
+          <GrowthPanel growthPoints={journey.growthPoints} form={form} nextForm={nextForm} />
 
           <Link data-testid="open-collection" className="kid-collection-link" to={`/play/${childId}/collection`}>
             🏆 {t('play.collectionTitle')}
