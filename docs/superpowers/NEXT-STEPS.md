@@ -156,7 +156,17 @@
 - **本轮抓修的关键坑**（jsdom 结构上看不见，评审用无头 Chromium 渲染才发现）：CSS 层叠 bug（旧橙背景在 import 后仍赢 / 旧 `.kid-board{max-width:640px}` 把两栏挤成 640px）；终审用**完整组装渲染**抓到 stage/quest/supply 三面板 `padding=0`（单任务隔离渲染看不见,内容贴 30px 圆角边框）；Windows `PetStage.tsx` vs `petStage.ts` 大小写孪生解析陷阱；`.mini-badge` 漏搬第二条覆盖规则。
 - **本轮遗留（Plan 3 或后续）**：`childName` 显旅程标题非孩子真名（需 children query）；`.kid-feed-button` 死 CSS（Plan 3 加喂按钮）；点道具即喂 vs 原型选道具+喂按钮（产品定）；「获得 喂养！」toast 文案（base 就有，非本轮）；死 legacy CSS 清扫。
 
-**Plan 3/3 —— 投掷动画 + 伙伴图鉴 —— 未开始**，照本分支已落地的部件结构开工（投掷落点在 `PetStage`、图鉴入口 `open-codex` 已在 `GrowthPanel` 占位）。
+**Plan 3/3 —— 投掷动画 + 伙伴图鉴 ✅ 已完成（分支 HEAD `5b7d6c1`，opus 终审 READY FOR SCREENSHOT）**
+- [x] **喂养投掷动画**：`feedProjectile.ts` 真几何飞行——取源道具卡 rect + 宠物落点 rect（`PetStage` 转发 `petRef` 到 `.kid-pet-core`），克隆 `.kid-flying-drop` 挂 `document.body`，两帧后切 `is-flying` 触发 CSS transition，~780ms 清理。瞄准点 56%/34% 对齐原型。喂养请求**并行不阻塞**（`onFeed` 先 `launchFeedProjectile`(try/catch) 再照常 `feed.mutate`）。CSS 逐字搬原型 `.flying-drop`(1644-1668)。真机渲染核对：点道具产出飞行体、`--fly-x:441.6px`。
+- [x] **伙伴图鉴 `PetCodex` modal**：`GrowthPanel` 的 `open-codex` 接上，`DailyBoard` 建 `codexOpen` 状态渲染。从当前物种 `forms[]` 渲染五阶卡，**按等级门控锁态**（`level<=currentLevel` 显真身，`>` 显未揭示态锁+???）——原型 rail 其实没做锁态（尽管文案说"未解锁保持神秘"），这里**复活 purpose-built 但没接线的死 CSS**（`.evolution-card`/`state`/`lock`）补齐 spec §110 意图。modal 外壳逐字搬原型 1670-1743 + 2290-2320。真机渲染核对：五阶 rail、锁阶显 ?、当前阶高亮。
+- [x] i18n 13 键（zh+en）；全量 153 测试 + typecheck + build 全绿；四红线（满级 hoist / feed 三失效目标 / 连点守卫 / onFeedResult）终审 git diff 确认全 HOLD。
+- **终审登记的跟进项（非阻塞）**：投掷体 `z-index:80`（挂 body）会画在进化过场 `.kid-evo`（`z-index:40`，在 `.kid-shell` 栈上下文内）之上——仅"喂养触发进化/满级"那一次、瞬态 780ms、`pointer-events:none`，正常截图时已飞走。修法需调 z-index 栈架构（把飞行体挂进 `.kid-shell` 并给低于过场的 z，或抬高过场 z）。`childName` 显旅程标题非孩子真名（需 children query，Plan 2 起就挂着）。`.kid-feed-button` 死 CSS + 点道具即喂 vs 原型选道具+喂按钮（产品定）。
+
+---
+
+### 2.6 三份计划全部完成 —— 孩子端看板照原型全量移植收官
+
+`feat/child-board-prototype-port` 分支含 Plan 1（后端数据缺口）+ Plan 2（设计系统+结构移植）+ Plan 3（投掷动画+伙伴图鉴），共 40+ 提交,已推 origin，**未合并 main**（待创始人定）。三份计划各自 opus 终审通过。后端 Domain 56 / EFCore 75，前端 153 测试全绿。创始人已对 Plan 2 的看板视觉验收通过（並反馈修了收藏墙入口）。Plan 3 待创始人看投掷 + 图鉴。
 
 ---
 
