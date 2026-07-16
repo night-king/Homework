@@ -23,9 +23,9 @@ export function launchFeedProjectile(
 
   const sx = s.left + s.width / 2
   const sy = s.top + s.height / 2
-  // 瞄准落点内 50%/42% 的点(略偏上,贴近宠物"嘴")——与原型一致
-  const dx = t.left + t.width * 0.5 - sx
-  const dy = t.top + t.height * 0.42 - sy
+  // 瞄准落点内 56%/34% 的点(略偏右上,贴近宠物"嘴")——与原型一致(child-homepage.html:4236-4237)
+  const dx = t.left + t.width * 0.56 - sx
+  const dy = t.top + t.height * 0.34 - sy
   fly.style.left = `${sx}px`
   fly.style.top = `${sy}px`
   fly.style.setProperty('--fly-x', `${dx}px`)
