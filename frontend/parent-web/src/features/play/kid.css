@@ -14,58 +14,57 @@
   overflow: auto;
   font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
 }
-.kid-center { display: grid; place-items: center; font-size: 1.25rem; color: #7a4a1e; }
+.kid-center { display: grid; place-items: center; font-size: 1.25rem; color: var(--ink); }
 .kid-exit {
   position: absolute; top: 12px; left: 12px; z-index: 20;
   padding: 6px 12px; border: none; border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6); color: #7a4a1e; font-size: 0.85rem; cursor: pointer;
+  background: rgba(255, 255, 255, 0.6); color: var(--ink); font-size: 0.85rem; cursor: pointer;
 }
 .kid-pick { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 48px 16px; }
-.kid-pick-title { font-size: 2rem; font-weight: 800; color: #7a4a1e; }
+.kid-pick-title { font-size: 2rem; font-weight: 800; color: var(--ink); }
 .kid-pick-grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
-.kid-pick-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 32px; border: none; border-radius: 24px; background: rgba(255,255,255,0.8); box-shadow: 0 8px 24px rgba(0,0,0,0.12); cursor: pointer; transition: transform .12s; }
+.kid-pick-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 32px; border: 1px solid var(--line); border-radius: var(--radius-xl); background: var(--paper); box-shadow: var(--shadow-md); cursor: pointer; transition: transform .12s; }
 .kid-pick-card:hover { transform: translateY(-4px) scale(1.03); }
 .kid-pick-avatar { font-size: 3.5rem; }
-.kid-pick-name { font-size: 1.1rem; font-weight: 700; color: #5a3512; }
+.kid-pick-name { font-size: 1.1rem; font-weight: 700; color: var(--ink); }
 .kid-pick-cover { width: 120px; height: 120px; object-fit: contain; }
 
 .kid-stage { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .kid-pet { width: 180px; height: 180px; object-fit: contain; transition: transform .3s; }
 .kid-pet-fallback { display: grid; place-items: center; font-size: 5rem; }
-.kid-stats { display: flex; justify-content: center; gap: 20px; font-weight: 700; color: #7a4a1e; }
 .kid-tasks { display: flex; flex-direction: column; gap: 10px; }
-.kid-task { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.85); }
+.kid-task { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: var(--radius-md); background: var(--paper); }
 .kid-task.is-done { opacity: .6; }
-.kid-task-title { font-weight: 700; color: #4a2e12; }
-.kid-task-subject { font-size: .8rem; color: #a0714a; }
-.kid-task-state { font-size: .85rem; font-weight: 700; color: #ff7a37; }
-.kid-rest { text-align: center; padding: 24px; color: #7a4a1e; }
+.kid-task-title { font-weight: 700; color: var(--ink); }
+.kid-task-subject { font-size: .8rem; color: var(--muted); }
+.kid-task-state { font-size: .85rem; font-weight: 700; color: var(--brand); }
+.kid-rest { text-align: center; padding: 24px; color: var(--ink); }
 
 .kid-evo { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; gap: 16px; background: rgba(20,10,0,0.72); }
 .kid-evo-card { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #fff; text-align: center; padding: 24px; }
-.kid-evo-video { width: min(90vw, 480px); border-radius: 16px; }
+.kid-evo-video { width: min(90vw, 480px); border-radius: var(--radius-md); }
 .kid-evo-emoji { font-size: 4rem; }
 .kid-evo-reveal { font-size: 1.1rem; font-weight: 700; }
 .kid-evo-flash { animation: kidEvoFlash 1.2s ease-in-out; }
 @keyframes kidEvoFlash { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.15); filter: brightness(1.8); } }
-.kid-evo-close { padding: 8px 20px; border: none; border-radius: 999px; background: #fff; color: #7a4a1e; font-weight: 700; cursor: pointer; }
+.kid-evo-close { padding: 8px 20px; border: none; border-radius: 999px; background: #fff; color: var(--ink); font-weight: 700; cursor: pointer; }
 
 .kid-collection-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
-.kid-collection-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px; border-radius: 18px; background: rgba(255,255,255,0.88); width: 160px; }
+.kid-collection-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px; border-radius: var(--radius-lg); background: var(--paper); width: 160px; }
 .kid-collection-pet { width: 100px; height: 100px; object-fit: contain; }
-.kid-collection-title { font-weight: 700; color: #4a2e12; }
-.kid-collection-medal { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: #7a4a1e; }
+.kid-collection-title { font-weight: 700; color: var(--ink); }
+.kid-collection-medal { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); }
 .kid-collection-medal-img { width: 28px; height: 28px; object-fit: contain; }
-.kid-collection-link { align-self: center; color: #7a4a1e; font-weight: 700; text-decoration: none; }
+.kid-collection-link { align-self: center; color: var(--brand-deep); font-weight: 700; text-decoration: none; }
 
 /* .kid-center 是内容高，撑满一屏 align-content 才生效——满级这屏值得居中。
    min-height:100% 依赖 .kid-shell 的 position:fixed;inset:0，与 .kid-pick 同法 */
 .kid-completed { min-height: 100%; align-content: center; gap: 12px; text-align: center; }
 .kid-completed-pet { width: min(52vw, 220px); height: min(52vw, 220px); object-fit: contain; animation: kidCompletedPop .6s ease-out; }
 @keyframes kidCompletedPop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
-.kid-completed-journey { font-weight: 800; color: #4a2e12; }
-.kid-completed-medal { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #7a4a1e; }
+.kid-completed-journey { font-weight: 800; color: var(--ink); }
+.kid-completed-medal { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--muted); }
 .kid-completed-medal-img { width: 40px; height: 40px; object-fit: contain; }
 .kid-completed-medal-glyph { font-size: 2rem; }
-.kid-completed-cta { padding: 10px 24px; border-radius: 999px; background: #ff7a37; color: #fff; font-weight: 800; text-decoration: none; }
-.kid-completed-dismiss { padding: 8px 20px; border: none; border-radius: 999px; background: rgba(255,255,255,0.85); color: #7a4a1e; font-weight: 700; cursor: pointer; }
+.kid-completed-cta { padding: 10px 24px; border-radius: 999px; background: var(--brand); color: #fff; font-weight: 800; text-decoration: none; }
+.kid-completed-dismiss { padding: 8px 20px; border: none; border-radius: 999px; background: rgba(255,255,255,0.85); color: var(--ink); font-weight: 700; cursor: pointer; }
