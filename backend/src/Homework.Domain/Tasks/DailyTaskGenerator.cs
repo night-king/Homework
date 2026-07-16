@@ -93,8 +93,10 @@ public class DailyTaskGenerator : DomainService
     /// <summary>
     /// 批量读区间内每天的任务态势。<b>纯读，绝不生成任务</b>——周条要靠它显示未来日状态，
     /// 一旦调 EnsureDay 就会提前把未来任务生成出来（spec §103 明令禁止）。
-    /// 整个区间只发两条查询（区间内全部任务 + 该旅程全部 active 模板），
-    /// 连续完成要扫 90 天，逐天查询会变成 180 次往返。
+    /// 查询数量有上限且与区间天数无关，不会逐天发：区间内每天都已有任务行时只发一条查询
+    /// （任务表）；只要有一天还没生成任务，才会再补发旅程查询、模板查询各一条——整个区间共用，
+    /// 不会因为缺档天数变多而增加。连续完成要扫 90 天，这保证了热路径（单日已生成）只有 1 次
+    /// 往返，SettleDayAsync 委托到这里时不会退化成 2~3 次往返。
     /// </summary>
     public async Task<List<DayStatus>> ReadRangeAsync(Guid childId, DateOnly from, DateOnly to)
     {
@@ -110,17 +112,26 @@ public class DailyTaskGenerator : DomainService
             g => g.Key,
             g => (Total: g.Count(), Completed: g.Count(x => x.CountsAsCompleted)));
 
-        var journey = await _journeyRepository.FirstOrDefaultAsync(
-            j => j.ChildId == childId && j.Status == JourneyStatus.Active);
+        // byDate 的 key 必是 [from, to] 的子集（查询已按此过滤）；
+        // 若其数量等于区间天数，则子集必等于全集，即每天都已有任务行 —— 无需再查旅程/模板。
+        var rangeDays = to.DayNumber - from.DayNumber + 1;
+        var hasGap = byDate.Count < rangeDays;
 
+        Journey? journey = null;
         var templateCountByDow = new Dictionary<DayOfWeek, int>();
-        if (journey != null)
+        if (hasGap)
         {
-            var journeyId = journey.Id;
-            var templates = await _templateRepository.GetListAsync(
-                t => t.JourneyId == journeyId && t.IsActive);
-            templateCountByDow = templates.GroupBy(t => t.DayOfWeek)
-                .ToDictionary(g => g.Key, g => g.Count());
+            journey = await _journeyRepository.FirstOrDefaultAsync(
+                j => j.ChildId == childId && j.Status == JourneyStatus.Active);
+
+            if (journey != null)
+            {
+                var journeyId = journey.Id;
+                var templates = await _templateRepository.GetListAsync(
+                    t => t.JourneyId == journeyId && t.IsActive);
+                templateCountByDow = templates.GroupBy(t => t.DayOfWeek)
+                    .ToDictionary(g => g.Key, g => g.Count());
+            }
         }
 
         for (var date = from; date <= to; date = date.AddDays(1))
