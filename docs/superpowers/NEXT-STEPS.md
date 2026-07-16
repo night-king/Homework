@@ -130,6 +130,25 @@
 - [ ] `FileUploadField` 的 `onUpload` 拒绝未在组件内 `catch`（mutation `onError` 仍会 toast，仅控制台 unhandled rejection）;视频分支 + 上传中禁用态无测试;视频「已上传」标记复用 `catalog.evolveVideo`（通用视频场景语义不贴）。
 - [ ] 未用 i18n 键 `catalog.noPermission`/`delete`/`missingCover`/`missingSprite`;上传 service 参数 `level: number` 可收紧为 `PetFormLevel`;表单 `<Label>` 未 `htmlFor` 关联;部分面板/弹窗测试偏薄（edit 预填/删除确认/上传接线未测）。
 
+### 2.5 孩子端每日看板原型全量移植 —— 进行中（分支 `feat/child-board-prototype-port`，未合并）
+
+**起因**：创始人打开孩子端，「和我的原型相去甚远」。核查属实——Phase 3B（§2.3）做了行为，**没做信息架构和视觉**：`kid.css` 76 行 vs 原型 `<style>` 3096 行；周条 / 投掷动画 / 伙伴图鉴 grep 全零命中；`kid.css` 第一行注释白纸黑字写着「视觉细节**可对照**原型」——留了句「回头照着看」然后没照着做。违反的是 3B 自己的规格 §103 / §143。设计规格 `specs/2026-07-16-child-board-prototype-port-design.md`，分三份计划执行（后端 / 设计系统+结构 / 动效+图鉴）。
+
+**Plan 1/3 —— 后端数据缺口 ✅ 已完成（分支 HEAD `16c06fc`，terminal 终审 READY TO MERGE，Domain 56 + EFCore 75 全绿）**
+- [x] **时长补上「模板→每日任务」那一跳**：`EstimatedMinutes` 一直在模板上、家长 wizard 也在填，但 `DailyTaskGenerator.EnsureDayAsync` 建 `DailyTask` 时**没传**，值到孩子端就蒸发。已补字段 + 构造函数末位可选参数 + 生成器传参 + DTO + EF 迁移（`20260716065740`，仅一列 nullable int）。存量任务为 null，不补数据。
+- [x] **奖励名进 `DailyTaskDto`**（`RewardName`/`RewardGlyph`/`RewardIconUrl`）：看板按 id **不过滤 IsActive** 批量 join（下架奖励仍显示名字；与 `BackpackItemDto` 同款反范式化）。**这不修复 §106 的「获得 喂养！」toast**——见下方新增遗留。
+- [x] **周条端点 `GetWeekStripAsync`**（7 天状态 + streak）：**绝不生成任务**（规格 §103 不变量），全走新的 `DailyTaskGenerator.ReadRangeAsync`（把私有逐天的 `ResolveDayTotalsAsync` 提成公开批量、两条查询覆盖整个区间、原方法委托回去保持规则单一来源）。测试直接断言调用后未来日 `DailyTask` 行数仍为 0。
+- [x] **连续完成接上 `StreakCalculator`**（此前完整实现+单测但**零调用**的死代码）：**有意绕开 `DailyScore` 账本**——账本无补档（`SettlePastDaysAsync` 实现了但生产零调用，孩子几天没开 app 就是几个洞，会被当休息日桥接、天数照涨）且删旅程后会变脏（见 §2.3b）。改由 `ReadRangeAsync` 从「模板+真实任务」当场合成无洞快照，`max(StartDate, today-90) … today` 封顶。
+- **与 §2.3b 的关系**：本 Plan **绕开**了 `DailyScore`，所以那条「删旅程后账本残留 → 接线后腐化」的隐患**仍潜伏、但不再在 streak 的读取路径上**。§2.3b 那条依然该修，只是不再被本功能逼到台前。
+
+**2.5a Plan 1 终审遗留（opus 整分支终审，非阻塞）**
+- [ ] **`DailyTaskDto` 奖励字段只有 `GetDailyBoardAsync` 填**，`CompleteTaskAsync`/`UncompleteTaskAsync` 及家长端 `DailyTaskAppService` 返回的同型 DTO 这三个字段**恒为 null**（已加 XML 注释警示）。**这正好是 §106「获得 喂养！」toast 的坑**：想当然地在 `complete.mutate` 的 `onSuccess` 里读 `dto.rewardName` 会拿到空。**Plan 2 必须**从 board 缓存读奖励名，**不要** `setQueryData`/乐观更新那三个字段。要么就把这几处产出方也填上（一次奖励查询，路径本来就有 3-4 次写）。
+- [ ] **后端 `today` 用服务器本地时区**（`_clock.Now`，未配 `AbpClockOptions` → `Kind=Unspecified` → 服务器本地时间）。本分支是**第一处**用时钟推导「日期」做业务判定（此前 `_clock.Now` 只戳 `CompletedTime`）。UTC 部署 + UTC+8 家庭，在当地 00:00–08:00 之间后端的 `today` 是家庭的「昨天」→ streak 会给昨天「今天进行中不断裂」的宽限而非断裂，08:00 自愈。上线前：服务器时区对齐家庭，或让端点收客户端日期。
+- [ ] **streak 每次调用扫最多 90 天**（两条查询，非按天 N+1）。当前规模无虞；旅程若拉长到数百天，与规格 §8 的缓存风险一起考虑。
+- [ ] Minor（won't-fix / 记录）：`DailyTask.SetEstimatedMinutes` 无调用方（为与模板对称而加）；`DailyTaskAppService.CreateAsync`（家长手动加任务）不收 `EstimatedMinutes`（模板外任务，无产品需求）；`SeedStartedJourneyAsync` 测试助手直接 `j.Start()` 绕过 `JourneyManager`（对看板/奖励断言安全，**不可**拿去撑喂养/进化测试）。
+
+**Plan 2/3（设计系统 + 结构移植）+ Plan 3/3（投掷动画 + 伙伴图鉴）—— 未开始**，照本分支已落地的真实 DTO 开工。
+
 ---
 
 ## 3. 第一期遗留技术债（Minor，建议并入第二期一起收）
