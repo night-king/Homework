@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { usePlayBoard, useActivePetSpecies, usePlayMutations, useWeekStrip } from '@/hooks/usePlay'
 import { currentForm } from './petStage'
-import { Backpack } from './Backpack'
+import { SupplyPanel } from './SupplyPanel'
 import { KidTopBar } from './KidTopBar'
 import { PetStage } from './PetStage.tsx'
 import { GrowthPanel } from './GrowthPanel'
@@ -94,7 +94,7 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
           />
 
           {journey.petSpeciesId && (
-            <Backpack childId={childId} journeyId={journey.id} onFeed={onFeed} disabled={feed.isPending} />
+            <SupplyPanel childId={childId} journeyId={journey.id} onFeed={onFeed} disabled={feed.isPending} />
           )}
         </aside>
       </div>

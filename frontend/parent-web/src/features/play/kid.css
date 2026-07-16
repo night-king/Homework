@@ -5,6 +5,7 @@
 @import './kid/stage.css';
 @import './kid/growth.css';
 @import './kid/tasks.css';
+@import './kid/supply.css';
 
 /* 孩子端全屏沉浸底座；视觉细节可对照 child-web-prototype/child-homepage.html 的 :root/.app-shell */
 .kid-shell {
@@ -39,15 +40,6 @@
 .kid-task-subject { font-size: .8rem; color: #a0714a; }
 .kid-task-state { font-size: .85rem; font-weight: 700; color: #ff7a37; }
 .kid-rest { text-align: center; padding: 24px; color: #7a4a1e; }
-
-.kid-backpack { display: flex; flex-direction: column; gap: 10px; }
-.kid-backpack-title { font-weight: 800; color: #7a4a1e; }
-.kid-backpack-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-.kid-backpack-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 14px; border: none; border-radius: 14px; background: rgba(255,255,255,0.85); cursor: pointer; }
-.kid-backpack-icon { width: 40px; height: 40px; object-fit: contain; }
-.kid-backpack-glyph { font-size: 2rem; }
-.kid-backpack-name { font-size: .8rem; color: #4a2e12; }
-.kid-backpack-qty { font-size: .75rem; font-weight: 700; color: #ff7a37; }
 
 .kid-evo { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; gap: 16px; background: rgba(20,10,0,0.72); }
 .kid-evo-card { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #fff; text-align: center; padding: 24px; }
