@@ -147,7 +147,16 @@
 - [ ] **streak 每次调用扫最多 90 天**（两条查询，非按天 N+1）。当前规模无虞；旅程若拉长到数百天，与规格 §8 的缓存风险一起考虑。
 - [ ] Minor（won't-fix / 记录）：`DailyTask.SetEstimatedMinutes` 无调用方（为与模板对称而加）；`DailyTaskAppService.CreateAsync`（家长手动加任务）不收 `EstimatedMinutes`（模板外任务，无产品需求）；`SeedStartedJourneyAsync` 测试助手直接 `j.Start()` 绕过 `JourneyManager`（对看板/奖励断言安全，**不可**拿去撑喂养/进化测试）。
 
-**Plan 2/3（设计系统 + 结构移植）+ Plan 3/3（投掷动画 + 伙伴图鉴）—— 未开始**，照本分支已落地的真实 DTO 开工。
+**Plan 2/3 —— 设计系统 + 结构移植 ✅ 已完成（分支 HEAD `b8ea005`，创始人视觉验收通过）**
+- [x] 数据层接 Plan 1（`WeekStripDto`/`useWeekStrip` + `DailyTaskDto` 加 `rewardName`/`estimatedMinutes`；勾任务失效 weekStrip）。
+- [x] `DailyBoard` 从 112 行单体拆成编排 + 8 部件：`KidTopBar`（头像 + 周条 + 三 stat-pill）、`DayStrip`（未来日锁/过去日补做）、`dayStatus` 纯函数（七态）、`PetStage`（氛围层 + LV 横幅）、`GrowthPanel`（%/成长值/「差 N 到 XX」/图鉴入口/Lv 徽章）、`QuestPanel`+`TaskCard`（学科色标签/时长/奖励名/大按钮）、`SupplyPanel`（由 Backpack 改造 + 显 growthValue）。
+- [x] 21 令牌搬上 `.kid-shell`（变量名不改）；各部件从原型对应 CSS 段整段搬（`kid/*.css`）；背景奶油渐入淡蓝；旧屏（PickPet/过场/收藏/完成）重刷令牌；补齐全部 i18n 键（zh+en）。
+- [x] 收藏墙入口（Phase 3B 加的，原型无）做成金色奖杯胶囊（创始人反馈「离太近、没样式」后修，`b8ea005`）。
+- [x] 前端 141 测试 + typecheck + build 全绿；后端 Domain 56 / EFCore 75。真机截图对比原型验收通过。
+- **本轮抓修的关键坑**（jsdom 结构上看不见，评审用无头 Chromium 渲染才发现）：CSS 层叠 bug（旧橙背景在 import 后仍赢 / 旧 `.kid-board{max-width:640px}` 把两栏挤成 640px）；终审用**完整组装渲染**抓到 stage/quest/supply 三面板 `padding=0`（单任务隔离渲染看不见,内容贴 30px 圆角边框）；Windows `PetStage.tsx` vs `petStage.ts` 大小写孪生解析陷阱；`.mini-badge` 漏搬第二条覆盖规则。
+- **本轮遗留（Plan 3 或后续）**：`childName` 显旅程标题非孩子真名（需 children query）；`.kid-feed-button` 死 CSS（Plan 3 加喂按钮）；点道具即喂 vs 原型选道具+喂按钮（产品定）；「获得 喂养！」toast 文案（base 就有，非本轮）；死 legacy CSS 清扫。
+
+**Plan 3/3 —— 投掷动画 + 伙伴图鉴 —— 未开始**，照本分支已落地的部件结构开工（投掷落点在 `PetStage`、图鉴入口 `open-codex` 已在 `GrowthPanel` 占位）。
 
 ---
 
