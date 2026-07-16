@@ -1,0 +1,249 @@
+/* 宠物舞台：氛围层(光环/底盘/能量环/彩带) + banner + core/mount。
+   对照 child-web-prototype/child-homepage.html 的行号移植(选择器改 kid-* 前缀，声明逐字保留)：
+   - .pet-stage(340–347) / .pet-wrap(349–381，含局部 --element-* 变量，本轮用原型默认值=火龙暖色)
+   - .pet-aura(383–393) / .pet-disc(395–403) / .pet-energy-ring(405–418)
+   - .pet-confetti(474–515)
+   - keyframes: aura-pulse(999–1009) / ring-spin(1125–1135) / confetti-rise(1152–1164)
+   - .pet-core(2473–2482) / .pet-stage-mount(2539–2547)（取自 760px 断点块，本轮直接当默认值用，跳过 .pet-3d-stage）
+   - .pet-stage-banner(2739–2755) / .pet-stage-level(2757–2771) / .pet-stage-hero-name(2773–2778)
+   跳过（详见 task-6-brief 的 SKIP-LIST）：说话气泡/mood tag/evolve 按钮与卡片/pet-feedback/
+   pet-action-row/所有 evo-* overlay/`[data-mode=...]` 驱动的氛围覆盖——本轮氛围是静态的。 */
+
+.kid-pet-stage {
+  margin-top: 6px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.kid-pet-wrap {
+  --element-main: #ffb85e;
+  --element-mid: #ff7c37;
+  --element-deep: #d94c18;
+  --element-soft: #fff0cb;
+  --element-accent: #ffd35d;
+  --element-glow: rgba(255, 196, 82, 0.54);
+  --element-glow-soft: rgba(255, 196, 82, 0.08);
+  --element-ring: rgba(255, 226, 164, 0.34);
+  --element-ring-shadow: rgba(255, 193, 84, 0.08);
+  --element-ring-bloom: rgba(255, 169, 54, 0.12);
+  --element-disc: rgba(73, 45, 18, 0.24);
+  --spark-light: rgba(255, 250, 199, 0.95);
+  --spark-deep: rgba(255, 193, 56, 0.85);
+  --spark-shadow: rgba(255, 196, 82, 0.4);
+  --wing-light: rgba(255, 236, 195, 0.9);
+  --wing-mid: rgba(255, 176, 71, 0.96);
+  --wing-deep: rgba(231, 90, 29, 0.98);
+  --armor-light: rgba(255, 240, 205, 0.96);
+  --armor-mid: rgba(255, 197, 77, 0.92);
+  --armor-deep: rgba(248, 103, 47, 0.94);
+  --element-ring-style: solid;
+  --element-ring-width: 2px;
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  min-height: 410px;
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 18px 0 10px;
+}
+
+.kid-pet-aura {
+  position: absolute;
+  width: 92%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--element-glow), var(--element-glow-soft) 58%, transparent 72%);
+  filter: blur(10px);
+  opacity: 0.9;
+  animation: aura-pulse 4.6s ease-in-out infinite;
+}
+
+.kid-pet-disc {
+  position: absolute;
+  bottom: 22px;
+  width: 76%;
+  height: 42px;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--element-disc), transparent 72%);
+  filter: blur(8px);
+}
+
+.kid-pet-energy-ring {
+  position: absolute;
+  inset: 88px 50px 44px;
+  border-radius: 50%;
+  border: var(--element-ring-width) var(--element-ring-style) var(--element-ring);
+  box-shadow:
+    0 0 0 10px var(--element-ring-shadow),
+    0 0 28px var(--element-ring-bloom);
+  opacity: 0.28;
+  transform: scale(0.94);
+  animation: ring-spin 10s linear infinite;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease, border-color 180ms ease;
+}
+
+.kid-pet-confetti {
+  position: absolute;
+  inset: 40px 74px 130px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.kid-pet-confetti span {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  opacity: 0;
+  background: linear-gradient(180deg, rgba(255, 247, 196, 0.96), rgba(255, 190, 67, 0.92));
+  box-shadow: 0 0 16px rgba(255, 193, 84, 0.24);
+}
+
+.kid-pet-confetti span:nth-child(1) {
+  left: 12%;
+  bottom: 4%;
+  animation-delay: -0.1s;
+}
+
+.kid-pet-confetti span:nth-child(2) {
+  left: 32%;
+  bottom: 18%;
+  background: linear-gradient(180deg, rgba(255, 178, 91, 0.96), rgba(255, 115, 44, 0.92));
+  animation-delay: 0.12s;
+}
+
+.kid-pet-confetti span:nth-child(3) {
+  right: 34%;
+  bottom: 10%;
+  background: linear-gradient(180deg, rgba(132, 232, 255, 0.96), rgba(47, 182, 227, 0.92));
+  animation-delay: 0.22s;
+}
+
+.kid-pet-confetti span:nth-child(4) {
+  right: 14%;
+  bottom: 24%;
+  animation-delay: 0.32s;
+}
+
+@keyframes aura-pulse {
+  0%,
+  100% {
+    transform: scale(0.98);
+    opacity: 0.82;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+@keyframes ring-spin {
+  0% {
+    transform: scale(0.94) rotate(0deg);
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+  }
+  100% {
+    transform: scale(0.94) rotate(360deg);
+  }
+}
+
+@keyframes confetti-rise {
+  0% {
+    transform: translateY(0) scale(0.72) rotate(0deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.94;
+  }
+  100% {
+    transform: translateY(-78px) scale(1) rotate(28deg);
+    opacity: 0;
+  }
+}
+
+.kid-pet-core {
+  width: min(100%, 460px);
+  height: clamp(300px, 34vw, 392px);
+  display: block;
+  position: relative;
+  transform: none;
+  animation: none;
+  filter: none;
+  will-change: transform;
+}
+
+.kid-pet-stage-mount {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.kid-pet-stage-banner {
+  position: absolute;
+  right: 0;
+  top: 10px;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  padding: 10px 14px;
+  min-width: 120px;
+  text-align: right;
+  border-radius: 20px;
+  background: rgba(255, 250, 239, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 24px rgba(92, 63, 23, 0.08);
+  backdrop-filter: blur(12px);
+  z-index: 3;
+}
+
+.kid-pet-stage-level {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 62px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 210, 128, 0.34);
+  color: #7a4a13;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 900;
+}
+
+.kid-pet-stage-hero-name {
+  font-size: 1.08rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #3b2617;
+}
+
+/* 精灵图/蛋兜底：新规则，非原型移植。
+   .kid-pet-fallback 类名与 kid.css 里旧 `.kid-stage` 区块的同名规则重名——
+   旧规则随 `.kid-stage` 一起变成死代码(DailyBoard 已不再渲染该区块)，但为避免
+   @import 顺序导致旧规则(同优先级、源码序更靠后)反而生效，这里用两级选择器
+   提高优先级，确保新舞台的样式生效。 */
+.kid-pet-sprite {
+  max-width: 100%;
+  height: auto;
+}
+
+.kid-pet-stage-mount .kid-pet-fallback {
+  display: grid;
+  place-items: center;
+  font-size: 5rem;
+}

@@ -6,6 +6,7 @@ import { usePlayBoard, useActivePetSpecies, usePlayMutations, useWeekStrip } fro
 import { currentForm, growthRatio } from './petStage'
 import { Backpack } from './Backpack'
 import { KidTopBar } from './KidTopBar'
+import { PetStage } from './PetStage.tsx'
 import type { JourneyDto, FeedResultDto, BackpackItemDto } from '@/types/homework'
 
 // 本地日期 YYYY-MM-DD（不带时区）
@@ -72,24 +73,14 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
       />
       <div className="kid-main-grid">
         <section className="kid-panel kid-stage-panel" data-testid="kid-main">
-          {/* 宠物舞台 */}
-          <section className="kid-stage">
-            {form?.spriteUrl ? (
-              <img
-                data-testid="pet-sprite"
-                className="kid-pet"
-                src={form.spriteUrl}
-                alt={form.name}
-                style={{ transform: `scale(${form.scale ?? 1})` }}
-              />
-            ) : (
-              <div data-testid="pet-sprite" className="kid-pet kid-pet-fallback">🥚</div>
-            )}
-            <div className="kid-growth">
-              <div data-testid="growth-bar" className="kid-growth-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
-            </div>
-            <div className="kid-growth-label">{t('play.growth')} {journey.growthPoints}{form?.growthToNext ? ` / ${form.growthToNext}` : ''}</div>
-          </section>
+          {/* 宠物舞台：氛围层 + LV 横幅 + 形态名 + 精灵图(或蛋兜底) */}
+          <PetStage form={form} level={journey.currentLevel} />
+
+          {/* 成长条：暂留在 kid-main，Task 7 抽进 GrowthPanel */}
+          <div className="kid-growth">
+            <div data-testid="growth-bar" className="kid-growth-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
+          </div>
+          <div className="kid-growth-label">{t('play.growth')} {journey.growthPoints}{form?.growthToNext ? ` / ${form.growthToNext}` : ''}</div>
 
           <Link data-testid="open-collection" className="kid-collection-link" to={`/play/${childId}/collection`}>
             🏆 {t('play.collectionTitle')}
