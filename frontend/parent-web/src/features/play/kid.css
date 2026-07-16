@@ -55,7 +55,31 @@
 .kid-collection-title { font-weight: 700; color: var(--ink); }
 .kid-collection-medal { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); }
 .kid-collection-medal-img { width: 28px; height: 28px; object-fit: contain; }
-.kid-collection-link { align-self: center; color: var(--brand-deep); font-weight: 700; text-decoration: none; }
+/* 收藏墙入口(Phase 3B 加的,原型无)——做成金色奖杯胶囊,居中、与上方成长槽拉开间距 */
+.kid-shell .kid-collection-link {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line));
+  background: color-mix(in srgb, var(--gold) 20%, var(--paper));
+  color: var(--brand-deep);
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.kid-shell .kid-collection-link::after { content: "→"; opacity: .7; }
+.kid-shell .kid-collection-link:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--gold) 32%, var(--paper));
+  box-shadow: var(--shadow-md);
+}
+.kid-shell .kid-collection-link:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 55%, transparent);
+  outline-offset: 2px;
+}
 
 /* .kid-center 是内容高，撑满一屏 align-content 才生效——满级这屏值得居中。
    min-height:100% 依赖 .kid-shell 的 position:fixed;inset:0，与 .kid-pick 同法 */

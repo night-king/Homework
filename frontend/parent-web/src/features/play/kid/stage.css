@@ -15,6 +15,9 @@
 
 .kid-shell .kid-stage-panel {
   padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .kid-pet-stage {
