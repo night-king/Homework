@@ -60,7 +60,12 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
   }
 
   const onFeed = (item: BackpackItemDto, sourceEl: HTMLElement) => {
-    launchFeedProjectile(sourceEl, petRef.current, { iconUrl: item.iconUrl, glyph: item.glyph })
+    // 投掷是纯装饰,与喂养并行——包 try/catch 让"动画失败不影响请求"成结构性保证,而非依赖它不会抛
+    try {
+      launchFeedProjectile(sourceEl, petRef.current, { iconUrl: item.iconUrl, glyph: item.glyph })
+    } catch {
+      // 动画挂了无所谓,喂养照发
+    }
     feed.mutate(
       { childId, journeyId: journey.id, rewardItemId: item.rewardItemId },
       { onSuccess: (r) => onFeedResult(r, journey.id) },
