@@ -146,6 +146,21 @@ var task = new DailyTask(GuidGenerator.Create(), childId, journeyId, date, t.Tit
 
 七天状态全对，**一行任务都不会被提前生成**。
 
+**这套规则不用新写——已经存在。** `DailyTaskGenerator.ResolveDayTotalsAsync(childId, date)`（private）正是「有任务用任务计数、否则回退模板数」，且 `IsRestDay = total == 0` 与 `GetDailyBoardAsync` 现有语义一致。本轮只需把它**改成按区间批量查**（一次取区间内全部 `DailyTask` + 一次取该旅程模板，内存里分组），对外暴露：
+
+```csharp
+public async Task<List<DayStatus>> ReadRangeAsync(Guid childId, DateOnly from, DateOnly to)
+public readonly record struct DayStatus(DateOnly Date, int TasksTotal, int TasksCompleted)
+{
+    public bool IsRestDay => TasksTotal == 0;
+    public bool IsFull => TasksTotal > 0 && TasksCompleted == TasksTotal;
+}
+```
+
+并让现有的 `ResolveDayTotalsAsync(childId, date)` 委托给 `ReadRangeAsync(childId, date, date)`，**保持规则单一来源**（`SettleDayAsync` 的单天成本不变）。
+
+**必须批量，不能逐天循环**：streak 要扫 90 天，逐天两条查询就是 180 次往返。
+
 ### ④ 连续完成
 
 复用现成的 `StreakCalculator`（`Homework.Domain/Scoring/`，完整实现、带 §5.3 注释和休息日桥接逻辑，但**全仓库零调用**——死代码）。
@@ -154,10 +169,14 @@ var task = new DailyTask(GuidGenerator.Create(), childId, journeyId, date, t.Tit
 
 那个账本有两个毛病：
 
-1. **没有补档**。`SettleDayAsync` 只在「那天被拉取过」时才写记录。孩子三天没开 app 就是三个洞，而 `StreakCalculator` 的注释明确要求「覆盖到 today 的**无缺口**账本（§7.7 的补档保证）」——**这个补档从来没实现**。洞会被当成休息日桥接过去，**连续天数照涨**。直接接上去，数字是错的。
+1. **补档实现了，但没有任何生产代码调用它**。`DailyTaskGenerator.SettlePastDaysAsync(childId, from, to)` 确实存在、也有测试——但 `grep` 全仓库，调用点**只在测试文件里**（`DailyTaskGenerator_Tests.cs:118/157/158`）。生产路径只有 `GetDailyBoardAsync` → `SettleDayAsync(单天)`，所以「那天被拉取过」才有记录，孩子三天没开 app 就是三个洞。而 `StreakCalculator` 的注释明确要求「覆盖到 today 的**无缺口**账本（§7.7 的补档保证）」。洞会被当成休息日桥接过去，**连续天数照涨**。直接读账本接上去，数字是错的。
 2. **删旅程后会变脏**（NEXT-STEPS §2.3b 登记在案）。
 
-而「模板 + 任务」是源头真相，当场算**天然无洞**：那天该有任务却没有任务记录 → 就是没做 → 断。代价是每次调用扫一遍旅程日期区间（~60 天，两条查询，便宜）。
+**为什么不直接调 `SettlePastDaysAsync` 补档后再读账本**（即 §7.7 的原意）：它**逐天循环，每天一次查询 + 一次写库**。挂在 weekStrip 这种读端点上，一次调用就是 60+ 次往返**写操作**。且补完档账本照样会被删旅程弄脏。
+
+而「模板 + 任务」是源头真相，当场算**天然无洞**：那天该有任务却没有任务记录 → 就是没做 → 断。数据来源就是 §4③ 的 `ReadRangeAsync`（**两条查询覆盖整个区间**，纯读不写），`DayStatus` → `DailyScoreSnapshot(Date, IsFull, IsRestDay)` 喂给现成的 `StreakCalculator`。
+
+`StreakCalculator_Tests.cs` 已存在（覆盖空账本 / 连续三天 / 休息日桥接 / 漏做日断裂）——**计算器本身有实现有测试，缺的只是调用者**。
 
 **扫描区间明确为 `max(journey.StartDate, today-90) … today`**（含两端）。取 90 天下限是防止超长旅程把这条查询拖垮；连续天数超过 90 天的场景不存在于当前产品，真出现了按 90 封顶也不算错答案。无 active 旅程 → `Streak=0`，不扫。
 
