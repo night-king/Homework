@@ -1,7 +1,7 @@
 import { api } from '@/services/api'
 import type {
   ListResult, JourneyDto, DailyBoardDto, DailyTaskDto,
-  StartJourneyDto, FeedDto, FeedResultDto, BackpackItemDto, CollectionEntryDto, GetDailyBoardInput,
+  StartJourneyDto, FeedDto, FeedResultDto, BackpackItemDto, CollectionEntryDto, GetDailyBoardInput, WeekStripDto,
 } from '@/types/homework'
 
 const base = '/api/app/journey-play'
@@ -14,6 +14,9 @@ export const startJourney = (dto: StartJourneyDto) =>
 
 export const getPlayDailyBoard = (input: GetDailyBoardInput) =>
   api.get<DailyBoardDto>(`${base}/daily-board`, { params: { childId: input.childId, date: input.date } }).then((r) => r.data)
+
+export const getWeekStrip = (childId: string, weekStart: string) =>
+  api.get<WeekStripDto>(`${base}/week-strip`, { params: { childId, weekStart } }).then((r) => r.data)
 
 export const getBackpack = (childId: string, journeyId: string) =>
   api.get<ListResult<BackpackItemDto>>(`${base}/backpack`, { params: { childId, journeyId } }).then((r) => r.data.items)

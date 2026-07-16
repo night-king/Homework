@@ -10,7 +10,13 @@ export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6  // Sun..Sat
 
 // ---- Daily task / board ----
 export type TaskReviewState = 0 | 1  // Normal | Revoked
-export interface DailyTaskDto { id: string; childId: string; date: string; title: string; subject?: string | null; order: number; isCompleted: boolean; completedTime?: string | null; reviewState: TaskReviewState; countsAsCompleted: boolean; sourceTemplateItemId?: string | null; journeyId: string; rewardItemId?: string | null; rewardGranted: boolean }
+export interface DailyTaskDto {
+  id: string; childId: string; date: string; title: string; subject?: string | null; order: number; isCompleted: boolean; completedTime?: string | null; reviewState: TaskReviewState; countsAsCompleted: boolean; sourceTemplateItemId?: string | null; journeyId: string; rewardItemId?: string | null; rewardGranted: boolean
+  rewardName?: string | null
+  rewardGlyph?: string | null
+  rewardIconUrl?: string | null
+  estimatedMinutes?: number | null
+}
 export interface CreateDailyTaskDto { childId: string; date: string; title: string; subject?: string | null; order: number }
 export interface UpdateDailyTaskDto { title: string; subject?: string | null; order: number }
 export interface GetDailyBoardInput { childId: string; date: string }
@@ -85,4 +91,17 @@ export interface CollectionEntryDto {
   medalName: string
   medalImageUrl?: string | null
   completedTime: string
+}
+
+export interface WeekDayDto {
+  date: string
+  isRestDay: boolean
+  tasksTotal: number
+  tasksCompleted: number
+  isFull: boolean
+}
+
+export interface WeekStripDto {
+  streak: number
+  days: WeekDayDto[]
 }
