@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Homework.Catalog;
@@ -69,6 +70,35 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
         await WithUnitOfWorkAsync(async () =>
             await _childRepo.InsertAsync(new ChildProfile(childId, parentId, "娃", 3)));
         return childId;
+    }
+
+    /// <summary>
+    /// 建 active 旅程 + 一个 active 奖励项 + 指定星期的模板。
+    /// 走真实路径：Journey.Start 正是 StartAsync 内部调的领域方法，
+    /// 产出的状态生产环境造得出来（对比：手插 DailyTask 造不出，会假绿）。
+    /// </summary>
+    private async Task<Guid> SeedStartedJourneyAsync(Guid pid, Guid childId, DateOnly start,
+        params (DayOfWeek Dow, string Title, string? Subject, int? Minutes)[] templates)
+    {
+        var journeyId = _guid.Create();
+        await WithUnitOfWorkAsync(async () =>
+        {
+            var reward = new RewardItem(_guid.Create(), "能量果实", 12, 1);
+            reward.Activate();
+            await _rewardRepo.InsertAsync(reward, autoSave: true);
+
+            var j = new Journey(journeyId, pid, childId, "旅程", start, start.AddDays(60), _guid.Create());
+            j.Start(_guid.Create(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
+            await _journeyRepo.InsertAsync(j, autoSave: true);
+
+            var order = 0;
+            foreach (var t in templates)
+            {
+                await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(
+                    _guid.Create(), journeyId, t.Dow, t.Title, t.Subject, order++, t.Minutes), autoSave: true);
+            }
+        });
+        return journeyId;
     }
 
     [Fact]
@@ -151,6 +181,28 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
             board.ShouldNotBeNull();
             board.Tasks.Count.ShouldBeGreaterThan(0);
             board.Tasks[0].RewardItemId.ShouldNotBeNull();
+        }
+    }
+
+    [Fact]
+    public async Task DailyBoard_Carries_Reward_Name_On_Each_Task()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var monday = new DateOnly(2026, 7, 6);
+        await SeedStartedJourneyAsync(pid, childId, monday, (DayOfWeek.Monday, "数学作业本", "math", 25));
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var board = await _service.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+
+            board.Tasks.Count.ShouldBeGreaterThan(0);
+            var withReward = board.Tasks.Where(t => t.RewardItemId != null).ToList();
+            withReward.ShouldNotBeEmpty();
+            // 奖励名必须随 DTO 一起下来,不能只给 id 让前端自己去配
+            withReward.ShouldAllBe(t => !string.IsNullOrWhiteSpace(t.RewardName));
+            // 顺带验 Task 2 的时长确实流到了 DTO
+            board.Tasks[0].EstimatedMinutes.ShouldBe(25);
         }
     }
 }

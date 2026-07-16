@@ -20,4 +20,7 @@ public class DailyTaskDto : EntityDto<Guid>
     public Guid JourneyId { get; set; }
     public Guid? RewardItemId { get; set; }
     public bool RewardGranted { get; set; }
+    public string? RewardName { get; set; }
+    public string? RewardGlyph { get; set; }
+    public string? RewardIconUrl { get; set; }
 }

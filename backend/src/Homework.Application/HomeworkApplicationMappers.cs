@@ -24,7 +24,14 @@ public partial class ChildProfileMapper : MapperBase<ChildProfile, ChildProfileD
 [Mapper]
 public partial class DailyTaskMapper : MapperBase<DailyTask, DailyTaskDto>
 {
+    [MapperIgnoreTarget(nameof(DailyTaskDto.RewardName))]
+    [MapperIgnoreTarget(nameof(DailyTaskDto.RewardGlyph))]
+    [MapperIgnoreTarget(nameof(DailyTaskDto.RewardIconUrl))]
     public override partial DailyTaskDto Map(DailyTask source);
+
+    [MapperIgnoreTarget(nameof(DailyTaskDto.RewardName))]
+    [MapperIgnoreTarget(nameof(DailyTaskDto.RewardGlyph))]
+    [MapperIgnoreTarget(nameof(DailyTaskDto.RewardIconUrl))]
     public override partial void Map(DailyTask source, DailyTaskDto destination);
 }
 

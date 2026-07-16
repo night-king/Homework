@@ -90,11 +90,33 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
         var total = tasks.Count;
         var completed = tasks.Count(t => t.CountsAsCompleted);
 
+        var dtos = tasks.Select(t => ObjectMapper.Map<DailyTask, DailyTaskDto>(t)).ToList();
+
+        // 奖励名随 DTO 一起下发。故意不走前端查 reward-item/active-list：
+        // 那个端点只返回 active 项,奖励一旦下架孩子任务卡上的名字就空了。
+        // 这里按 id 直查,下架与否都拿得到——与 BackpackItemDto 同款反范式化。
+        var rewardIds = dtos.Where(d => d.RewardItemId.HasValue)
+            .Select(d => d.RewardItemId!.Value).Distinct().ToList();
+        if (rewardIds.Count > 0)
+        {
+            var rewards = await _rewardRepository.GetListAsync(r => rewardIds.Contains(r.Id));
+            var byId = rewards.ToDictionary(r => r.Id);
+            foreach (var d in dtos)
+            {
+                if (d.RewardItemId.HasValue && byId.TryGetValue(d.RewardItemId.Value, out var r))
+                {
+                    d.RewardName = r.Name;
+                    d.RewardGlyph = r.Glyph;
+                    d.RewardIconUrl = _urls.ToUrl(r.IconObjectKey);
+                }
+            }
+        }
+
         return new DailyBoardDto
         {
             ChildId = childId,
             Date = date,
-            Tasks = tasks.Select(t => ObjectMapper.Map<DailyTask, DailyTaskDto>(t)).ToList(),
+            Tasks = dtos,
             TasksTotal = total,
             TasksCompleted = completed,
             Stars = StarCalc.CalculateStars(total, completed),
