@@ -4,10 +4,11 @@ import type { PetFormDto } from '@/types/homework'
 
 // 成长槽面板:标题 + 百分比 + n/m + 「差N到XX」/满级文案 + 伙伴图鉴入口(占位,Plan 3 接) + Lv 徽章。
 // 对照原型 child-homepage.html DOM 3731–3755。
-export function GrowthPanel({ growthPoints, form, nextForm }: {
+export function GrowthPanel({ growthPoints, form, nextForm, onOpenCodex }: {
   growthPoints: number
   form?: PetFormDto
   nextForm?: PetFormDto
+  onOpenCodex?: () => void
 }) {
   const { t } = useTranslation()
   const ratio = growthRatio({ growthPoints }, form)
@@ -34,7 +35,7 @@ export function GrowthPanel({ growthPoints, form, nextForm }: {
         </p>
       </div>
       <div className="kid-growth-side">
-        <button type="button" data-testid="open-codex" className="kid-growth-gallery-link">
+        <button type="button" data-testid="open-codex" className="kid-growth-gallery-link" onClick={onOpenCodex}>
           {t('play.codexTitle')}
         </button>
         <div className="kid-mini-badges">

@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
 import { GrowthPanel } from './GrowthPanel'
 import type { PetFormDto } from '@/types/homework'
 
@@ -18,5 +18,12 @@ describe('GrowthPanel', () => {
   it('渲染伙伴图鉴入口', () => {
     render(<GrowthPanel growthPoints={0} form={form} nextForm={next} />)
     expect(screen.getByTestId('open-codex')).toBeInTheDocument()
+  })
+
+  it('点伙伴图鉴入口触发 onOpenCodex', () => {
+    const onOpen = vi.fn()
+    render(<GrowthPanel growthPoints={0} form={form} nextForm={next} onOpenCodex={onOpen} />)
+    fireEvent.click(screen.getByTestId('open-codex'))
+    expect(onOpen).toHaveBeenCalled()
   })
 })

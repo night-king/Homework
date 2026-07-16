@@ -9,6 +9,7 @@ import { KidTopBar } from './KidTopBar'
 import { PetStage } from './PetStage.tsx'
 import { GrowthPanel } from './GrowthPanel'
 import { QuestPanel } from './QuestPanel'
+import { PetCodex } from './PetCodex'
 import { launchFeedProjectile } from './feedProjectile'
 import type { JourneyDto, FeedResultDto, BackpackItemDto } from '@/types/homework'
 
@@ -39,6 +40,7 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
   const { t } = useTranslation()
   const today = useMemo(todayStr, [])
   const [selectedDate, setSelectedDate] = useState(today)
+  const [codexOpen, setCodexOpen] = useState(false)
   const weekStart = useMemo(() => mondayOf(today), [today])
   // 喂养投掷的落点：挂在 PetStage 的 .kid-pet-core 上
   const petRef = useRef<HTMLDivElement>(null)
@@ -87,7 +89,12 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
           {/* 宠物舞台：氛围层 + LV 横幅 + 形态名 + 精灵图(或蛋兜底) */}
           <PetStage form={form} level={journey.currentLevel} petRef={petRef} />
 
-          <GrowthPanel growthPoints={journey.growthPoints} form={form} nextForm={nextForm} />
+          <GrowthPanel
+            growthPoints={journey.growthPoints}
+            form={form}
+            nextForm={nextForm}
+            onOpenCodex={() => setCodexOpen(true)}
+          />
 
           <Link data-testid="open-collection" className="kid-collection-link" to={`/play/${childId}/collection`}>
             🏆 {t('play.collectionTitle')}
@@ -107,6 +114,10 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
           )}
         </aside>
       </div>
+
+      {codexOpen && (
+        <PetCodex species={mySpecies} currentLevel={journey.currentLevel} onClose={() => setCodexOpen(false)} />
+      )}
     </div>
   )
 }
