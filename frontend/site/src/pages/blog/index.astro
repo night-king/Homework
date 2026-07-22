@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+
+// 首批选题（家长真会搜的）。文章正文待写；先把结构与 SEO 落位。
+const posts = [
+  { title: '孩子放学不写作业，怎么办？', sub: '不靠催的几个办法', tag: '方法' },
+  { title: '为什么越催，孩子越不写？', sub: '聊聊"逆反心理"', tag: '心理' },
+  { title: '用奖励激励孩子，会不会教得很功利？', sub: '关键在这一点', tag: '误区' },
+  { title: '怎么让孩子自己坚持？', sub: '从游戏里偷来的 3 个办法', tag: '方法' },
+  { title: '陪写作业陪到崩溃？', sub: '先把你自己的角色换一换', tag: '关系' },
+  { title: '小学阶段，怎么帮孩子建立每天的学习节奏', sub: '', tag: '习惯' },
+];
+---
+
+<Base title="博客 · 给家长的干货 · 学习小伙伴" description="不靠催，怎么让孩子自己想写作业——逆反心理、奖励的陷阱、每天的学习节奏。给家长的真话与办法。" path="/blog">
+  <section class="top">
+    <div class="wrap narrow center">
+      <span class="eyebrow reveal">博客 · 给家长的干货</span>
+      <h1 class="reveal d1">不靠催，也有办法。</h1>
+      <p class="lead reveal d2">关于逆反、奖励、坚持和亲子关系——我们把踩过的坑和想通的事，写给你。</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="posts">
+        {posts.map((p, i) => (
+          <article class:list={['card post reveal', `d${i % 3}`]}>
+            <span class="post-tag">{p.tag}</span>
+            <h3>{p.title}</h3>
+            {p.sub && <p class="post-sub">{p.sub}</p>}
+            <span class="post-soon">即将上线</span>
+          </article>
+        ))}
+      </div>
+      <p class="fineprint center note reveal">首批 5–8 篇打底，之后每周一篇。选题持续补充中。</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .center { text-align: center; }
+  .narrow { margin-inline: auto; }
+  .top { padding-top: clamp(48px, 7vw, 92px); padding-bottom: 8px; }
+
+  .posts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .post { display: flex; flex-direction: column; align-items: flex-start; min-height: 200px; }
+  .post-tag { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--coral-deep); background: var(--blush); padding: 5px 12px; border-radius: 999px; }
+  .post h3 { margin: 16px 0 6px; font-size: 1.3rem; }
+  .post-sub { color: var(--muted); margin: 0; }
+  .post-soon { margin-top: auto; padding-top: 16px; color: var(--muted); font-weight: 700; font-size: .9rem; }
+  .note { margin-top: 30px; }
+
+  @media (max-width: 900px) { .posts { grid-template-columns: 1fr; } }
+</style>

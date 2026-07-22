@@ -1,0 +1,15 @@
+{
+  "name": "homework-site",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "学习小伙伴 官网（homework.today）—— Astro 静态站",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.13.0"
+  }
+}

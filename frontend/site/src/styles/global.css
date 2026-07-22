@@ -1,0 +1,152 @@
+/* ============================================================
+   学习小伙伴 官网 · 设计系统
+   调性：温暖 · 编辑气质 · 像一封妈妈写的信
+   奶油纸底 · 暖珊瑚橙主调 · 金色星星母题 · Fraunces 暖衬线点睛
+   ============================================================ */
+
+:root {
+  /* — 色板：暖色为主，珊瑚橙做重音，金色是星星 — */
+  --paper: #fbf4e9;          /* 页面底：奶油纸 */
+  --paper-2: #fffbf4;        /* 卡片/浮层 */
+  --blush: #f7dac6;          /* 柔桃色高光 */
+  --ink: #2c2118;            /* 正文：深暖棕 */
+  --ink-soft: #5b4b3d;       /* 次级正文 */
+  --muted: #927f6d;          /* 弱化文字 */
+  --coral: #ea5b2a;          /* 主重音 / CTA */
+  --coral-deep: #c8461b;
+  --gold: #f2a63b;           /* 星星 / 强调 */
+  --dark: #241a12;           /* 深色段落底 */
+  --dark-2: #30241a;
+  --line: rgba(44, 33, 24, 0.13);
+  --line-strong: rgba(44, 33, 24, 0.22);
+
+  --font-display: "Fraunces", "Songti SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, serif;
+  --font-body: "Nunito Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+
+  --wrap: 1120px;
+  --wrap-narrow: 760px;
+  --radius: 22px;
+  --radius-lg: 34px;
+  --shadow-sm: 0 2px 10px rgba(120, 72, 20, 0.06);
+  --shadow: 0 18px 40px rgba(150, 90, 30, 0.12);
+  --shadow-lg: 0 34px 70px rgba(150, 84, 24, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 18px;
+  line-height: 1.72;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* 极淡的暖色网点纹理，给纸面一点空气感 */
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(120, 72, 20, 0.045) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+img, svg, video { max-width: 100%; display: block; }
+a { color: inherit; }
+
+/* — 排版基调 — */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0 0 .4em;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: 640; }
+h2 { font-size: clamp(1.85rem, 4vw, 2.9rem); }
+h3 { font-size: clamp(1.25rem, 2.4vw, 1.6rem); }
+p { margin: 0 0 1.1em; }
+strong { font-weight: 800; color: var(--ink); }
+em { font-style: italic; }
+
+/* — 布局 — */
+.wrap { width: 100%; max-width: var(--wrap); margin-inline: auto; padding-inline: 24px; }
+.narrow { max-width: var(--wrap-narrow); }
+section { padding-block: clamp(56px, 9vw, 120px); position: relative; }
+.section-tight { padding-block: clamp(40px, 6vw, 72px); }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-body);
+  font-weight: 800; font-size: .78rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--coral-deep);
+}
+.eyebrow::before { content: "★"; color: var(--gold); font-size: .9em; }
+
+.lead { font-size: clamp(1.12rem, 1.8vw, 1.35rem); color: var(--ink-soft); line-height: 1.7; }
+
+/* — 按钮 / CTA — */
+.btn {
+  display: inline-flex; align-items: center; gap: .6em;
+  font-family: var(--font-body); font-weight: 800; font-size: 1.02rem;
+  padding: 16px 30px; border-radius: 999px; border: 2px solid transparent;
+  text-decoration: none; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--coral); color: #fff; box-shadow: 0 12px 26px rgba(234, 91, 42, 0.34); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 34px rgba(234, 91, 42, 0.42); background: var(--coral-deep); }
+.btn-primary::after { content: "→"; transition: transform .16s ease; }
+.btn-primary:hover::after { transform: translateX(3px); }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.btn-ghost:hover { transform: translateY(-2px); border-color: var(--ink); background: rgba(44,33,24,0.03); }
+.btn-lg { padding: 19px 38px; font-size: 1.12rem; }
+
+/* 手写下划线：给关键词加一笔暖色 */
+.mark { position: relative; white-space: nowrap; }
+.mark::after {
+  content: ""; position: absolute; left: -2px; right: -2px; bottom: 2px; height: .42em; z-index: -1;
+  background: var(--gold); opacity: .34; border-radius: 4px; transform: rotate(-.6deg);
+}
+.coral { color: var(--coral-deep); }
+
+/* — 卡片 — */
+.card {
+  background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: clamp(24px, 3vw, 38px); box-shadow: var(--shadow-sm);
+}
+
+/* — 大引言 / 金句 — */
+.pull {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3.4vw, 2.5rem); line-height: 1.28; font-weight: 560;
+  letter-spacing: -0.01em; text-wrap: balance;
+}
+
+/* — 深色段落（情绪爆点用）— */
+.on-dark { background: var(--dark); color: #f3e7d6; }
+.on-dark h1, .on-dark h2, .on-dark h3 { color: #fff; }
+.on-dark .lead { color: #d8c6b1; }
+.on-dark .muted, .on-dark .fineprint { color: #b7a288; }
+
+/* — 弱小字 — */
+.fineprint { font-size: .92rem; color: var(--muted); line-height: 1.6; }
+
+/* — 分隔星带 — */
+.stardash { color: var(--gold); letter-spacing: .5em; text-align: center; opacity: .7; }
+
+/* — 入场动画（滚动揭示）— */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+.reveal.d1 { transition-delay: .08s; }
+.reveal.d2 { transition-delay: .16s; }
+.reveal.d3 { transition-delay: .24s; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  * { animation: none !important; }
+}

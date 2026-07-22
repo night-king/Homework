@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+const APP_URL = 'https://app.homework.today';
+
+const qa = [
+  {
+    icon: '📵',
+    q: '会让他更沉迷屏幕吗？',
+    a: '不会。它的"好玩"来自<strong>完成任务本身</strong>（得星、小伙伴长大），不是没完没了的内容：没有短视频、没有刷不完的关卡、没有把他黏在屏幕上的设计。做完今天的，就该去玩别的了。',
+  },
+  {
+    icon: '🌱',
+    q: '会把他教得功利吗？',
+    a: '我们特意<strong>不用</strong>"写作业换游戏时间"这种交易。他是在<strong>照顾一个属于自己的小伙伴</strong>，养出的是责任心，不是讨价还价。（这是底层设计，不是口号。）',
+  },
+  {
+    icon: '🔒',
+    q: '孩子数据安全吗？会被卖吗？',
+    a: '不卖数据、不做第三方广告。孩子信息只用于产品运转，你随时可<strong>查看、导出、删除</strong>。',
+  },
+  {
+    icon: '🚫',
+    q: '有对孩子的广告 / 诱导内购吗？',
+    a: '没有。（未来若有付费，只面向你——家长。）',
+  },
+  {
+    icon: '🎒',
+    q: '适合几岁？',
+    a: '小学最合适（能看懂任务、有每日作业的年纪）；更小可家长陪着用。',
+  },
+  {
+    icon: '🎛️',
+    q: '谁说了算？',
+    a: '你。任务你排、奖励你设、完成你审阅。<strong>方向盘一直在你手上。</strong>',
+  },
+];
+---
+
+<Base title="安全 · 隐私 · 适龄 · 学习小伙伴" description="给孩子用的东西，你该问的每个问题，我们都替你想过了。不沉迷、不功利、不卖数据、不做儿童广告，方向盘一直在你手上。" path="/safety">
+  <section class="top">
+    <div class="wrap narrow center">
+      <span class="eyebrow reveal">给家长的定心丸</span>
+      <h1 class="reveal d1">给孩子用的东西，<br />你该问的每个问题，<br /><span class="mark coral">我们都替你想过了。</span></h1>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="qa-grid">
+        {qa.map((item, i) => (
+          <div class:list={['card qa reveal', `d${i % 3}`]}>
+            <div class="qa-icon" aria-hidden="true">{item.icon}</div>
+            <h3>{item.q}</h3>
+            <p set:html={item.a}></p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="closer center">
+    <div class="wrap narrow">
+      <p class="pull reveal">方向盘一直在你手上。<br />我们只是把催人的活儿，外包给了游戏。</p>
+      <a class="btn btn-primary btn-lg reveal d1" href={APP_URL}>放心开始 · 免费</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .center { text-align: center; }
+  .narrow { margin-inline: auto; }
+  .top { padding-top: clamp(48px, 7vw, 92px); padding-bottom: 12px; }
+
+  .qa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .qa { text-align: left; }
+  .qa-icon {
+    width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; font-size: 1.7rem;
+    background: var(--blush); margin-bottom: 16px;
+  }
+  .qa h3 { font-size: 1.28rem; margin-bottom: 10px; }
+  .qa p { margin: 0; color: var(--ink-soft); }
+
+  .closer { padding-block: clamp(64px, 9vw, 120px); }
+  .closer .pull { margin-bottom: 1em; }
+
+  @media (max-width: 900px) { .qa-grid { grid-template-columns: 1fr; } }
+</style>

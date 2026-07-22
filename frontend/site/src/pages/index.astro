@@ -1,0 +1,331 @@
+---
+import Base from '../layouts/Base.astro';
+const APP_URL = 'https://app.homework.today';
+
+const layers = [
+  {
+    star: '⭐',
+    kicker: '每天 · 即时',
+    body: '写完今天的任务 → 拿到星星，学习小伙伴长大一点。反馈当场可见，动力是他自己的。',
+  },
+  {
+    star: '🎁',
+    kicker: '阶段 · 你来设',
+    body: '星星攒够 → 兑现一个你定的小奖励。20 颗→周末去趟公园，50 颗→他点一顿……近期、常有盼头。',
+  },
+  {
+    star: '🤝',
+    kicker: '长期 · 你俩的关系',
+    body: '你不用再催了 → 从"催的人"，退回"陪的人"。',
+  },
+];
+---
+
+<Base path="/">
+  <!-- ① Hero -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow reveal">一个妈妈做的</span>
+        <h1 class="reveal d1">别再当那个<br /><span class="mark coral">催作业</span>的人了。</h1>
+        <p class="lead reveal d2">
+          让孩子为了自己的星星和小伙伴，<strong>主动</strong>想开工——<br />
+          你只管做好吃的、当啦啦队。
+        </p>
+        <div class="hero-cta reveal d3">
+          <a class="btn btn-primary btn-lg" href={APP_URL}>今晚就试试 · 免费开始</a>
+          <a class="btn btn-ghost btn-lg" href="/how">先看它怎么用</a>
+        </div>
+        <p class="hero-note reveal d3">浏览器打开即用 · 不装软件 · 现在免费</p>
+      </div>
+
+      <div class="hero-art reveal d2" aria-hidden="true">
+        <div class="orb"></div>
+        <div class="egg-card">
+          <div class="egg">🥚</div>
+          <div class="egg-bar"><i></i></div>
+          <div class="egg-stars"><span>★</span><span>★</span><span>★</span><span class="dim">★</span><span class="dim">★</span></div>
+          <p class="egg-cap">今天的任务写完了 —— 它又长大一点点</p>
+        </div>
+        <div class="float-star s1">★</div>
+        <div class="float-star s2">★</div>
+        <div class="float-star s3">✦</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 你是不是也这样 -->
+  <section class="section-tight">
+    <div class="wrap narrow center">
+      <span class="eyebrow reveal">你是不是也这样</span>
+      <p class="pull reveal d1">
+        放学回家，作业成了每天的拉锯战。<br />
+        <strong>不催，他不动；催了，他嫌你烦。</strong>
+      </p>
+      <p class="lead reveal d2">
+        你明明是为他好，却成了他眼里最扫兴的那个人。<br />
+        催也不是、不催也不是——<span class="mark">你越负责，越像坏人。</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 问题到底出在哪 -->
+  <section class="on-dark diag">
+    <div class="wrap narrow center">
+      <span class="eyebrow reveal">问题到底出在哪</span>
+      <h2 class="reveal d1">不是孩子懒。也不怪你。</h2>
+      <p class="lead reveal d2">
+        没有哪个家长，能靠一张嘴，给孩子装上一辈子的发动机。<br />
+        「做作业的动力」一直靠你的嘴在撑着——<strong>你一停，动力就归零。</strong>
+      </p>
+      <p class="lead reveal d2">
+        可为了游戏升级、集卡、养宠物，那些重复的事他抢着做。
+      </p>
+      <p class="diag-punch reveal d3">
+        人天生不爱被逼，却天生爱<span class="hl">闯关</span>、爱<span class="hl">赢</span>、爱把一个小东西<span class="hl">养大</span>。
+      </p>
+    </div>
+  </section>
+
+  <!-- 我们只做一件事 -->
+  <section class="onething">
+    <div class="wrap narrow center">
+      <span class="eyebrow reveal">我们只做一件事</span>
+      <h2 class="reveal d1">把"动力"，从你的嘴里，<br />搬进他自己的<span class="mark coral">游戏</span>里。</h2>
+      <p class="slogan reveal d2">催，交给游戏；夸，留给你。</p>
+    </div>
+  </section>
+
+  <!-- 它凭什么管用 · 三层 -->
+  <section class="why">
+    <div class="wrap">
+      <div class="center">
+        <span class="eyebrow reveal">它凭什么管用</span>
+        <h2 class="reveal d1">三层动力，一层比一层长久。</h2>
+      </div>
+      <div class="layers">
+        {layers.map((l, i) => (
+          <div class:list={['card layer reveal', `d${i + 1}`]}>
+            <div class="layer-star">{l.star}</div>
+            <div class="layer-kicker">{l.kicker}</div>
+            <p>{l.body}</p>
+          </div>
+        ))}
+      </div>
+      <p class="why-note reveal narrow">
+        别担心它变成"奖励贿赂"：每天真正拉着他往前的，是<strong>看着自己养的伙伴一天天长大、自己一天天变强</strong>——那是他自己的；家长的奖励，只是偶尔的里程碑，不是天天吊在他眼前的胡萝卜。
+      </p>
+    </div>
+  </section>
+
+  <!-- 认识学习小伙伴 -->
+  <section class="companion">
+    <div class="wrap comp-grid">
+      <div class="comp-art reveal" aria-hidden="true">
+        <div class="comp-stage">
+          <span class="comp-pet">🐣</span>
+          <span class="comp-arrow">→</span>
+          <span class="comp-pet big">🐲</span>
+        </div>
+        <p class="fineprint center">每天一点点，把它养大</p>
+      </div>
+      <div class="comp-copy reveal d1">
+        <span class="eyebrow">认识"学习小伙伴"</span>
+        <h2>它不是发奖励的吉祥物，<br />是陪他一起长大的<span class="mark coral">伙伴</span>。</h2>
+        <p class="lead">
+          你每天给他做好吃的、陪着他，把他一点点养大；<br />
+          他每天写完作业，把小伙伴一点点养大。
+        </p>
+        <p class="pull comp-pull">同一件事：用每天的坚持，把爱着的东西养大。</p>
+        <p class="lead">养出来的是<strong>责任心和坚持</strong>——不是讨价还价。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 你的角色变了 + 奖励你说了算 -->
+  <section class="roles">
+    <div class="wrap two-col">
+      <div class="card role reveal">
+        <h3>你的角色，变了</h3>
+        <p>你本来就想当那个：回家给他煮碗好吃的、备点好玩的、陪着他的家长；不是那个天天催作业的警察。</p>
+        <p>作业战争，把你逼成了后者。</p>
+        <p class="role-punch">催人的坏人，游戏来当；<br />做好吃的好人，<strong>你来当。</strong></p>
+      </div>
+      <div class="card role reveal d1">
+        <h3>奖励，你说了算</h3>
+        <p>我们不替你决定怎么奖励你的孩子。<strong>你最懂他。</strong></p>
+        <p>我们只提供"攒星星"的引擎，奖励是你家的事——</p>
+        <p class="role-rewards">
+          <span>一次公园 🌳</span><span>一顿他爱吃的 🍜</span><span>一本念叨很久的书 📖</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 一个循环反过来了 -->
+  <section class="loops">
+    <div class="wrap">
+      <div class="center">
+        <span class="eyebrow reveal">一个循环，反过来了</span>
+        <h2 class="reveal d1">从原地打转，到一起往前滚。</h2>
+      </div>
+      <div class="loop-grid">
+        <div class="loop before reveal">
+          <div class="loop-tag">以前</div>
+          <ol>
+            <li>没动力</li>
+            <li>你催</li>
+            <li>他烦</li>
+            <li>关系僵</li>
+          </ol>
+          <div class="loop-end">原地打转 ↺</div>
+        </div>
+        <div class="loop after reveal d1">
+          <div class="loop-tag">现在</div>
+          <ol>
+            <li>他写作业</li>
+            <li>小伙伴长大 · 星星攒够</li>
+            <li>你备好的奖励兑现</li>
+            <li>一家人一起乐</li>
+            <li>他更想接着来</li>
+          </ol>
+          <div class="loop-end">往前滚 →</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 一个妈妈做的 · 结尾 CTA -->
+  <section class="on-dark closer">
+    <div class="wrap narrow center">
+      <div class="closer-stars" aria-hidden="true">★ ★ ★</div>
+      <p class="pull closer-quote reveal">
+        我也是两个孩子的妈妈。<br />
+        我受够了每晚催作业，把"为你好"喊成了吼。<br />
+        所以我做了这个——想把那场战争，变成我们<span class="hl">一起想赢</span>的游戏。
+      </p>
+      <h2 class="reveal d1">今晚，换个活法。</h2>
+      <div class="closer-cta reveal d2">
+        <a class="btn btn-primary btn-lg" href={APP_URL}>免费开始 · homework.today</a>
+      </div>
+      <a class="closer-link reveal d2" href="/about">读一个妈妈的完整故事 →</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .center { text-align: center; margin-inline: auto; }
+  section .narrow { margin-inline: auto; }
+
+  /* — Hero — */
+  .hero { padding-top: clamp(40px, 6vw, 84px); padding-bottom: clamp(48px, 7vw, 96px); overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: center; }
+  .hero-copy h1 { margin-top: .3em; }
+  .hero .lead { max-width: 34ch; }
+  .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 30px; }
+  .hero-note { margin-top: 16px; font-size: .92rem; color: var(--muted); font-weight: 600; }
+
+  .hero-art { position: relative; display: grid; place-items: center; min-height: 340px; }
+  .orb {
+    position: absolute; inset: -6% 6%; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #ffd9a8, #f7b06a 45%, transparent 72%);
+    filter: blur(6px); opacity: .7;
+  }
+  .egg-card {
+    position: relative; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 32px 30px; box-shadow: var(--shadow-lg); text-align: center; width: min(320px, 78vw);
+  }
+  .egg { font-size: 4.6rem; line-height: 1; filter: drop-shadow(0 10px 18px rgba(200,110,30,.28)); animation: bob 4s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-9px) rotate(2deg); } }
+  .egg-bar { height: 12px; border-radius: 999px; background: rgba(44,33,24,.09); margin: 22px 0 14px; overflow: hidden; }
+  .egg-bar i { display: block; height: 100%; width: 62%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--coral)); animation: grow 3.2s ease-in-out infinite alternate; }
+  @keyframes grow { from { width: 44%; } to { width: 72%; } }
+  .egg-stars { font-size: 1.35rem; color: var(--gold); letter-spacing: .18em; }
+  .egg-stars .dim { color: rgba(44,33,24,.16); }
+  .egg-cap { margin: 14px 0 0; font-size: .95rem; color: var(--ink-soft); }
+
+  .float-star { position: absolute; color: var(--gold); font-size: 1.5rem; animation: twinkle 3s ease-in-out infinite; }
+  .float-star.s1 { top: 6%; left: 4%; font-size: 2rem; }
+  .float-star.s2 { bottom: 12%; right: 2%; color: var(--coral); animation-delay: .8s; }
+  .float-star.s3 { top: 22%; right: 14%; animation-delay: 1.5s; }
+  @keyframes twinkle { 0%,100% { transform: scale(1) rotate(0); opacity: .6; } 50% { transform: scale(1.25) rotate(12deg); opacity: 1; } }
+
+  /* — 你是不是也这样 — */
+  .pull strong { color: var(--coral-deep); }
+
+  /* — 问题到底出在哪（深色）— */
+  .diag { border-radius: 0; }
+  .diag-punch { font-family: var(--font-display); font-size: clamp(1.4rem, 3vw, 2.1rem); line-height: 1.4; margin-top: 1em; color: #fff; text-wrap: balance; }
+  .diag-punch .hl { color: var(--gold); font-weight: 600; }
+
+  /* — 我们只做一件事 — */
+  .onething { padding-block: clamp(64px, 9vw, 130px); }
+  .slogan {
+    font-family: var(--font-display); font-weight: 600; margin-top: .8em;
+    font-size: clamp(1.5rem, 3.4vw, 2.4rem); color: var(--coral-deep); letter-spacing: -.01em;
+  }
+
+  /* — 三层 — */
+  .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+  .layer { text-align: left; }
+  .layer-star { font-size: 2.2rem; line-height: 1; }
+  .layer-kicker { font-family: var(--font-body); font-weight: 800; letter-spacing: .06em; color: var(--coral-deep); margin: 16px 0 8px; font-size: 1.05rem; }
+  .layer p { margin: 0; color: var(--ink-soft); }
+  .why-note { margin: 34px auto 0; text-align: center; color: var(--ink-soft); font-size: 1.02rem; background: var(--blush); border-radius: var(--radius); padding: 22px 26px; }
+
+  /* — 认识小伙伴 — */
+  .comp-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: center; }
+  .comp-stage {
+    background: linear-gradient(160deg, #fff3df, #ffe6c6); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 48px 24px; display: flex; align-items: center; justify-content: center; gap: 18px; box-shadow: var(--shadow);
+  }
+  .comp-pet { font-size: 3.4rem; }
+  .comp-pet.big { font-size: 5rem; filter: drop-shadow(0 12px 20px rgba(200,110,30,.3)); }
+  .comp-arrow { color: var(--coral); font-size: 2rem; font-weight: 800; }
+  .comp-art .fineprint { margin-top: 14px; }
+  .comp-pull { color: var(--coral-deep); margin: .6em 0; }
+
+  /* — 角色 — */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .role p { color: var(--ink-soft); }
+  .role-punch { font-family: var(--font-display); font-size: 1.35rem; line-height: 1.4; color: var(--ink); margin-top: .6em; }
+  .role-rewards { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+  .role-rewards span { background: var(--blush); border-radius: 999px; padding: 8px 16px; font-weight: 700; font-size: .96rem; color: var(--ink); }
+
+  /* — 循环 — */
+  .loop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
+  .loop { border-radius: var(--radius-lg); padding: 32px 30px; border: 1px solid var(--line); }
+  .loop-tag { font-family: var(--font-body); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: .8rem; margin-bottom: 18px; display: inline-block; padding: 5px 14px; border-radius: 999px; }
+  .loop ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  .loop li { position: relative; padding: 10px 0 10px 40px; font-weight: 700; border-bottom: 1px dashed var(--line); }
+  .loop li:last-child { border-bottom: 0; }
+  .loop li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 8px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: .85rem; font-weight: 800; }
+  .loop-end { margin-top: 16px; font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; }
+  .before { background: #f2ece2; }
+  .before .loop-tag { background: rgba(44,33,24,.1); color: var(--muted); }
+  .before li { color: var(--muted); }
+  .before li::before { background: rgba(44,33,24,.12); color: var(--ink-soft); }
+  .before .loop-end { color: var(--muted); }
+  .after { background: linear-gradient(160deg, #fff4e2, #ffe9cf); }
+  .after .loop-tag { background: var(--coral); color: #fff; }
+  .after li { color: var(--ink); }
+  .after li::before { background: var(--coral); color: #fff; }
+  .after .loop-end { color: var(--coral-deep); }
+
+  /* — 结尾 — */
+  .closer { padding-block: clamp(70px, 10vw, 140px); }
+  .closer-stars { color: var(--gold); letter-spacing: .6em; font-size: 1.2rem; margin-bottom: 26px; }
+  .closer-quote { color: #fff; }
+  .closer-quote .hl { color: var(--gold); }
+  .closer h2 { margin-top: .8em; font-size: clamp(2rem, 5vw, 3.2rem); }
+  .closer-cta { margin-top: 12px; }
+  .closer-link { display: inline-block; margin-top: 22px; color: #d8c6b1; text-decoration: none; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.25); padding-bottom: 2px; }
+  .closer-link:hover { color: #fff; }
+
+  @media (max-width: 900px) {
+    .hero-grid, .comp-grid { grid-template-columns: 1fr; }
+    .hero-art { order: -1; min-height: 280px; }
+    .layers, .two-col, .loop-grid { grid-template-columns: 1fr; }
+    .comp-art { max-width: 420px; margin-inline: auto; }
+  }
+</style>

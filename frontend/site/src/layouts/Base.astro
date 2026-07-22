@@ -1,0 +1,88 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  path?: string;
+}
+const {
+  title = '学习小伙伴 · 把催作业变成他自己想赢的游戏',
+  description = '别再当那个催作业的人了。用游戏心理学，让不爱写作业的孩子为了自己的星星和小伙伴主动开工——把家长从催作业的警察，变回陪伴的队友。一个妈妈做的。',
+  path = '/',
+} = Astro.props;
+
+const site = 'https://homework.today';
+const canonical = new URL(path, site).href;
+const ogImage = new URL('/og.png', site).href;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#fbf4e9" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="学习小伙伴" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="zh_CN" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..640;1,9..144,400..600&family=Nunito+Sans:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <a class="skip" href="#main">跳到主内容</a>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      // 滚动揭示：进入视口即淡入上浮
+      const els = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window && els.length) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('in');
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+        );
+        els.forEach((el) => io.observe(el));
+      } else {
+        els.forEach((el) => el.classList.add('in'));
+      }
+    </script>
+
+    <style>
+      .skip {
+        position: absolute; left: -9999px; top: 0; z-index: 100;
+        background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 0 0 10px 0;
+        text-decoration: none; font-weight: 700;
+      }
+      .skip:focus { left: 0; }
+    </style>
+  </body>
+</html>

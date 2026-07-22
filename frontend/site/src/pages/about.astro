@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+const APP_URL = 'https://app.homework.today';
+---
+
+<Base title="关于 · 一个妈妈的故事 · 学习小伙伴" description="我也是一个妈妈，有两个孩子。我受够了每晚催作业，所以做了这个——想把那场战争，变成一家人一起想赢的游戏。" path="/about">
+  <article class="letter">
+    <div class="wrap narrow">
+      <span class="eyebrow reveal">关于 · 一个妈妈的故事</span>
+      <h1 class="reveal d1">我也是一个妈妈。</h1>
+
+      <div class="prose">
+        <p class="reveal d2">
+          我有两个孩子。有很长一段时间，我家的傍晚是这样的：一个不写，我催；催急了，吼；吼完，俩人都不痛快。我知道吼没用，可当下就是忍不住——因为"动力"这件事，好像只能靠我一张嘴撑着。
+        </p>
+
+        <p class="big reveal">
+          后来我想通一件事：<strong>孩子不是不能坚持——他为了游戏能坚持得很。</strong>
+          是"作业"被我们弄成了对抗。
+        </p>
+
+        <p class="reveal">
+          所以我做了「学习小伙伴」。我想把每晚那场战争，变成一家人一起想赢的游戏——<span class="mark coral">让他为自己想要的东西开工，让我退回去，当那个做好吃的、给他鼓劲的妈妈。</span>
+        </p>
+
+        <p class="reveal">
+          它先在我自己家用。如果它也能让你家的傍晚好过一点，那就是我最想要的回报。
+        </p>
+
+        <div class="sign reveal">
+          <span class="sign-star">★</span>
+          <span class="sign-name">— 创始人署名 / 是否放照片：待定</span>
+        </div>
+      </div>
+
+      <div class="cta reveal">
+        <a class="btn btn-primary btn-lg" href={APP_URL}>免费开始</a>
+        <a class="btn btn-ghost btn-lg" href="/how">先看它怎么用</a>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .letter { padding-block: clamp(52px, 8vw, 104px); }
+  .narrow { margin-inline: auto; }
+  .letter h1 { font-size: clamp(2.6rem, 6vw, 4rem); margin-bottom: .6em; }
+
+  .prose p { font-size: 1.2rem; line-height: 1.8; color: var(--ink-soft); }
+  .prose .big {
+    font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.1rem); line-height: 1.4; color: var(--ink);
+    font-weight: 560; margin: 1em 0; text-wrap: balance;
+  }
+  .prose strong { color: var(--coral-deep); }
+
+  .sign { display: flex; align-items: center; gap: 12px; margin: 40px 0 8px; padding-top: 26px; border-top: 1px solid var(--line); }
+  .sign-star { color: var(--gold); font-size: 1.4rem; }
+  .sign-name { font-family: var(--font-display); font-style: italic; color: var(--muted); font-size: 1.1rem; }
+
+  .cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 36px; }
+</style>

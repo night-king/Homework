@@ -1,0 +1,81 @@
+---
+const APP_URL = 'https://app.homework.today';
+const year = 2026;
+const cols = [
+  {
+    title: '产品',
+    links: [
+      { href: '/how', label: '它怎么用' },
+      { href: '/safety', label: '安全 · 隐私 · 适龄' },
+      { href: '/faq', label: '常见问题' },
+      { href: APP_URL, label: '免费开始 · 家长注册' },
+    ],
+  },
+  {
+    title: '故事',
+    links: [
+      { href: '/about', label: '关于 · 一个妈妈的故事' },
+      { href: '/blog', label: '博客 · 给家长的干货' },
+    ],
+  },
+  {
+    title: '法务',
+    links: [
+      { href: '/legal/privacy', label: '隐私政策' },
+      { href: '/legal/terms', label: '服务条款' },
+      { href: '/legal/children', label: '儿童隐私与家长同意' },
+    ],
+  },
+];
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="logo" href="/">
+          <span class="logo-star" aria-hidden="true">★</span>
+          <span class="logo-text">学习小伙伴</span>
+        </a>
+        <p class="foot-tag">把每天催作业的战争，变成孩子自己想赢的游戏。</p>
+        <a class="btn btn-primary" href={APP_URL}>今晚就试试 · 免费开始</a>
+      </div>
+
+      {cols.map((c) => (
+        <nav class="foot-col">
+          <h4>{c.title}</h4>
+          {c.links.map((l) => <a href={l.href}>{l.label}</a>)}
+        </nav>
+      ))}
+    </div>
+
+    <div class="foot-bottom">
+      <span>© {year} 学习小伙伴 · homework.today</span>
+      <span class="fineprint">一个妈妈做的 · 面向家长的产品</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer { background: var(--dark); color: #e9dccb; padding-block: clamp(48px, 7vw, 80px); }
+  .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px 32px; }
+  .logo { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
+  .logo-star { color: var(--gold); font-size: 1.2rem; }
+  .logo-text { font-family: var(--font-display); font-weight: 620; font-size: 1.32rem; color: #fff; }
+  .foot-tag { color: #c6b39c; margin: 14px 0 22px; max-width: 32ch; line-height: 1.65; }
+
+  .foot-col h4 { font-family: var(--font-body); font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin: 0 0 16px; font-weight: 800; }
+  .foot-col a { display: block; text-decoration: none; color: #d8c6b1; padding: 6px 0; font-weight: 600; transition: color .15s; }
+  .foot-col a:hover { color: #fff; }
+
+  .foot-bottom {
+    margin-top: clamp(36px, 5vw, 56px); padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+    color: #b7a288; font-size: .92rem;
+  }
+
+  @media (max-width: 760px) {
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+    .foot-brand { grid-column: 1 / -1; }
+  }
+</style>

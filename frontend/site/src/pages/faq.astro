@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+const APP_URL = 'https://app.homework.today';
+
+const faqs = [
+  { q: '要花多少钱？', a: '现在免费开始。未来若有付费功能，提前说清、绝不套路。' },
+  { q: '要什么设备？', a: '一台能上网的手机 / 平板 / 电脑，浏览器打开即用，不装大软件。' },
+  { q: '几个孩子都能用吗？', a: '能。一个家长账号管你名下所有孩子，各有各的任务、星星、小伙伴。' },
+  { q: '每天占我多少时间？', a: '设置好后基本不用管，偶尔看眼看板、达标给个奖励。' },
+  { q: '孩子乱打勾骗星星怎么办？', a: '你能在看板上审阅、一键撤销不算数；时间长了他自己也更看重"真完成"。' },
+  { q: '和别的作业 App 有啥不一样？', a: '别的多在"管作业"，我们在让他自己想做作业——从催，变成他自己闯关。' },
+  { q: '孩子必须有自己的账号吗？', a: '不用。孩子是你名下的档案，用你的设备、选头像 + PIN 就能玩。' },
+  { q: '不喜欢能随时退 / 删吗？', a: '随时。数据你说了算。' },
+];
+---
+
+<Base title="常见问题 · 学习小伙伴" description="费用、设备、多个孩子、防作弊、和别的作业 App 有什么不同——家长最常问的问题都在这里。" path="/faq">
+  <section class="top">
+    <div class="wrap narrow center">
+      <span class="eyebrow reveal">常见问题</span>
+      <h1 class="reveal d1">你想问的，<br />这里基本都有。</h1>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap narrow faq-list">
+      {faqs.map((f, i) => (
+        <details class:list={['faq reveal', `d${i % 3}`]}>
+          <summary>
+            <span>{f.q}</span>
+            <span class="chev" aria-hidden="true">+</span>
+          </summary>
+          <div class="ans"><p>{f.a}</p></div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <section class="closer center">
+    <div class="wrap narrow">
+      <p class="pull reveal">还有别的疑虑？<br />最好的回答，是今晚就试一次。</p>
+      <a class="btn btn-primary btn-lg reveal d1" href={APP_URL}>免费开始 · homework.today</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .center { text-align: center; }
+  .narrow { margin-inline: auto; }
+  .top { padding-top: clamp(48px, 7vw, 92px); padding-bottom: 8px; }
+
+  .faq-list { display: flex; flex-direction: column; gap: 12px; }
+  .faq { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .faq summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 22px 26px; font-family: var(--font-display); font-size: 1.18rem; font-weight: 560; color: var(--ink);
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .chev { color: var(--coral); font-size: 1.6rem; font-weight: 400; transition: transform .22s ease; flex-shrink: 0; line-height: 1; }
+  .faq[open] .chev { transform: rotate(45deg); }
+  .ans { padding: 0 26px 24px; }
+  .ans p { margin: 0; color: var(--ink-soft); font-size: 1.05rem; }
+
+  .closer { padding-block: clamp(64px, 9vw, 120px); }
+  .closer .pull { margin-bottom: 1em; }
+</style>

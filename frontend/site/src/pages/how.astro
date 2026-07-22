@@ -1,0 +1,118 @@
+---
+import Base from '../layouts/Base.astro';
+const APP_URL = 'https://app.homework.today';
+
+const setup = [
+  { n: '01', title: '加上你的孩子', body: '几个都行，每个孩子一套自己的任务和小伙伴。' },
+  { n: '02', title: '排好每周任务', body: '周一到周日，哪天写什么（语文、数学、阅读、练琴…你说了算）。排一次，天天自动生成。' },
+  { n: '03', title: '定几个"攒星换奖励"的小目标', body: '20 颗→周末去公园，50 颗→他点一顿…奖励是什么，你填。' },
+];
+const daily = [
+  '放学回家、打开 → 看到今天的闯关清单（你排的任务，自动变成今天的关卡）',
+  '一项项做完打勾 → 拿到星星 → 学习小伙伴长大一点',
+  '星星攒够 → 解锁你设的奖励',
+  '于是明天他还想来看看：小伙伴今天长大没。',
+];
+---
+
+<Base title="它怎么用 · 学习小伙伴" description="三步，把催作业换成他自己闯关。你花十分钟设置好，剩下的交给他和他的小伙伴。" path="/how">
+  <section class="top">
+    <div class="wrap narrow center">
+      <span class="eyebrow reveal">它怎么用</span>
+      <h1 class="reveal d1">三步，把"催作业"<br />换成"他自己<span class="mark coral">闯关</span>"。</h1>
+      <p class="lead reveal d2">你花十分钟设置好，剩下的交给他和他的小伙伴。</p>
+    </div>
+  </section>
+
+  <!-- A -->
+  <section class="section-tight block">
+    <div class="wrap">
+      <div class="block-head reveal">
+        <span class="tag">A · 你要做的</span>
+        <h2>一次性，约 10 分钟</h2>
+      </div>
+      <div class="steps">
+        {setup.map((s, i) => (
+          <div class:list={['card step reveal', `d${i}`]}>
+            <div class="step-n">{s.n}</div>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+          </div>
+        ))}
+      </div>
+      <p class="aside reveal">设完，你就"下班"了——回去当后勤、当啦啦队。</p>
+    </div>
+  </section>
+
+  <!-- B -->
+  <section class="section-tight block block-warm">
+    <div class="wrap">
+      <div class="block-head reveal">
+        <span class="tag tag-coral">B · 他每天的样子</span>
+        <h2>你不用在场</h2>
+      </div>
+      <ol class="flow">
+        {daily.map((d) => <li class="reveal">{d}</li>)}
+      </ol>
+    </div>
+  </section>
+
+  <!-- C -->
+  <section class="section-tight block">
+    <div class="wrap two">
+      <div class="block-head reveal">
+        <span class="tag">C · 你随时能看到</span>
+        <h2>审阅权，一直在你手里</h2>
+      </div>
+      <div class="card review reveal d1">
+        <p>打开看板，今天完成几项、几颗星，一目了然。</p>
+        <p>他要是乱打勾？一键<strong>撤销</strong>、不算数。</p>
+        <p class="review-punch">审阅的权力一直在你手里——<span class="mark coral">只是你不用再催了。</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="closer center">
+    <div class="wrap narrow">
+      <p class="pull reveal">就这么简单。</p>
+      <h2 class="reveal d1">今晚就给他建一个。</h2>
+      <a class="btn btn-primary btn-lg reveal d2" href={APP_URL}>免费开始 · homework.today</a>
+      <p class="fineprint reveal d2" style="margin-top:20px">配图位：A/B/C 三步的真实截图或示意图，稍后补。</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .center { text-align: center; }
+  .narrow { margin-inline: auto; }
+  .top { padding-top: clamp(48px, 7vw, 92px); }
+
+  .block-head { margin-bottom: 30px; }
+  .tag { display: inline-block; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: .78rem; color: var(--muted); background: rgba(44,33,24,.06); padding: 6px 14px; border-radius: 999px; margin-bottom: 12px; }
+  .tag-coral { color: #fff; background: var(--coral); }
+  .block-head h2 { margin: 0; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .step { position: relative; }
+  .step-n { font-family: var(--font-display); font-size: 2.6rem; font-weight: 600; color: var(--gold); line-height: 1; }
+  .step h3 { margin: 14px 0 8px; }
+  .step p { margin: 0; color: var(--ink-soft); }
+  .aside { text-align: center; color: var(--coral-deep); font-weight: 700; font-size: 1.1rem; margin-top: 32px; }
+
+  .block-warm { background: linear-gradient(180deg, #fff5e6, transparent 80%); }
+  .flow { max-width: 720px; margin: 0 auto; padding: 0; list-style: none; counter-reset: f; }
+  .flow li { position: relative; padding: 18px 0 18px 56px; border-bottom: 1px dashed var(--line); font-size: 1.08rem; }
+  .flow li:last-child { border-bottom: 0; color: var(--coral-deep); font-weight: 700; }
+  .flow li::before { counter-increment: f; content: counter(f); position: absolute; left: 0; top: 16px; width: 34px; height: 34px; border-radius: 50%; background: var(--coral); color: #fff; display: grid; place-items: center; font-weight: 800; }
+
+  .two { display: grid; grid-template-columns: .8fr 1.2fr; gap: 36px; align-items: center; }
+  .review p { color: var(--ink-soft); }
+  .review-punch { font-family: var(--font-display); font-size: 1.3rem; color: var(--ink); margin-top: .4em; }
+
+  .closer { padding-block: clamp(64px, 9vw, 120px); }
+  .closer h2 { margin-top: .3em; }
+
+  @media (max-width: 900px) {
+    .steps, .two { grid-template-columns: 1fr; }
+  }
+</style>
