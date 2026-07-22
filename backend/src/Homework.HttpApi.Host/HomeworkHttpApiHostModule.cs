@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -94,6 +95,14 @@ public class HomeworkHttpApiHostModule : AbpModule
         Configure<AbpAntiForgeryOptions>(options =>
         {
             options.AutoValidateFilter = _ => false;
+        });
+
+        // 反代（nginx / Cloudflare）终止 TLS：让应用从 X-Forwarded-Proto 认出原始请求是 https，
+        // 否则 OpenIddict 令牌端点会判定「非安全传输」而拒绝 /connect/token（登录/刷新全废）。
+        // nginx 在本机回环，默认已信任 loopback 代理，无需额外 KnownProxies。
+        context.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
         });
 
         ConfigureAuthentication(context);
@@ -238,6 +247,9 @@ public class HomeworkHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
+        // 必须是第一个中间件：反代终止 TLS 后据 X-Forwarded-Proto/-For 还原 scheme 与客户端 IP。
+        app.UseForwardedHeaders();
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
@@ -278,28 +290,26 @@ public class HomeworkHttpApiHostModule : AbpModule
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints(endpoints =>
         {
-            // dev 便利：本地把 CatalogBlobContainer 的资产按 object key 通过 HTTP 提供，
-            // 让 AssetUrlResolver 生成的 {AssetCdnBaseUrl}/{key} 在本地能解析（生产走真 CDN，本端点不注册）。
-            // AllowAnonymous：资产设计即「公有读」，<img>/<video> 不带 bearer。
-            if (env.IsDevelopment())
+            // 把 CatalogBlobContainer 的资产按 object key 通过 HTTP 提供，让 AssetUrlResolver 生成的
+            // {AssetCdnBaseUrl}/{key} 能解析。同域名部署时设 AssetCdnBaseUrl=https://域名/blob 即可出图；
+            // 若改用 OSS/CDN，把 AssetCdnBaseUrl 指过去、这端点闲置即可。
+            // AllowAnonymous：资产设计即「公有读」，<img>/<video> 不带 bearer。响应带 max-age，Cloudflare 边缘会缓存。
+            endpoints.MapGet("/blob/{**key}", async (
+                string key,
+                IBlobContainer<CatalogBlobContainer> blob,
+                HttpContext http) =>
             {
-                endpoints.MapGet("/blob/{**key}", async (
-                    string key,
-                    IBlobContainer<CatalogBlobContainer> blob,
-                    HttpContext http) =>
+                var bytes = await blob.GetAllBytesOrNullAsync(key);
+                if (bytes == null)
                 {
-                    var bytes = await blob.GetAllBytesOrNullAsync(key);
-                    if (bytes == null)
-                    {
-                        http.Response.StatusCode = StatusCodes.Status404NotFound;
-                        return;
-                    }
+                    http.Response.StatusCode = StatusCodes.Status404NotFound;
+                    return;
+                }
 
-                    http.Response.ContentType = BlobContentType(key);
-                    http.Response.Headers.CacheControl = "public, max-age=3600";
-                    await http.Response.Body.WriteAsync(bytes);
-                }).WithMetadata(new AllowAnonymousAttribute());
-            }
+                http.Response.ContentType = BlobContentType(key);
+                http.Response.Headers.CacheControl = "public, max-age=3600";
+                await http.Response.Body.WriteAsync(bytes);
+            }).WithMetadata(new AllowAnonymousAttribute());
         });
     }
 
