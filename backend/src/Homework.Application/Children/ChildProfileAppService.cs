@@ -57,6 +57,13 @@ public class ChildProfileAppService : HomeworkAppService, IChildProfileAppServic
         await _repository.UpdateAsync(child);
     }
 
+    /// <summary>孩子端进乐园时校验 PIN。服务端比对，绝不下发明文；未设 PIN 的孩子返回 false（门不该拦他们，前端按 HasPin 决定是否弹门）。</summary>
+    public async Task<bool> VerifyPinAsync(Guid id, VerifyChildPinDto input)
+    {
+        var child = await _manager.GetOwnedAsync(id);
+        return child.VerifyPin(input.Pin);
+    }
+
     public async Task DeleteAsync(Guid id)
     {
         var child = await _manager.GetOwnedAsync(id);

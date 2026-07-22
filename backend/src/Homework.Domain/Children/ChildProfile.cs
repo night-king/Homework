@@ -49,4 +49,7 @@ public class ChildProfile : FullAuditedAggregateRoot<Guid>
     public void SetAvatar(string? avatarKey) => AvatarKey = avatarKey;
 
     public void SetPin(string? pin) => Pin = pin;
+
+    /// <summary>校验 4 位 PIN；未设 PIN 的孩子任何输入都不通过（门只对设了 PIN 的孩子生效）。</summary>
+    public bool VerifyPin(string? pin) => !string.IsNullOrEmpty(Pin) && Pin == pin;
 }

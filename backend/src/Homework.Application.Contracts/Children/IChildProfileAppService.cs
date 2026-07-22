@@ -13,5 +13,6 @@ public interface IChildProfileAppService : IApplicationService
     Task<ChildProfileDto> CreateAsync(CreateChildDto input);
     Task<ChildProfileDto> UpdateAsync(Guid id, UpdateChildProfileDto input);
     Task SetPinAsync(Guid id, SetChildPinDto input);
+    Task<bool> VerifyPinAsync(Guid id, VerifyChildPinDto input);
     Task DeleteAsync(Guid id);
 }
