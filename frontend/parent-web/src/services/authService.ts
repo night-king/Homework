@@ -44,8 +44,10 @@ export function isTokenExpired(accessToken: string): boolean {
 // ABP account endpoints
 export const myProfile = () => api.get('/api/account/my-profile').then((r) => r.data)
 export const updateMyProfile = (dto: unknown) => api.put('/api/account/my-profile', dto).then((r) => r.data)
+// ABP 的改密端点挂在 ProfileAppService 下（与 /api/account/my-profile 同根）。
+// 注意不是 /api/account/change-password（那个路径 POST 会 405、静默不改密）。
 export const changePassword = (currentPassword: string, newPassword: string) =>
-  api.post('/api/account/change-password', { currentPassword, newPassword })
+  api.post('/api/account/my-profile/change-password', { currentPassword, newPassword })
 export const sendPasswordResetLink = (email: string, appName = CLIENT_ID) =>
   api.post('/api/account/send-password-reset-link', { email, appName, returnUrl: `${location.origin}/reset-password` })
 export const resetPassword = (userId: string, resetToken: string, password: string) =>
