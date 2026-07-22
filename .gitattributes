@@ -1,1 +1,4 @@
 **/wwwroot/libs/** linguist-vendored
+
+# Shell 脚本必须 LF：CRLF 会让 Linux 上的 #!/usr/bin/env bash 变成 bad interpreter
+*.sh text eol=lf
