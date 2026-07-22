@@ -32,8 +32,14 @@ describe('JourneyEditPage', () => {
     ui(<JourneyEditPage />)
     await waitFor(() => expect(screen.getByTestId('wiz-title')).toHaveValue('暑假之旅'))
   })
-  it('shows read-only notice for an Active journey', async () => {
-    mock(getJourney).mockResolvedValue({ id: 'j1', childId: 'c1', title: 'A', startDate: '2026-07-01', endDate: '2026-08-31', medalId: 'm1', status: 1, currentLevel: 2, growthPoints: 10 })
+  it('lets you edit an Active journey in place (wizard prefilled)', async () => {
+    mock(getJourney).mockResolvedValue({ id: 'j1', childId: 'c1', title: 'A', description: '', startDate: '2026-07-01', endDate: '2026-08-31', medalId: 'm1', status: 1, currentLevel: 2, growthPoints: 10 })
+    ui(<JourneyEditPage />)
+    await waitFor(() => expect(screen.getByTestId('wiz-title')).toHaveValue('A'))
+    expect(screen.queryByTestId('journey-readonly')).not.toBeInTheDocument()
+  })
+  it('shows read-only notice for a Completed journey', async () => {
+    mock(getJourney).mockResolvedValue({ id: 'j1', childId: 'c1', title: 'A', startDate: '2026-07-01', endDate: '2026-08-31', medalId: 'm1', status: 2, currentLevel: 5, growthPoints: 0 })
     ui(<JourneyEditPage />)
     await waitFor(() => expect(screen.getByTestId('journey-readonly')).toBeInTheDocument())
   })

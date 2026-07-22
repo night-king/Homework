@@ -18,12 +18,14 @@ export function JourneyEditPage() {
   if (isLoading || !journey) {
     return <div className="py-12 text-center text-muted">{t('common.loading')}</div>
   }
-  if (journey.status !== 0) {
+  // 已完成旅程才只读；草稿与进行中都可编辑（后端 UpdateAsync 无状态守卫，
+  // 进行中改动只影响未来还没生成的日子，孩子已做过的快照任务不受影响）。
+  if (journey.status === 2) {
     return (
       <div data-testid="journey-readonly" className="space-y-3">
         <h1 className="text-2xl font-bold text-ink">{journey.title}</h1>
         <div className="rounded-xl border border-dashed border-ink/20 p-8 text-center text-muted">
-          {t('journeys.readOnlyActive')}
+          {t('journeys.readOnlyCompleted')}
         </div>
       </div>
     )

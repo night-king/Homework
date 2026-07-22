@@ -80,21 +80,25 @@ export function JourneysPage() {
                 {j.status === 2 && (
                   <div className="text-sm text-ink">🏅 {medalName(j)}</div>
                 )}
-                {j.status === 0 && (
+                {/* 编辑：草稿与进行中都放开（进行中改动只对未来日生效，已生成任务是快照不受影响）。
+                    已完成(2)保持只读。删除仅草稿可见——进行中删除会连带清掉孩子进度，太危险。 */}
+                {j.status !== 2 && (
                   <div className="flex gap-2 pt-1">
                     <Button size="sm" variant="outline" data-testid={`edit-journey-${j.id}`}
                       onClick={() => navigate(`/journeys/${j.id}/edit`)}>
                       <Pencil className="h-3.5 w-3.5" /> {t('common.edit')}
                     </Button>
-                    <Button size="sm" variant="ghost" data-testid={`delete-journey-${j.id}`}
-                      className="ml-auto text-error-500 hover:bg-error-500/10 hover:text-error-500"
-                      onClick={async () => {
-                        if (await confirm(t('journeys.deleteConfirmTitle'), t('journeys.deleteConfirmBody'))) {
-                          m.remove.mutate(j.id)
-                        }
-                      }}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    {j.status === 0 && (
+                      <Button size="sm" variant="ghost" data-testid={`delete-journey-${j.id}`}
+                        className="ml-auto text-error-500 hover:bg-error-500/10 hover:text-error-500"
+                        onClick={async () => {
+                          if (await confirm(t('journeys.deleteConfirmTitle'), t('journeys.deleteConfirmBody'))) {
+                            m.remove.mutate(j.id)
+                          }
+                        }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 )}
               </CardContent>
