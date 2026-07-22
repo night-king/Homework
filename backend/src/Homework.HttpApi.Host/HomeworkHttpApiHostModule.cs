@@ -315,7 +315,7 @@ public class HomeworkHttpApiHostModule : AbpModule
 
     public override async Task OnPostApplicationInitializationAsync(ApplicationInitializationContext context)
     {
-        // dev 便利：Host 启动后种入孩子端 demo 数据（物种+美术+Draft 旅程）。仅 Development + Seed:PlayDemo。
+        // Host 启动后种入初始宠物物种(+美术) + demo 旅程。由 Seed:PlayDemo 开关控制（默认关，幂等）。
         using var scope = context.ServiceProvider.CreateScope();
         await scope.ServiceProvider.GetRequiredService<PlayDemoSeeder>().SeedAsync();
     }

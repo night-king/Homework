@@ -7,7 +7,6 @@ using Homework.Children;
 using Homework.Journeys;
 using Homework.Tasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.DependencyInjection;
@@ -55,7 +54,6 @@ public class PlayDemoSeeder : ITransientDependency
     private readonly IClock _clock;
     private readonly IUnitOfWorkManager _uowManager;
     private readonly IConfiguration _config;
-    private readonly IHostEnvironment _env;
     private readonly ILogger<PlayDemoSeeder> _logger;
 
     public PlayDemoSeeder(
@@ -70,18 +68,19 @@ public class PlayDemoSeeder : ITransientDependency
         IClock clock,
         IUnitOfWorkManager uowManager,
         IConfiguration config,
-        IHostEnvironment env,
         ILogger<PlayDemoSeeder> logger)
     {
         _speciesRepo = speciesRepo; _journeyRepo = journeyRepo; _templateRepo = templateRepo;
         _childRepo = childRepo; _medalRepo = medalRepo; _blob = blob;
         _userManager = userManager; _guid = guid; _clock = clock; _uowManager = uowManager;
-        _config = config; _env = env; _logger = logger;
+        _config = config; _logger = logger;
     }
 
     public async Task SeedAsync()
     {
-        if (!_env.IsDevelopment() || _config["Seed:PlayDemo"] != "true")
+        // 显式开关（默认关），任何环境都可用于首次布种。幂等：物种/旅程已存在则跳过。
+        // 生产首次布种：设 Seed:PlayDemo=true + Seed:PetArtDir=<美术目录>，重启种入后可关掉。
+        if (_config["Seed:PlayDemo"] != "true")
         {
             return;
         }
@@ -209,9 +208,25 @@ public class PlayDemoSeeder : ITransientDependency
         _logger.LogInformation("PlayDemoSeeder：已给「哥哥」种 Draft 旅程 + 周任务模板。");
     }
 
-    /// <summary>从 Host 运行目录向上找含 .git 的仓库根，再拼 frontend/child-web-prototype/assets/pets。</summary>
-    private static string? ResolvePrototypePetArtDir()
+    /// <summary>
+    /// 定位宠物美术目录。优先级：① 配置 Seed:PetArtDir（生产用绝对路径）；
+    /// ② Host 运行目录旁的 pet-art/（发布时可一并拷）；
+    /// ③ dev：向上找含 .git 的仓库根，拼 frontend/child-web-prototype/assets/pets。
+    /// </summary>
+    private string? ResolvePrototypePetArtDir()
     {
+        var configured = _config["Seed:PetArtDir"];
+        if (!string.IsNullOrWhiteSpace(configured) && Directory.Exists(configured))
+        {
+            return configured;
+        }
+
+        var beside = Path.Combine(AppContext.BaseDirectory, "pet-art");
+        if (Directory.Exists(beside))
+        {
+            return beside;
+        }
+
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, ".git")))
         {
