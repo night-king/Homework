@@ -268,6 +268,9 @@ backend/src/Homework.HttpApi.Host/App_Data/
 # Release 发布产物（dotnet publish 输出到仓库根 output/，勿入库）
 /output/
 
+# 私钥/证书勿入库（openiddict.pfx 等，用 deploy/gen-openiddict-pfx.sh 在服务器生成）
+*.pfx
+
 # Use abp install-libs to restore.
 **/wwwroot/libs/*
 
