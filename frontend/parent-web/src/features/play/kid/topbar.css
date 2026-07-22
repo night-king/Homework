@@ -1,39 +1,14 @@
-/* 移植自原型 child-homepage.html:77–158（.topbar/.profile/.avatar/.profile-label/.overline/
-   .hero-name/.top-stats/.stat-pill/.stat-value）+ 断点 2340–2347(1100px)、2406–2409(760px)。
-   改名 kid-*，收进 .kid-shell 作用域；声明逐字搬。 */
+/* 移植自原型 child-homepage.html:77–158（.topbar/.overline/.top-stats/.stat-pill/.stat-value）
+   + 断点 2340–2347(1100px)、2406–2409(760px)。改名 kid-*，收进 .kid-shell 作用域。
+   原 .profile/.avatar/.hero-name 身份块已上移到共享顶栏 KidChildBadge，此处删除。 */
 
+/* 身份已上移到共享顶栏(.kid-header 的 KidChildBadge)，看板顶栏只留日历条 + 状态胶囊两列。 */
 .kid-shell .kid-topbar {
   display: grid;
-  grid-template-columns: minmax(200px, 260px) 1fr minmax(220px, 320px);
+  grid-template-columns: 1fr auto;
   gap: 18px;
   padding: 16px 18px;
   align-items: center;
-}
-
-.kid-shell .kid-profile {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.kid-shell .kid-avatar {
-  width: 64px;
-  height: 64px;
-  display: grid;
-  place-items: center;
-  border-radius: 20px;
-  color: #fff;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.46), transparent 28%),
-    linear-gradient(145deg, #ff954f, #f75d25);
-  box-shadow: 0 16px 26px rgba(247, 93, 37, 0.28);
-  font-size: 1.8rem;
-  font-weight: 900;
-}
-
-.kid-shell .kid-profile-label {
-  display: grid;
-  gap: 3px;
 }
 
 .kid-shell .kid-overline {
@@ -42,13 +17,6 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 700;
-}
-
-.kid-shell .kid-hero-name {
-  margin: 0;
-  font-size: 1.45rem;
-  line-height: 1;
-  font-weight: 900;
 }
 
 .kid-shell .kid-top-stats {

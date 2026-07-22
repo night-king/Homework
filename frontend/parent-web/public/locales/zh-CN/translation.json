@@ -95,7 +95,7 @@
     "petPending": "宠物待孩子选择",
     "level": "等级",
     "period": "期限",
-    "readOnlyActive": "旅程进行中,暂不可编辑",
+    "readOnlyCompleted": "旅程已完成,不可编辑",
     "deleteConfirmTitle": "删除旅程?",
     "deleteConfirmBody": "将移除该草稿旅程及其任务模板,无法恢复。"
   },
@@ -144,6 +144,9 @@
     "pickChildTitle": "谁来玩呀？",
     "enterPlayground": "进入乐园",
     "backToParent": "交还家长",
+    "gradeLabel": "{{n}} 年级",
+    "pinTitle": "输入 {{name}} 的密码",
+    "pinWrong": "密码不对,再试一次",
     "loading": "加载中…",
     "noJourneyTitle": "还没有冒险",
     "noJourneyBody": "让爸爸妈妈先创建一个旅程 ✨",

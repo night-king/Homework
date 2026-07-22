@@ -1,6 +1,6 @@
 import { api } from './api'
 import type {
-  ListResult, ChildProfileDto, CreateChildDto, UpdateChildProfileDto, SetChildPinDto,
+  ListResult, ChildProfileDto, CreateChildDto, UpdateChildProfileDto, SetChildPinDto, VerifyChildPinDto,
   DailyTaskDto, CreateDailyTaskDto, UpdateDailyTaskDto, GetDailyBoardInput, DailyBoardDto,
   JourneyDto, CreateJourneyDto, UpdateJourneyDto,
   JourneyTaskTemplateItemDto, CreateJourneyTaskTemplateItemDto, UpdateJourneyTaskTemplateItemDto, GetJourneyTemplateInput,
@@ -15,6 +15,8 @@ export const createChild = (dto: CreateChildDto) => api.post<ChildProfileDto>('/
 export const updateChild = (id: string, dto: UpdateChildProfileDto) => api.put<ChildProfileDto>(`/api/app/child-profile/${id}`, dto).then((r) => r.data)
 export const deleteChild = (id: string) => api.delete(`/api/app/child-profile/${id}`)
 export const setChildPin = (id: string, dto: SetChildPinDto) => api.post(`/api/app/child-profile/${id}/set-pin`, dto)
+export const verifyChildPin = (id: string, dto: VerifyChildPinDto) =>
+  api.post<boolean>(`/api/app/child-profile/${id}/verify-pin`, dto).then((r) => r.data)
 
 // ---- daily-task ----
 // ABP 约定路由：GetBoardAsync → GET /api/app/daily-task/board（"Get" 前缀映射成 GET，input 走 query）。不是 POST /get-board。

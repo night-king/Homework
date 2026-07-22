@@ -95,7 +95,7 @@
     "petPending": "Pet chosen by child at start",
     "level": "Level",
     "period": "Period",
-    "readOnlyActive": "Active journey is read-only",
+    "readOnlyCompleted": "Completed journey is read-only",
     "deleteConfirmTitle": "Delete journey?",
     "deleteConfirmBody": "This draft journey and its task templates will be removed permanently."
   },
@@ -144,6 +144,9 @@
     "pickChildTitle": "Who's playing?",
     "enterPlayground": "Enter playground",
     "backToParent": "Back to parent",
+    "gradeLabel": "Grade {{n}}",
+    "pinTitle": "Enter {{name}}'s PIN",
+    "pinWrong": "Wrong PIN, try again",
     "loading": "Loading…",
     "noJourneyTitle": "No adventure yet",
     "noJourneyBody": "Ask a parent to create a journey first ✨",

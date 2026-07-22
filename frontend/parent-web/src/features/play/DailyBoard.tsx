@@ -77,7 +77,6 @@ export function DailyBoard({ childId, journey, onFeedResult }: {
   return (
     <div className="kid-board">
       <KidTopBar
-        childName={journey.title}
         weekStrip={weekStrip.data}
         board={board.data}
         today={today}

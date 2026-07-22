@@ -5,6 +5,7 @@ export interface ChildProfileDto { id: string; displayName: string; grade: numbe
 export interface CreateChildDto { displayName: string; grade: number; avatarKey?: string | null }
 export interface UpdateChildProfileDto { displayName: string; grade: number; avatarKey?: string | null }
 export interface SetChildPinDto { pin?: string | null }  // "^\d{4}$" or null/empty to clear
+export interface VerifyChildPinDto { pin: string }       // "^\d{4}$"; server-side compare, returns boolean
 
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6  // Sun..Sat
 

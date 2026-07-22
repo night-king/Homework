@@ -13,7 +13,7 @@ const board: DailyBoardDto = {
 }
 
 it('三个 stat-pill 显示星星/连续/进度', () => {
-  render(<KidTopBar childName="乐乐" weekStrip={weekStrip} board={board}
+  render(<KidTopBar weekStrip={weekStrip} board={board}
     today="2026-07-15" selectedDate="2026-07-15" onSelectDate={() => {}} />)
   expect(screen.getByTestId('topbar-stars')).toHaveTextContent('3')
   expect(screen.getByTestId('topbar-streak')).toHaveTextContent('4')
@@ -21,6 +21,6 @@ it('三个 stat-pill 显示星星/连续/进度', () => {
 })
 
 it('缺数据时 pill 退化为 0/破折号,不崩', () => {
-  render(<KidTopBar childName="乐乐" today="2026-07-15" selectedDate="2026-07-15" onSelectDate={() => {}} />)
+  render(<KidTopBar today="2026-07-15" selectedDate="2026-07-15" onSelectDate={() => {}} />)
   expect(screen.getByTestId('topbar-streak')).toHaveTextContent('0')
 })
