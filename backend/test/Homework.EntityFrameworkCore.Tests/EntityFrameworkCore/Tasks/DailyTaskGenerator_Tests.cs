@@ -8,6 +8,7 @@ using Homework.Tasks;
 using Shouldly;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Guids;
+using Volo.Abp.Timing;
 using Xunit;
 
 namespace Homework.EntityFrameworkCore.Tasks;
@@ -65,6 +66,55 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
         tasks.Count.ShouldBe(1);
         tasks[0].JourneyId.ShouldBe(journeyId);
         tasks[0].RewardItemId.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public async Task EnsureDay_Reconciles_Newly_Added_Template_For_Today()
+    {
+        var clock = GetRequiredService<IClock>();
+        var today = DateOnly.FromDateTime(clock.Now);
+        var (childId, journeyId) = await SeedActiveJourneyAsync(today.AddDays(-3)); // 旅程已开始，今天在区间内
+
+        // 先加一个「今天这个星期几」的模板并生成今天 → 1 个任务
+        await WithUnitOfWorkAsync(async () =>
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, today.DayOfWeek, "语文", order: 0), autoSave: true));
+        var first = await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, today));
+        first.Count.ShouldBe(1);
+
+        // 旅程进行中，家长又加了一个今天的模板
+        await WithUnitOfWorkAsync(async () =>
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, today.DayOfWeek, "数学", order: 1), autoSave: true));
+
+        // 再次 EnsureDay（相当于孩子刷新看板）→ 应补齐第 2 个任务
+        var second = await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, today));
+        second.Count.ShouldBe(2);
+        second.Select(t => t.Title).ShouldContain("数学");
+    }
+
+    [Fact]
+    public async Task EnsureDay_Does_Not_Backfill_Past_Days()
+    {
+        var clock = GetRequiredService<IClock>();
+        var today = DateOnly.FromDateTime(clock.Now);
+        var pastSameDow = today.AddDays(-7); // 上周同一星期几（过去且已进入旅程）
+        var (childId, journeyId) = await SeedActiveJourneyAsync(today.AddDays(-14));
+
+        await WithUnitOfWorkAsync(async () =>
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, pastSameDow.DayOfWeek, "语文", order: 0), autoSave: true));
+        var first = await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, pastSameDow));
+        first.Count.ShouldBe(1);
+
+        // 事后又加一个同星期几的模板
+        await WithUnitOfWorkAsync(async () =>
+            await _templateRepo.InsertAsync(
+                new JourneyTaskTemplateItem(_guid.Create(), journeyId, pastSameDow.DayOfWeek, "数学", order: 1), autoSave: true));
+
+        // 过去的日子冻结：仍是 1 个，不追溯改历史
+        var second = await WithUnitOfWorkAsync(async () => await _generator.EnsureDayAsync(childId, pastSameDow));
+        second.Count.ShouldBe(1);
     }
 
     [Fact]

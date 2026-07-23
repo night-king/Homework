@@ -32,18 +32,29 @@ public class DailyTaskGenerator : DomainService
         _rewardResolver = rewardResolver;
     }
 
+    /// <summary>
+    /// 生成/补齐某孩子某天的任务（幂等）。
+    /// <para>空的一天：按当前活跃模板全量生成。</para>
+    /// <para>今天及以后已生成的一天：<b>补齐</b>活跃模板里还没有对应任务（按 SourceTemplateItemId 匹配）的项
+    /// —— 旅程进行中家长新加的任务能立刻反映到今日看板。已有任务（含手动加的、已完成的）原样保留。</para>
+    /// <para>过去已生成的一天：冻结不动，保留当时的完成记录，不因后来改计划而变动。</para>
+    /// </summary>
     public async Task<List<DailyTask>> EnsureDayAsync(Guid childId, DateOnly date)
     {
-        var existing = await _dailyTaskRepository.GetListAsync(t => t.ChildId == childId && t.Date == date);
-        if (existing.Count > 0)
+        var existing = (await _dailyTaskRepository.GetListAsync(t => t.ChildId == childId && t.Date == date))
+            .OrderBy(t => t.Order).ToList();
+
+        // 过去的日子一旦生成即冻结（保留完成记录）；今天及以后要反映最新计划。
+        var today = DateOnly.FromDateTime(Clock.Now);
+        if (existing.Count > 0 && date < today)
         {
-            return existing.OrderBy(t => t.Order).ToList();
+            return existing;
         }
 
         var journey = await GetActiveJourneyAsync(childId, date);
         if (journey == null)
         {
-            return new List<DailyTask>();
+            return existing;   // 无可生成的 Active 旅程（或 date 早于 StartDate）→ 保持现状
         }
 
         var dow = date.DayOfWeek;
@@ -52,17 +63,26 @@ public class DailyTaskGenerator : DomainService
                 t => t.JourneyId == journeyId && t.DayOfWeek == dow && t.IsActive))
             .OrderBy(t => t.Order).ToList();
 
-        var created = new List<DailyTask>();
+        var existingTemplateIds = existing
+            .Where(t => t.SourceTemplateItemId.HasValue)
+            .Select(t => t.SourceTemplateItemId!.Value)
+            .ToHashSet();
+
         foreach (var t in templates)
         {
+            if (existingTemplateIds.Contains(t.Id))
+            {
+                continue;   // 已有对应任务 → 幂等跳过
+            }
+
             var rewardItemId = await _rewardResolver.ResolveAsync(t.RewardItemId, t.RewardIsRandom);
             var task = new DailyTask(GuidGenerator.Create(), childId, journeyId, date, t.Title,
                 t.Subject, t.Order, t.Id, rewardItemId, t.EstimatedMinutes);
             await _dailyTaskRepository.InsertAsync(task, autoSave: true);
-            created.Add(task);
+            existing.Add(task);
         }
 
-        return created;
+        return existing.OrderBy(t => t.Order).ToList();
     }
 
     public async Task SettleDayAsync(Guid childId, DateOnly date)
