@@ -2,7 +2,7 @@ import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { UserMenu } from '@/components/UserMenu'
-import { Home, Users, ClipboardCheck, Map, Boxes, Gamepad2 } from 'lucide-react'
+import { Home, Users, ClipboardCheck, Map, Boxes, Gamepad2, Trophy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { hasAnyCatalog } from '@/lib/permissions'
 
@@ -11,6 +11,7 @@ const nav = [
   { to: '/children', icon: Users, key: 'nav.children' },
   { to: '/board', icon: ClipboardCheck, key: 'nav.board' },
   { to: '/journeys', icon: Map, key: 'nav.journeys' },
+  { to: '/pk', icon: Trophy, key: 'nav.pk' },
   { to: '/play', icon: Gamepad2, key: 'nav.play' },
 ]
 

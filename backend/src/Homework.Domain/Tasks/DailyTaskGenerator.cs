@@ -176,6 +176,25 @@ public class DailyTaskGenerator : DomainService
         return result;
     }
 
+    /// <summary>
+    /// 某孩子当前连续完成天数：从 max(旅程起始, 今天-90) 到今天的无洞快照喂 <see cref="StreakCalculator"/>。
+    /// 纯读（走 <see cref="ReadRangeAsync"/>，不生成任务）。供看板与 PK 榜复用。
+    /// </summary>
+    public async Task<int> CalculateStreakAsync(Guid childId, DateOnly journeyStartDate)
+    {
+        var today = DateOnly.FromDateTime(Clock.Now);
+        // 90 天下限：防止超长旅程把连击查询拖垮（连续超 90 天的场景当前不存在）
+        var from = journeyStartDate > today.AddDays(-90) ? journeyStartDate : today.AddDays(-90);
+        if (from > today)
+        {
+            return 0;
+        }
+
+        var days = await ReadRangeAsync(childId, from, today);
+        var snapshots = days.Select(d => new DailyScoreSnapshot(d.Date, d.IsFull, d.IsRestDay));
+        return StreakCalculator.CalculateCurrentStreak(snapshots, today);
+    }
+
     private async Task<(int Total, int Completed)> ResolveDayTotalsAsync(Guid childId, DateOnly date)
     {
         var day = (await ReadRangeAsync(childId, date, date))[0];

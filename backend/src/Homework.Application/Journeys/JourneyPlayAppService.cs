@@ -165,17 +165,8 @@ public class JourneyPlayAppService : HomeworkAppService, IJourneyPlayAppService
             return 0;
         }
 
-        var today = DateOnly.FromDateTime(_clock.Now);
-        // 90 天下限防止超长旅程拖垮查询；连续超过 90 天的场景当前产品不存在
-        var from = journey.StartDate > today.AddDays(-90) ? journey.StartDate : today.AddDays(-90);
-        if (from > today)
-        {
-            return 0;
-        }
-
-        var days = await _generator.ReadRangeAsync(childId, from, today);
-        var snapshots = days.Select(d => new Homework.Scoring.DailyScoreSnapshot(d.Date, d.IsFull, d.IsRestDay));
-        return Homework.Scoring.StreakCalculator.CalculateCurrentStreak(snapshots, today);
+        // 连击算法已抽到 DailyTaskGenerator，看板与 PK 榜共用一处
+        return await _generator.CalculateStreakAsync(childId, journey.StartDate);
     }
 
     public async Task<ListResultDto<BackpackItemDto>> GetBackpackAsync(Guid childId, Guid journeyId)

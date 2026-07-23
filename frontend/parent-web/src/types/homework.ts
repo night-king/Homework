@@ -106,3 +106,23 @@ export interface WeekStripDto {
   streak: number
   days: WeekDayDto[]
 }
+
+// ---- PK board (Phase 1: weekly) ----
+export interface PkItemDto { rewardItemId: string; name: string; glyph?: string | null; iconUrl?: string | null; quantity: number }
+export interface PkEntryDto {
+  rank: number
+  childId: string
+  displayName: string
+  avatarKey?: string | null
+  petSpeciesId: string
+  petName: string
+  petLevel: number
+  petSpriteUrl?: string | null
+  completionPercent: number
+  completedTasks: number
+  totalTasks: number
+  streak: number
+  weeklyStars: number
+  items: PkItemDto[]
+}
+export interface WeeklyPkResultDto { weekStart: string; through: string; entries: PkEntryDto[] }

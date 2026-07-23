@@ -10,6 +10,14 @@ export function KidPickChildPage() {
   return (
     <div className="kid-pick">
       <h1 className="kid-pick-title">{t('play.pickChildTitle')}</h1>
+      <button
+        type="button"
+        data-testid="kid-pk-entry"
+        className="pk-entry"
+        onClick={() => navigate('/play/pk')}
+      >
+        🏆 本周 PK 榜
+      </button>
       {isLoading ? (
         <div className="kid-center">{t('play.loading')}</div>
       ) : (

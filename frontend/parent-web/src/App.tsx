@@ -20,6 +20,7 @@ import { KidLayout } from '@/features/play/KidLayout'
 import { KidPickChildPage } from '@/features/play/KidPickChildPage'
 import { KidGameShell } from '@/features/play/KidGameShell'
 import { Collection } from '@/features/play/Collection'
+import { PkBoard } from '@/features/pk/PkBoard'
 
 export default function App() {
   useEffect(() => { useAuthStore.getState().initialize() }, [])
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route element={<KidLayout />}>
           <Route path="/play" element={<KidPickChildPage />} />
+          <Route path="/play/pk" element={<PkBoard />} />
           <Route path="/play/:childId" element={<KidGameShell />} />
           <Route path="/play/:childId/collection" element={<Collection />} />
         </Route>
@@ -44,6 +46,7 @@ export default function App() {
           <Route path="/journeys" element={<JourneysPage />} />
           <Route path="/journeys/new" element={<JourneyNewPage />} />
           <Route path="/journeys/:id/edit" element={<JourneyEditPage />} />
+          <Route path="/pk" element={<PkBoard />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/catalog/pets/:id" element={<PetSpeciesEditPage />} />
         </Route>

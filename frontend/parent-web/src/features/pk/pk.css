@@ -1,0 +1,68 @@
+/* 本周 PK 榜：固定卡片 + 自适应换行。两端(孩子端/家长端)共用，自带样式与主题无关。 */
+.pk-wrap { width: 100%; }
+.pk-title { text-align: center; font-size: 22px; font-weight: 800; color: #2a2320; margin: 6px 0 18px; }
+.pk-empty { text-align: center; color: #8a7c6d; padding: 40px 16px; font-size: 15px; }
+
+.pk-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 180px);
+  justify-content: center;
+  gap: 14px;
+}
+
+.pk-card {
+  width: 180px; height: 290px; box-sizing: border-box; border-radius: 20px; padding: 12px;
+  display: flex; flex-direction: column; align-items: center; position: relative;
+  background: linear-gradient(165deg, #ffffff, #fbf5ec);
+  border: 1px solid rgba(0, 0, 0, .06); box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+  color: #2f2620;
+}
+.pk-champ {
+  background: linear-gradient(165deg, #FFFDF6, #FFF0CE);
+  border-color: rgba(255, 193, 75, .6); box-shadow: 0 8px 20px rgba(255, 193, 75, .38);
+}
+.pk-crown { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 18px; }
+
+.pk-rank {
+  font-size: 12px; font-weight: 800; color: #3a2a1a; padding: 2px 10px; border-radius: 999px;
+}
+.pk-rank.r1 { background: linear-gradient(90deg, #FFD37A, #FFC24B); }
+.pk-rank.r2 { background: linear-gradient(90deg, #E6EAEF, #C9D0D8); }
+.pk-rank.r3 { background: linear-gradient(90deg, #F2CDAB, #E0A877); }
+.pk-rank.rn { background: rgba(0, 0, 0, .07); color: #4a3f36; }
+
+.pk-pet { margin: 6px 0 3px; height: 56px; display: flex; align-items: center; justify-content: center; }
+.pk-pet img { width: 64px; height: 56px; object-fit: contain; filter: drop-shadow(0 5px 5px rgba(0, 0, 0, .18)); }
+.pk-pet-emoji { font-size: 50px; line-height: 1; filter: drop-shadow(0 5px 5px rgba(0, 0, 0, .18)); }
+
+.pk-name { font-size: 15px; font-weight: 800; color: #2a2320; }
+.pk-lv {
+  display: inline-block; margin: 3px 0 6px; font-size: 10px; font-weight: 700;
+  background: rgba(43, 179, 163, .15); color: #1c8378; padding: 1px 8px; border-radius: 999px;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.pk-bag { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; }
+.pk-item {
+  background: rgba(255, 255, 255, .7); border: 1px solid rgba(0, 0, 0, .05); border-radius: 9px;
+  padding: 4px 2px; text-align: center;
+}
+.pk-item-g { font-size: 15px; line-height: 1; }
+.pk-item-g img { width: 15px; height: 15px; object-fit: contain; vertical-align: middle; }
+.pk-item-c { font-size: 11px; font-weight: 800; color: #FF7A59; }
+
+.pk-progress { width: 100%; margin-top: auto; }
+.pk-plabel { display: flex; justify-content: space-between; align-items: baseline; font-size: 10px; color: #7a6b5c; margin-bottom: 3px; }
+.pk-plabel b { color: #FF7A59; font-weight: 800; font-size: 12px; }
+.pk-ptrack { height: 8px; border-radius: 999px; background: rgba(0, 0, 0, .09); overflow: hidden; }
+.pk-pfill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #FFB093, #FF7A59); }
+.pk-champ .pk-pfill { background: linear-gradient(90deg, #FFD37A, #FFB020); }
+
+/* 孩子端入口按钮（选人页顶部） */
+.pk-entry {
+  display: block; width: 100%; max-width: 420px; margin: 0 auto 16px; padding: 14px 18px;
+  border: none; border-radius: 16px; cursor: pointer;
+  background: linear-gradient(90deg, #FFD37A, #FFB020); color: #3a2a1a;
+  font-size: 18px; font-weight: 800; box-shadow: 0 6px 16px rgba(255, 193, 75, .4);
+}
+.pk-entry:active { transform: translateY(1px); }

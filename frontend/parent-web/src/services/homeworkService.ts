@@ -6,6 +6,7 @@ import type {
   JourneyTaskTemplateItemDto, CreateJourneyTaskTemplateItemDto, UpdateJourneyTaskTemplateItemDto, GetJourneyTemplateInput,
   RewardItemDto, MedalDto, PetSpeciesDto,
   CreateUpdateRewardItemDto, CreateUpdateMedalDto, CreateUpdatePetSpeciesDto, SetPetFormDto,
+  WeeklyPkResultDto,
 } from '@/types/homework'
 
 // ---- child-profile ----
@@ -41,6 +42,10 @@ export const listJourneyTemplates = (input: GetJourneyTemplateInput) =>
 export const createJourneyTemplate = (dto: CreateJourneyTaskTemplateItemDto) => api.post<JourneyTaskTemplateItemDto>('/api/app/journey-task-template', dto).then((r) => r.data)
 export const updateJourneyTemplate = (id: string, dto: UpdateJourneyTaskTemplateItemDto) => api.put<JourneyTaskTemplateItemDto>(`/api/app/journey-task-template/${id}`, dto).then((r) => r.data)
 export const deleteJourneyTemplate = (id: string) => api.delete(`/api/app/journey-task-template/${id}`)
+
+// ---- PK board (Phase 1: weekly) ----
+// ABP 约定：GetWeeklyAsync → GET /api/app/pk/weekly
+export const getWeeklyPk = () => api.get<WeeklyPkResultDto>('/api/app/pk/weekly').then((r) => r.data)
 
 // ---- catalog (read-only active lists) ----
 export const listActiveRewardItems = () => api.get<ListResult<RewardItemDto>>('/api/app/reward-item/active-list').then((r) => r.data.items)
