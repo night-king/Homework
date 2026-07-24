@@ -50,11 +50,11 @@ public class SharedJourneyManager_Tests : HomeworkEntityFrameworkCoreTestBase
         new Claim(AbpClaimTypes.UserId, id.ToString())
     }, "test"));
 
-    private async Task<Guid> SeedChildAsync(Guid parentId)
+    private async Task<Guid> SeedChildAsync(Guid parentId, string name = "娃")
     {
         var childId = _guid.Create();
         await WithUnitOfWorkAsync(async () =>
-            await _childRepo.InsertAsync(new ChildProfile(childId, parentId, "娃", 3), autoSave: true));
+            await _childRepo.InsertAsync(new ChildProfile(childId, parentId, name, 3), autoSave: true));
         return childId;
     }
 
@@ -196,6 +196,79 @@ public class SharedJourneyManager_Tests : HomeworkEntityFrameworkCoreTestBase
             await WithUnitOfWorkAsync(async () =>
                 await Should.ThrowAsync<EntityNotFoundException>(async () =>
                     await _manager.AddParticipantsAsync(sj.Id, new[] { foreignChild })));
+        }
+    }
+
+    // ---- GetParticipants ----
+
+    [Fact]
+    public async Task GetParticipants_Returns_Enrolled_Children_With_Status_And_HasStarted()
+    {
+        var pid = _guid.Create();
+        var childB = await SeedChildAsync(pid, "小B");
+        var childA = await SeedChildAsync(pid, "小A");
+        var speciesId = await SeedSpeciesAsync();
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var sj = await CreateOwnedAsync(pid);
+            await WithUnitOfWorkAsync(async () =>
+                await _manager.AddParticipantsAsync(sj.Id, new[] { childA, childB }));
+
+            // Start childA's journey → Active/HasStarted; childB stays Draft
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var j = (await _journeyRepo.GetListAsync(x => x.SharedJourneyId == sj.Id && x.ChildId == childA)).Single();
+                await _journeyManager.StartAsync(j, speciesId);
+                await _journeyRepo.UpdateAsync(j, autoSave: true);
+            });
+
+            var participants = await WithUnitOfWorkAsync(async () =>
+                await _manager.GetParticipantsAsync(sj.Id));
+
+            participants.Count.ShouldBe(2);
+            // Ordered by DisplayName → 小A before 小B
+            participants[0].Child.Id.ShouldBe(childA);
+            participants[0].Child.DisplayName.ShouldBe("小A");
+            participants[0].Journey.Status.ShouldBe(JourneyStatus.Active);
+            participants[1].Child.Id.ShouldBe(childB);
+            participants[1].Journey.Status.ShouldBe(JourneyStatus.Draft);
+        }
+    }
+
+    [Fact]
+    public async Task GetParticipants_Is_Empty_When_No_Participants()
+    {
+        var pid = _guid.Create();
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var sj = await CreateOwnedAsync(pid);
+
+            var participants = await WithUnitOfWorkAsync(async () =>
+                await _manager.GetParticipantsAsync(sj.Id));
+
+            participants.Count.ShouldBe(0);
+        }
+    }
+
+    [Fact]
+    public async Task GetParticipants_Throws_For_Foreign_SharedJourney()
+    {
+        var pA = _guid.Create();
+        var pB = _guid.Create();
+
+        Guid sjId;
+        using (_principal.Change(Parent(pA)))
+        {
+            sjId = (await CreateOwnedAsync(pA)).Id;
+        }
+
+        using (_principal.Change(Parent(pB)))
+        {
+            await WithUnitOfWorkAsync(async () =>
+                await Should.ThrowAsync<EntityNotFoundException>(async () =>
+                    await _manager.GetParticipantsAsync(sjId)));
         }
     }
 

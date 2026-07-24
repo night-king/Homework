@@ -3,7 +3,7 @@ import type {
   ListResult, ChildProfileDto, CreateChildDto, UpdateChildProfileDto, SetChildPinDto, VerifyChildPinDto,
   DailyTaskDto, CreateDailyTaskDto, UpdateDailyTaskDto, GetDailyBoardInput, DailyBoardDto,
   JourneyDto,
-  SharedJourneyDto, CreateUpdateSharedJourneyDto, AddParticipantsDto,
+  SharedJourneyDto, CreateUpdateSharedJourneyDto, AddParticipantsDto, SharedJourneyParticipantDto,
   JourneyTaskTemplateItemDto, CreateJourneyTaskTemplateItemDto, UpdateJourneyTaskTemplateItemDto, GetJourneyTemplateInput,
   RewardItemDto, MedalDto, PetSpeciesDto,
   CreateUpdateRewardItemDto, CreateUpdateMedalDto, CreateUpdatePetSpeciesDto, SetPetFormDto,
@@ -42,11 +42,14 @@ export const getSharedJourney = (id: string) => api.get<SharedJourneyDto>(`/api/
 export const createSharedJourney = (dto: CreateUpdateSharedJourneyDto) => api.post<SharedJourneyDto>('/api/app/shared-journey', dto).then((r) => r.data)
 export const updateSharedJourney = (id: string, dto: CreateUpdateSharedJourneyDto) => api.put<SharedJourneyDto>(`/api/app/shared-journey/${id}`, dto).then((r) => r.data)
 export const deleteSharedJourney = (id: string) => api.delete(`/api/app/shared-journey/${id}`)
-// ABP 约定：AddParticipantsAsync → POST /api/app/shared-journey/add-participants（动作名 kebab-case，复杂 DTO 走 body）
-export const addParticipants = (dto: AddParticipantsDto) => api.post('/api/app/shared-journey/add-participants', dto)
-// ABP 约定：RemoveParticipantAsync(Guid, Guid) → POST /api/app/shared-journey/remove-participant?sharedJourneyId=..&childId=..（简单类型走 query）
+// ABP 约定：GetParticipantsAsync(Guid id) → GET /api/app/shared-journey/{id}/participants（前导 id 绑路由占位，"Participants" 作后缀）
+export const getParticipants = (sharedJourneyId: string) =>
+  api.get<ListResult<SharedJourneyParticipantDto>>(`/api/app/shared-journey/${sharedJourneyId}/participants`).then((r) => r.data.items)
+// ABP 约定（已按 api-definition 核对）：AddParticipantsAsync → 剥掉 Add 前缀(→POST)，段名 participants，复杂 DTO 走 body。
+export const addParticipants = (dto: AddParticipantsDto) => api.post('/api/app/shared-journey/participants', dto)
+// ABP 约定（已核对）：RemoveParticipantAsync(Guid,Guid) → 剥掉 Remove 前缀(→DELETE)，段名 participant，简单类型走 query。
 export const removeParticipant = (sharedJourneyId: string, childId: string) =>
-  api.post('/api/app/shared-journey/remove-participant', null, { params: { sharedJourneyId, childId } })
+  api.delete('/api/app/shared-journey/participant', { params: { sharedJourneyId, childId } })
 
 // ---- journey-task-template ----
 export const listJourneyTemplates = (input: GetJourneyTemplateInput) =>

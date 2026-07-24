@@ -13,6 +13,7 @@ public interface ISharedJourneyAppService : IApplicationService
     Task DeleteAsync(Guid id);
     Task<ListResultDto<SharedJourneyDto>> GetListAsync();
     Task<SharedJourneyDto> GetAsync(Guid id);
+    Task<ListResultDto<SharedJourneyParticipantDto>> GetParticipantsAsync(Guid id);
     Task AddParticipantsAsync(AddParticipantsDto input);
     Task RemoveParticipantAsync(Guid sharedJourneyId, Guid childId);
 }

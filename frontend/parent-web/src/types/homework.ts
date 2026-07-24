@@ -31,8 +31,6 @@ export interface JourneyDto {
   status: JourneyStatus; petSpeciesId?: string | null;
   currentLevel: number; growthPoints: number; completedTime?: string | null;
 }
-export interface CreateJourneyDto { childId: string; title: string; description?: string | null; startDate: string; endDate: string; medalId: string }
-export interface UpdateJourneyDto { title: string; description?: string | null; startDate: string; endDate: string; medalId: string }
 export interface GetJourneyListInput { childId: string }
 
 // ---- Shared journey (家长端共享计划) ----
@@ -43,6 +41,7 @@ export interface SharedJourneyDto {
 }
 export interface CreateUpdateSharedJourneyDto { title: string; description?: string | null; startDate: string; endDate: string; medalId: string }
 export interface AddParticipantsDto { sharedJourneyId: string; childIds: string[] }
+export interface SharedJourneyParticipantDto { childId: string; displayName: string; avatarKey?: string | null; status: JourneyStatus; hasStarted: boolean }
 
 // ---- Journey task template ----
 export interface JourneyTaskTemplateItemDto {

@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import {
   listJourneys, getJourney, deleteJourney,
   listSharedJourneys, getSharedJourney, createSharedJourney, updateSharedJourney, deleteSharedJourney,
-  addParticipants, removeParticipant,
+  addParticipants, removeParticipant, getParticipants,
 } from '@/services/homeworkService'
 import { getErrorMessage } from '@/services/api'
 import type { CreateUpdateSharedJourneyDto } from '@/types/homework'
@@ -46,11 +46,24 @@ export function useSharedJourneyMutations() {
   }
 }
 
+// ---- 参与者（当前成员列表，只读）----
+export const participantsKey = (sharedJourneyId: string) => ['shared-journey', sharedJourneyId, 'participants']
+
+export const useParticipants = (sharedJourneyId: string) =>
+  useQuery({
+    queryKey: participantsKey(sharedJourneyId),
+    queryFn: () => getParticipants(sharedJourneyId),
+    enabled: !!sharedJourneyId,
+  })
+
 // ---- 参与者管理（加入/移出）----
 export function useParticipantMutations(sharedJourneyId: string) {
   const qc = useQueryClient()
-  // 加入/移出会新建或删除孩子名下的 Draft 旅程 → 让相关 per-child journeys 失效
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['journeys'] })
+  // 加入/移出会新建或删除孩子名下的 Draft 旅程 → 让相关 per-child journeys 及本计划成员列表失效
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: ['journeys'] })
+    void qc.invalidateQueries({ queryKey: participantsKey(sharedJourneyId) })
+  }
   const onErr = (e: unknown) => toast.error(getErrorMessage(e))
   return {
     add: useMutation({

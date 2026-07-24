@@ -5,7 +5,7 @@ import {
   listChildren, createChild, getDailyBoard, revokeDailyTask,
   listJourneys, deleteJourney,
   listSharedJourneys, getSharedJourney, createSharedJourney, updateSharedJourney, deleteSharedJourney,
-  addParticipants, removeParticipant,
+  addParticipants, removeParticipant, getParticipants,
   listJourneyTemplates, createJourneyTemplate,
   listActiveRewardItems, listActiveMedals, listActivePetSpecies,
 } from './homeworkService'
@@ -68,16 +68,21 @@ describe('homeworkService', () => {
   it('deleteSharedJourney DELETEs /shared-journey/{id}', async () => {
     await deleteSharedJourney('s1'); expect(api.delete).toHaveBeenCalledWith('/api/app/shared-journey/s1')
   })
-  it('addParticipants POSTs dto to /add-participants', async () => {
+  it('addParticipants POSTs dto to /participants', async () => {
     ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: undefined })
     const dto = { sharedJourneyId: 's1', childIds: ['c1', 'c2'] }
     await addParticipants(dto)
-    expect(api.post).toHaveBeenCalledWith('/api/app/shared-journey/add-participants', dto)
+    expect(api.post).toHaveBeenCalledWith('/api/app/shared-journey/participants', dto)
   })
-  it('removeParticipant POSTs to /remove-participant with query params', async () => {
-    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: undefined })
+  it('removeParticipant DELETEs /participant with query params', async () => {
+    ;(api.delete as ReturnType<typeof vi.fn>).mockResolvedValue({ data: undefined })
     await removeParticipant('s1', 'c1')
-    expect(api.post).toHaveBeenCalledWith('/api/app/shared-journey/remove-participant', null, { params: { sharedJourneyId: 's1', childId: 'c1' } })
+    expect(api.delete).toHaveBeenCalledWith('/api/app/shared-journey/participant', { params: { sharedJourneyId: 's1', childId: 'c1' } })
+  })
+  it('getParticipants GETs /shared-journey/{id}/participants and unwraps items', async () => {
+    ;(api.get as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { items: [{ childId: 'c1' }] } })
+    expect(await getParticipants('s1')).toEqual([{ childId: 'c1' }])
+    expect(api.get).toHaveBeenCalledWith('/api/app/shared-journey/s1/participants')
   })
   it('listJourneyTemplates GETs with input as params', async () => {
     ;(api.get as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { items: [] } })

@@ -46,6 +46,21 @@ public class SharedJourneyAppService : HomeworkAppService, ISharedJourneyAppServ
     public async Task<SharedJourneyDto> GetAsync(Guid id) =>
         ObjectMapper.Map<SharedJourney, SharedJourneyDto>(await _manager.GetOwnedAsync(id));
 
+    /// <summary>列出参与者：手工投影 (旅程, 孩子) 联结为 DTO（HasStarted = 非 Draft）。参数名 id → GET /{id}/participants。</summary>
+    public async Task<ListResultDto<SharedJourneyParticipantDto>> GetParticipantsAsync(Guid id)
+    {
+        var participants = await _manager.GetParticipantsAsync(id);
+        var dtos = participants.Select(p => new SharedJourneyParticipantDto
+        {
+            ChildId = p.Child.Id,
+            DisplayName = p.Child.DisplayName,
+            AvatarKey = p.Child.AvatarKey,
+            Status = p.Journey.Status,
+            HasStarted = p.Journey.Status != JourneyStatus.Draft,
+        }).ToList();
+        return new ListResultDto<SharedJourneyParticipantDto>(dtos);
+    }
+
     public Task AddParticipantsAsync(AddParticipantsDto input) =>
         _manager.AddParticipantsAsync(input.SharedJourneyId, input.ChildIds);
 

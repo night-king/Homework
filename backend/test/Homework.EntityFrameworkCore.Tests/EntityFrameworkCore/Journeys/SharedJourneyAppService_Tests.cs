@@ -44,11 +44,11 @@ public class SharedJourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         new Claim(AbpClaimTypes.UserId, id.ToString())
     }, "test"));
 
-    private async Task<Guid> SeedChildAsync(Guid parentId)
+    private async Task<Guid> SeedChildAsync(Guid parentId, string name = "娃")
     {
         var childId = _guid.Create();
         await WithUnitOfWorkAsync(async () =>
-            await _childRepo.InsertAsync(new ChildProfile(childId, parentId, "娃", 3), autoSave: true));
+            await _childRepo.InsertAsync(new ChildProfile(childId, parentId, name, 3), autoSave: true));
         return childId;
     }
 
@@ -240,6 +240,74 @@ public class SharedJourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
             await _service.DeleteAsync(sj.Id);
 
             await Should.ThrowAsync<EntityNotFoundException>(async () => await _service.GetAsync(sj.Id));
+        }
+    }
+
+    [Fact]
+    public async Task GetParticipants_Returns_Members_With_HasStarted_Flags()
+    {
+        var pid = _guid.Create();
+        var childB = await SeedChildAsync(pid, "小B");
+        var childA = await SeedChildAsync(pid, "小A");
+        var speciesId = await SeedSpeciesAsync();
+
+        using (_principal.Change(Parent(pid)))
+        {
+            var sj = await _service.CreateAsync(MakeInput(_guid.Create()));
+            await _service.AddParticipantsAsync(new AddParticipantsDto
+            {
+                SharedJourneyId = sj.Id, ChildIds = new() { childA, childB },
+            });
+
+            await WithUnitOfWorkAsync(async () =>
+            {
+                var j = (await _journeyRepo.GetListAsync(x => x.SharedJourneyId == sj.Id && x.ChildId == childA)).Single();
+                await _journeyManager.StartAsync(j, speciesId);
+                await _journeyRepo.UpdateAsync(j, autoSave: true);
+            });
+
+            var result = await _service.GetParticipantsAsync(sj.Id);
+
+            result.Items.Count.ShouldBe(2);
+            // Ordered by DisplayName
+            var first = result.Items[0];
+            first.ChildId.ShouldBe(childA);
+            first.DisplayName.ShouldBe("小A");
+            first.Status.ShouldBe(JourneyStatus.Active);
+            first.HasStarted.ShouldBeTrue();
+
+            var second = result.Items[1];
+            second.ChildId.ShouldBe(childB);
+            second.Status.ShouldBe(JourneyStatus.Draft);
+            second.HasStarted.ShouldBeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task GetParticipants_Is_Empty_With_No_Members()
+    {
+        var pid = _guid.Create();
+        using (_principal.Change(Parent(pid)))
+        {
+            var sj = await _service.CreateAsync(MakeInput(_guid.Create()));
+            var result = await _service.GetParticipantsAsync(sj.Id);
+            result.Items.Count.ShouldBe(0);
+        }
+    }
+
+    [Fact]
+    public async Task GetParticipants_CrossParent_Throws()
+    {
+        var owner = _guid.Create();
+        Guid sjId;
+        using (_principal.Change(Parent(owner)))
+        {
+            sjId = (await _service.CreateAsync(MakeInput(_guid.Create()))).Id;
+        }
+
+        using (_principal.Change(Parent(_guid.Create())))
+        {
+            await Should.ThrowAsync<EntityNotFoundException>(async () => await _service.GetParticipantsAsync(sjId));
         }
     }
 

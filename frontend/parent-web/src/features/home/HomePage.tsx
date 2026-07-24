@@ -45,7 +45,7 @@ function ChildJourneyCard({ child }: { child: ChildProfileDto }) {
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-muted">{t('journeys.empty')}</p>
-            <Link to={`/journeys/new?childId=${child.id}`}>
+            <Link to="/journeys/new">
               <Button size="sm" className="w-full">{t('journeys.create')}</Button>
             </Link>
           </div>

@@ -18,6 +18,7 @@ public class SharedJourneyManager : DomainService
     private readonly IRepository<SharedJourney, Guid> _repository;
     private readonly IRepository<Journey, Guid> _journeyRepository;
     private readonly IRepository<JourneyTaskTemplateItem, Guid> _templateRepository;
+    private readonly IRepository<ChildProfile, Guid> _childRepository;
     private readonly ChildProfileManager _childManager;
     private readonly ICurrentUser _currentUser;
 
@@ -25,12 +26,14 @@ public class SharedJourneyManager : DomainService
         IRepository<SharedJourney, Guid> repository,
         IRepository<Journey, Guid> journeyRepository,
         IRepository<JourneyTaskTemplateItem, Guid> templateRepository,
+        IRepository<ChildProfile, Guid> childRepository,
         ChildProfileManager childManager,
         ICurrentUser currentUser)
     {
         _repository = repository;
         _journeyRepository = journeyRepository;
         _templateRepository = templateRepository;
+        _childRepository = childRepository;
         _childManager = childManager;
         _currentUser = currentUser;
     }
@@ -110,6 +113,31 @@ public class SharedJourneyManager : DomainService
             journey.SetDescription(sharedJourney.Description);
             await _journeyRepository.InsertAsync(journey);
         }
+    }
+
+    /// <summary>
+    /// 列出共享计划的参与者：先校验归属，再取名下所有旅程，按 ChildId 批量拉孩子档案（不 N+1），
+    /// 联结成 (旅程, 孩子) 对并按孩子昵称排序。应用层据此投影出 DTO。
+    /// </summary>
+    public async Task<List<(Journey Journey, ChildProfile Child)>> GetParticipantsAsync(Guid sharedJourneyId)
+    {
+        var sharedJourney = await GetOwnedAsync(sharedJourneyId);
+
+        var journeys = await _journeyRepository.GetListAsync(j => j.SharedJourneyId == sharedJourney.Id);
+        if (journeys.Count == 0)
+        {
+            return new List<(Journey, ChildProfile)>();
+        }
+
+        var childIds = journeys.Select(j => j.ChildId).Distinct().ToList();
+        var children = await _childRepository.GetListAsync(c => childIds.Contains(c.Id));
+        var childById = children.ToDictionary(c => c.Id);
+
+        return journeys
+            .Where(j => childById.ContainsKey(j.ChildId))
+            .Select(j => (Journey: j, Child: childById[j.ChildId]))
+            .OrderBy(p => p.Child.DisplayName, StringComparer.Ordinal)
+            .ToList();
     }
 
     /// <summary>把某个孩子移出共享计划：Draft 直接删；已开始（Active/Completed）拒绝以护住进度。</summary>
