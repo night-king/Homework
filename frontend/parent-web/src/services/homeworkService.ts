@@ -2,7 +2,8 @@ import { api } from './api'
 import type {
   ListResult, ChildProfileDto, CreateChildDto, UpdateChildProfileDto, SetChildPinDto, VerifyChildPinDto,
   DailyTaskDto, CreateDailyTaskDto, UpdateDailyTaskDto, GetDailyBoardInput, DailyBoardDto,
-  JourneyDto, CreateJourneyDto, UpdateJourneyDto,
+  JourneyDto,
+  SharedJourneyDto, CreateUpdateSharedJourneyDto, AddParticipantsDto,
   JourneyTaskTemplateItemDto, CreateJourneyTaskTemplateItemDto, UpdateJourneyTaskTemplateItemDto, GetJourneyTemplateInput,
   RewardItemDto, MedalDto, PetSpeciesDto,
   CreateUpdateRewardItemDto, CreateUpdateMedalDto, CreateUpdatePetSpeciesDto, SetPetFormDto,
@@ -28,13 +29,24 @@ export const deleteDailyTask = (id: string) => api.delete(`/api/app/daily-task/$
 export const revokeDailyTask = (id: string) => api.post(`/api/app/daily-task/${id}/revoke`)
 export const restoreDailyTask = (id: string) => api.post(`/api/app/daily-task/${id}/restore`)
 
-// ---- journey ----
+// ---- journey (per-child; 家长端只读列表/详情/删除。创建/更新已并入 shared-journey) ----
 export const listJourneys = (childId: string) =>
   api.get<ListResult<JourneyDto>>('/api/app/journey', { params: { childId } }).then((r) => r.data.items)
 export const getJourney = (id: string) => api.get<JourneyDto>(`/api/app/journey/${id}`).then((r) => r.data)
-export const createJourney = (dto: CreateJourneyDto) => api.post<JourneyDto>('/api/app/journey', dto).then((r) => r.data)
-export const updateJourney = (id: string, dto: UpdateJourneyDto) => api.put<JourneyDto>(`/api/app/journey/${id}`, dto).then((r) => r.data)
 export const deleteJourney = (id: string) => api.delete(`/api/app/journey/${id}`)
+
+// ---- shared-journey (家长端共享计划：CRUD + 参与者管理) ----
+export const listSharedJourneys = () =>
+  api.get<ListResult<SharedJourneyDto>>('/api/app/shared-journey').then((r) => r.data.items)
+export const getSharedJourney = (id: string) => api.get<SharedJourneyDto>(`/api/app/shared-journey/${id}`).then((r) => r.data)
+export const createSharedJourney = (dto: CreateUpdateSharedJourneyDto) => api.post<SharedJourneyDto>('/api/app/shared-journey', dto).then((r) => r.data)
+export const updateSharedJourney = (id: string, dto: CreateUpdateSharedJourneyDto) => api.put<SharedJourneyDto>(`/api/app/shared-journey/${id}`, dto).then((r) => r.data)
+export const deleteSharedJourney = (id: string) => api.delete(`/api/app/shared-journey/${id}`)
+// ABP 约定：AddParticipantsAsync → POST /api/app/shared-journey/add-participants（动作名 kebab-case，复杂 DTO 走 body）
+export const addParticipants = (dto: AddParticipantsDto) => api.post('/api/app/shared-journey/add-participants', dto)
+// ABP 约定：RemoveParticipantAsync(Guid, Guid) → POST /api/app/shared-journey/remove-participant?sharedJourneyId=..&childId=..（简单类型走 query）
+export const removeParticipant = (sharedJourneyId: string, childId: string) =>
+  api.post('/api/app/shared-journey/remove-participant', null, { params: { sharedJourneyId, childId } })
 
 // ---- journey-task-template ----
 export const listJourneyTemplates = (input: GetJourneyTemplateInput) =>

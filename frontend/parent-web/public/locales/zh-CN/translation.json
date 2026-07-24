@@ -98,7 +98,14 @@
     "period": "期限",
     "readOnlyCompleted": "旅程已完成,不可编辑",
     "deleteConfirmTitle": "删除旅程?",
-    "deleteConfirmBody": "将移除该草稿旅程及其任务模板,无法恢复。"
+    "deleteConfirmBody": "将移除该草稿旅程及其任务模板,无法恢复。",
+    "participants": "参与的孩子",
+    "participantsHint": "勾选要加入本计划的孩子,再点「加入计划」;已开始的孩子无法移出。",
+    "participantsNoChildren": "请先在「孩子」页面添加孩子档案",
+    "addParticipants": "加入计划",
+    "removeParticipant": "移出",
+    "removeParticipantTitle": "移出该孩子?",
+    "removeParticipantBody": "仅未开始的孩子可移出,将删除其草稿旅程。"
   },
   "wizard": {
     "stepBasics": "基本信息",

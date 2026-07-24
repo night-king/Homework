@@ -20,7 +20,7 @@ beforeEach(() => vi.clearAllMocks())
 describe('JourneyWizard', () => {
   it('blocks Next on basics until title + valid dates are set', async () => {
     const onSubmit = vi.fn()
-    ui(<JourneyWizard initialState={emptyWizardState('c1')} submitLabelKey="wizard.publish"
+    ui(<JourneyWizard initialState={emptyWizardState()} submitLabelKey="wizard.publish"
       onSubmit={onSubmit} onDone={vi.fn()} onCancel={vi.fn()} />)
     fireEvent.click(screen.getByTestId('wiz-next'))
     // 仍在第 1 步(基本信息):title 输入仍在
@@ -28,9 +28,9 @@ describe('JourneyWizard', () => {
   })
 
   it('walks all steps and submits, then calls onDone', async () => {
-    const onSubmit = vi.fn().mockResolvedValue({ journeyId: 'j1', failedTasks: 0 })
+    const onSubmit = vi.fn().mockResolvedValue({ sharedJourneyId: 'j1', failedTasks: 0 })
     const onDone = vi.fn()
-    ui(<JourneyWizard initialState={emptyWizardState('c1')} submitLabelKey="wizard.publish"
+    ui(<JourneyWizard initialState={emptyWizardState()} submitLabelKey="wizard.publish"
       onSubmit={onSubmit} onDone={onDone} onCancel={vi.fn()} />)
 
     fireEvent.change(screen.getByTestId('wiz-title'), { target: { value: '暑假之旅' } })
@@ -44,7 +44,7 @@ describe('JourneyWizard', () => {
     fireEvent.click(screen.getByTestId('wiz-submit'))
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalled())
-    await waitFor(() => expect(onDone).toHaveBeenCalledWith({ journeyId: 'j1', failedTasks: 0 }))
+    await waitFor(() => expect(onDone).toHaveBeenCalledWith({ sharedJourneyId: 'j1', failedTasks: 0 }))
     const submitted = onSubmit.mock.calls[0][0]
     expect(submitted.title).toBe('暑假之旅')
     expect(submitted.medalId).toBe('m1')

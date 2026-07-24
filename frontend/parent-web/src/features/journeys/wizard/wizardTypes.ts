@@ -15,7 +15,6 @@ export interface WizardTaskDraft {
 }
 
 export interface WizardState {
-  childId: string
   title: string
   description: string
   startDate: string    // YYYY-MM-DD
@@ -24,8 +23,8 @@ export interface WizardState {
   tasks: WizardTaskDraft[]
 }
 
-export function emptyWizardState(childId: string): WizardState {
-  return { childId, title: '', description: '', startDate: '', endDate: '', medalId: '', tasks: [] }
+export function emptyWizardState(): WizardState {
+  return { title: '', description: '', startDate: '', endDate: '', medalId: '', tasks: [] }
 }
 
 export function newTaskDraft(dayOfWeek: DayOfWeek, order: number): WizardTaskDraft {
@@ -50,9 +49,9 @@ export function draftFromTemplate(t: JourneyTaskTemplateItemDto): WizardTaskDraf
   }
 }
 
-export function toCreateTemplateDto(journeyId: string, t: WizardTaskDraft): CreateJourneyTaskTemplateItemDto {
+export function toCreateTemplateDto(sharedJourneyId: string, t: WizardTaskDraft): CreateJourneyTaskTemplateItemDto {
   return {
-    journeyId,
+    sharedJourneyId,
     dayOfWeek: t.dayOfWeek,
     title: t.title.trim(),
     subject: t.subject.trim() || null,

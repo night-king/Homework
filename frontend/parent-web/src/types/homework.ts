@@ -35,15 +35,24 @@ export interface CreateJourneyDto { childId: string; title: string; description?
 export interface UpdateJourneyDto { title: string; description?: string | null; startDate: string; endDate: string; medalId: string }
 export interface GetJourneyListInput { childId: string }
 
+// ---- Shared journey (家长端共享计划) ----
+export type SharedJourneyStatus = 0 | 1 // Draft | Active
+export interface SharedJourneyDto {
+  id: string; parentId: string; title: string; description?: string | null;
+  startDate: string; endDate: string; medalId: string; status: SharedJourneyStatus;
+}
+export interface CreateUpdateSharedJourneyDto { title: string; description?: string | null; startDate: string; endDate: string; medalId: string }
+export interface AddParticipantsDto { sharedJourneyId: string; childIds: string[] }
+
 // ---- Journey task template ----
 export interface JourneyTaskTemplateItemDto {
-  id: string; journeyId: string; dayOfWeek: DayOfWeek; title: string;
+  id: string; sharedJourneyId: string; dayOfWeek: DayOfWeek; title: string;
   subject?: string | null; order: number; estimatedMinutes?: number | null;
   isActive: boolean; rewardItemId?: string | null; rewardIsRandom: boolean;
 }
-export interface CreateJourneyTaskTemplateItemDto { journeyId: string; dayOfWeek: DayOfWeek; title: string; subject?: string | null; order: number; estimatedMinutes?: number | null; rewardItemId?: string | null; rewardIsRandom: boolean }
+export interface CreateJourneyTaskTemplateItemDto { sharedJourneyId: string; dayOfWeek: DayOfWeek; title: string; subject?: string | null; order: number; estimatedMinutes?: number | null; rewardItemId?: string | null; rewardIsRandom: boolean }
 export interface UpdateJourneyTaskTemplateItemDto { title: string; subject?: string | null; order: number; estimatedMinutes?: number | null; isActive: boolean; rewardItemId?: string | null; rewardIsRandom: boolean }
-export interface GetJourneyTemplateInput { journeyId: string; dayOfWeek?: DayOfWeek }
+export interface GetJourneyTemplateInput { sharedJourneyId: string; dayOfWeek?: DayOfWeek }
 
 // ---- Catalog (read-only) ----
 export interface RewardItemDto { id: string; name: string; iconUrl?: string | null; glyph?: string | null; growthValue: number; randomWeight: number; isActive: boolean; displayOrder: number }

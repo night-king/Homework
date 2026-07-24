@@ -6,12 +6,17 @@ import type { ReactNode } from 'react'
 vi.mock('@/services/homeworkService', () => ({
   listJourneys: vi.fn(),
   getJourney: vi.fn(),
-  createJourney: vi.fn(),
-  updateJourney: vi.fn(),
   deleteJourney: vi.fn(),
+  listSharedJourneys: vi.fn(),
+  getSharedJourney: vi.fn(),
+  createSharedJourney: vi.fn(),
+  updateSharedJourney: vi.fn(),
+  deleteSharedJourney: vi.fn(),
+  addParticipants: vi.fn(),
+  removeParticipant: vi.fn(),
 }))
-import { listJourneys } from '@/services/homeworkService'
-import { useJourneys } from './useJourneys'
+import { listJourneys, listSharedJourneys } from '@/services/homeworkService'
+import { useJourneys, useSharedJourneys } from './useJourneys'
 
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -20,7 +25,7 @@ function wrapper({ children }: { children: ReactNode }) {
 
 beforeEach(() => vi.clearAllMocks())
 
-describe('useJourneys', () => {
+describe('useJourneys (per-child, read-only)', () => {
   it('is disabled when childId is empty (no fetch)', () => {
     renderHook(() => useJourneys(''), { wrapper })
     expect(listJourneys).not.toHaveBeenCalled()
@@ -31,5 +36,15 @@ describe('useJourneys', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toEqual([{ id: 'j1' }])
     expect(listJourneys).toHaveBeenCalledWith('c1')
+  })
+})
+
+describe('useSharedJourneys', () => {
+  it('fetches all shared journeys for the parent', async () => {
+    ;(listSharedJourneys as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 's1' }])
+    const { result } = renderHook(() => useSharedJourneys(), { wrapper })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data).toEqual([{ id: 's1' }])
+    expect(listSharedJourneys).toHaveBeenCalled()
   })
 })

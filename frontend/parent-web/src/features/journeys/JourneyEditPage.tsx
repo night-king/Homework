@@ -1,41 +1,29 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useJourney } from '@/hooks/useJourneys'
+import { useSharedJourney } from '@/hooks/useJourneys'
 import { useJourneyTemplates } from '@/hooks/useJourneyTemplates'
 import { JourneyWizard } from './wizard/JourneyWizard'
 import { draftFromTemplate } from './wizard/wizardTypes'
 import type { WizardState } from './wizard/wizardTypes'
 import { saveJourneyEdits } from './wizard/submitJourney'
+import { ParticipantPanel } from './ParticipantPanel'
 
 export function JourneyEditPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { id = '' } = useParams()
-  const { data: journey, isLoading } = useJourney(id)
+  const { data: journey, isLoading } = useSharedJourney(id)
   const { data: templates, isLoading: tplLoading } = useJourneyTemplates(id)
 
   if (isLoading || !journey) {
     return <div className="py-12 text-center text-muted">{t('common.loading')}</div>
-  }
-  // 已完成旅程才只读；草稿与进行中都可编辑（后端 UpdateAsync 无状态守卫，
-  // 进行中改动只影响未来还没生成的日子，孩子已做过的快照任务不受影响）。
-  if (journey.status === 2) {
-    return (
-      <div data-testid="journey-readonly" className="space-y-3">
-        <h1 className="text-2xl font-bold text-ink">{journey.title}</h1>
-        <div className="rounded-xl border border-dashed border-ink/20 p-8 text-center text-muted">
-          {t('journeys.readOnlyCompleted')}
-        </div>
-      </div>
-    )
   }
   if (tplLoading || !templates) {
     return <div className="py-12 text-center text-muted">{t('common.loading')}</div>
   }
 
   const initialState: WizardState = {
-    childId: journey.childId,
     title: journey.title,
     description: journey.description ?? '',
     startDate: journey.startDate,
@@ -45,8 +33,9 @@ export function JourneyEditPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <h1 className="text-2xl font-bold text-ink">{journey.title}</h1>
+
       <JourneyWizard
         initialState={initialState}
         submitLabelKey="wizard.save"
@@ -61,6 +50,11 @@ export function JourneyEditPage() {
           }
         }}
       />
+
+      <section className="mx-auto max-w-3xl space-y-4 border-t border-ink/10 pt-6">
+        <h2 className="text-lg font-semibold text-ink">{t('journeys.participants')}</h2>
+        <ParticipantPanel sharedJourneyId={id} />
+      </section>
     </div>
   )
 }

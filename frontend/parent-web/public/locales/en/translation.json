@@ -98,7 +98,14 @@
     "period": "Period",
     "readOnlyCompleted": "Completed journey is read-only",
     "deleteConfirmTitle": "Delete journey?",
-    "deleteConfirmBody": "This draft journey and its task templates will be removed permanently."
+    "deleteConfirmBody": "This draft journey and its task templates will be removed permanently.",
+    "participants": "Participating children",
+    "participantsHint": "Check the children to add to this plan, then click Add. Children who already started can't be removed.",
+    "participantsNoChildren": "Please add a child first.",
+    "addParticipants": "Add to plan",
+    "removeParticipant": "Remove",
+    "removeParticipantTitle": "Remove this child?",
+    "removeParticipantBody": "Only children who haven't started can be removed; their draft journey will be deleted."
   },
   "wizard": {
     "stepBasics": "Basics",

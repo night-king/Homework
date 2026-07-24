@@ -3,7 +3,9 @@ vi.mock('./api', () => ({ api: { get: vi.fn(), post: vi.fn(), put: vi.fn(), dele
 import { api } from './api'
 import {
   listChildren, createChild, getDailyBoard, revokeDailyTask,
-  listJourneys, createJourney, updateJourney, deleteJourney,
+  listJourneys, deleteJourney,
+  listSharedJourneys, getSharedJourney, createSharedJourney, updateSharedJourney, deleteSharedJourney,
+  addParticipants, removeParticipant,
   listJourneyTemplates, createJourneyTemplate,
   listActiveRewardItems, listActiveMedals, listActivePetSpecies,
 } from './homeworkService'
@@ -39,28 +41,52 @@ describe('homeworkService', () => {
     expect(await listJourneys('c1')).toEqual([{ id: 'j1' }])
     expect(api.get).toHaveBeenCalledWith('/api/app/journey', { params: { childId: 'c1' } })
   })
-  it('createJourney POSTs dto and unwraps data', async () => {
-    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 'j1' } })
-    const dto = { childId: 'c1', title: '暑假', startDate: '2026-07-01', endDate: '2026-08-31', medalId: 'm1' }
-    expect(await createJourney(dto)).toEqual({ id: 'j1' })
-    expect(api.post).toHaveBeenCalledWith('/api/app/journey', dto)
-  })
-  it('updateJourney PUTs to /journey/{id}', async () => {
-    ;(api.put as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 'j1' } })
-    await updateJourney('j1', { title: 't', startDate: '2026-07-01', endDate: '2026-07-02', medalId: 'm1' })
-    expect(api.put).toHaveBeenCalledWith('/api/app/journey/j1', { title: 't', startDate: '2026-07-01', endDate: '2026-07-02', medalId: 'm1' })
-  })
   it('deleteJourney DELETEs /journey/{id}', async () => {
     await deleteJourney('j1'); expect(api.delete).toHaveBeenCalledWith('/api/app/journey/j1')
   })
+  it('listSharedJourneys GETs /shared-journey and unwraps items', async () => {
+    ;(api.get as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { items: [{ id: 's1' }] } })
+    expect(await listSharedJourneys()).toEqual([{ id: 's1' }])
+    expect(api.get).toHaveBeenCalledWith('/api/app/shared-journey')
+  })
+  it('getSharedJourney GETs /shared-journey/{id}', async () => {
+    ;(api.get as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 's1' } })
+    expect(await getSharedJourney('s1')).toEqual({ id: 's1' })
+    expect(api.get).toHaveBeenCalledWith('/api/app/shared-journey/s1')
+  })
+  it('createSharedJourney POSTs dto and unwraps data', async () => {
+    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 's1' } })
+    const dto = { title: '暑假', startDate: '2026-07-01', endDate: '2026-08-31', medalId: 'm1' }
+    expect(await createSharedJourney(dto)).toEqual({ id: 's1' })
+    expect(api.post).toHaveBeenCalledWith('/api/app/shared-journey', dto)
+  })
+  it('updateSharedJourney PUTs to /shared-journey/{id}', async () => {
+    ;(api.put as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 's1' } })
+    await updateSharedJourney('s1', { title: 't', startDate: '2026-07-01', endDate: '2026-07-02', medalId: 'm1' })
+    expect(api.put).toHaveBeenCalledWith('/api/app/shared-journey/s1', { title: 't', startDate: '2026-07-01', endDate: '2026-07-02', medalId: 'm1' })
+  })
+  it('deleteSharedJourney DELETEs /shared-journey/{id}', async () => {
+    await deleteSharedJourney('s1'); expect(api.delete).toHaveBeenCalledWith('/api/app/shared-journey/s1')
+  })
+  it('addParticipants POSTs dto to /add-participants', async () => {
+    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: undefined })
+    const dto = { sharedJourneyId: 's1', childIds: ['c1', 'c2'] }
+    await addParticipants(dto)
+    expect(api.post).toHaveBeenCalledWith('/api/app/shared-journey/add-participants', dto)
+  })
+  it('removeParticipant POSTs to /remove-participant with query params', async () => {
+    ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: undefined })
+    await removeParticipant('s1', 'c1')
+    expect(api.post).toHaveBeenCalledWith('/api/app/shared-journey/remove-participant', null, { params: { sharedJourneyId: 's1', childId: 'c1' } })
+  })
   it('listJourneyTemplates GETs with input as params', async () => {
     ;(api.get as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { items: [] } })
-    await listJourneyTemplates({ journeyId: 'j1' })
-    expect(api.get).toHaveBeenCalledWith('/api/app/journey-task-template', { params: { journeyId: 'j1' } })
+    await listJourneyTemplates({ sharedJourneyId: 'j1' })
+    expect(api.get).toHaveBeenCalledWith('/api/app/journey-task-template', { params: { sharedJourneyId: 'j1' } })
   })
   it('createJourneyTemplate POSTs dto', async () => {
     ;(api.post as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { id: 'tt1' } })
-    const dto = { journeyId: 'j1', dayOfWeek: 1 as const, title: '背单词', order: 0, rewardIsRandom: true }
+    const dto = { sharedJourneyId: 'j1', dayOfWeek: 1 as const, title: '背单词', order: 0, rewardIsRandom: true }
     await createJourneyTemplate(dto)
     expect(api.post).toHaveBeenCalledWith('/api/app/journey-task-template', dto)
   })

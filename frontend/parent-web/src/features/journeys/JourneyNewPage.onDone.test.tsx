@@ -5,10 +5,10 @@ import type { ReactNode } from 'react'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), warning: vi.fn() } }))
 vi.mock('./wizard/JourneyWizard', () => ({
-  JourneyWizard: ({ onDone }: { onDone: (r: { journeyId: string; failedTasks: number }) => void }) => (
+  JourneyWizard: ({ onDone }: { onDone: (r: { sharedJourneyId: string; failedTasks: number }) => void }) => (
     <div>
-      <button data-testid="finish-success" onClick={() => onDone({ journeyId: 'j1', failedTasks: 0 })}>ok</button>
-      <button data-testid="finish-partial" onClick={() => onDone({ journeyId: 'j1', failedTasks: 2 })}>partial</button>
+      <button data-testid="finish-success" onClick={() => onDone({ sharedJourneyId: 's1', failedTasks: 0 })}>ok</button>
+      <button data-testid="finish-partial" onClick={() => onDone({ sharedJourneyId: 's1', failedTasks: 2 })}>partial</button>
     </div>
   ),
 }))
@@ -17,7 +17,7 @@ import { JourneyNewPage } from './JourneyNewPage'
 
 function ui(node: ReactNode) {
   return render(
-    <MemoryRouter initialEntries={['/journeys/new?childId=c1']}>
+    <MemoryRouter initialEntries={['/journeys/new']}>
       <Routes>
         <Route path="/journeys/new" element={node} />
         <Route path="/journeys" element={<div>journeys-list</div>} />
@@ -30,10 +30,10 @@ const mock = (fn: unknown) => fn as ReturnType<typeof vi.fn>
 beforeEach(() => vi.clearAllMocks())
 
 describe('JourneyNewPage onDone routing', () => {
-  it('full success → toast.success + navigate to /journeys', () => {
+  it('full success → toast.success + navigate to /journeys/:id/edit (to add participants)', () => {
     ui(<JourneyNewPage />)
     fireEvent.click(screen.getByTestId('finish-success'))
-    expect(screen.getByText('journeys-list')).toBeInTheDocument()
+    expect(screen.getByText('journey-edit')).toBeInTheDocument()
     expect(mock(toast.success)).toHaveBeenCalled()
   })
   it('partial failure → toast.warning + navigate to /journeys/:id/edit', () => {

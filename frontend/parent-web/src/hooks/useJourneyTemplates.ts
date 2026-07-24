@@ -4,14 +4,14 @@ import { listJourneyTemplates, createJourneyTemplate, updateJourneyTemplate, del
 import { getErrorMessage } from '@/services/api'
 import type { CreateJourneyTaskTemplateItemDto, UpdateJourneyTaskTemplateItemDto } from '@/types/homework'
 
-export const journeyTemplatesKey = (journeyId: string) => ['journey-templates', journeyId]
+export const journeyTemplatesKey = (sharedJourneyId: string) => ['journey-templates', sharedJourneyId]
 
-export const useJourneyTemplates = (journeyId: string) =>
-  useQuery({ queryKey: journeyTemplatesKey(journeyId), queryFn: () => listJourneyTemplates({ journeyId }), enabled: !!journeyId })
+export const useJourneyTemplates = (sharedJourneyId: string) =>
+  useQuery({ queryKey: journeyTemplatesKey(sharedJourneyId), queryFn: () => listJourneyTemplates({ sharedJourneyId }), enabled: !!sharedJourneyId })
 
-export function useJourneyTemplateMutations(journeyId: string) {
+export function useJourneyTemplateMutations(sharedJourneyId: string) {
   const qc = useQueryClient()
-  const invalidate = () => qc.invalidateQueries({ queryKey: journeyTemplatesKey(journeyId) })
+  const invalidate = () => qc.invalidateQueries({ queryKey: journeyTemplatesKey(sharedJourneyId) })
   const onErr = (e: unknown) => toast.error(getErrorMessage(e))
   return {
     create: useMutation({
