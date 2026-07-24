@@ -10,7 +10,7 @@ namespace Homework.Journeys;
 public class Journey_Tests
 {
     private static Journey NewDraft() => new(
-        Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "2026年暑假",
+        Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "2026年暑假",
         new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), Guid.NewGuid());
 
     [Fact]
@@ -29,7 +29,7 @@ public class Journey_Tests
     public void Rejects_Blank_Title()
     {
         Should.Throw<ArgumentException>(() => new Journey(
-            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), " ",
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), " ",
             new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), Guid.NewGuid()));
     }
 
@@ -37,7 +37,7 @@ public class Journey_Tests
     public void Rejects_End_Before_Start()
     {
         Should.Throw<ArgumentException>(() => new Journey(
-            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "x",
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "x",
             new DateOnly(2026, 8, 31), new DateOnly(2026, 7, 1), Guid.NewGuid()));
     }
 

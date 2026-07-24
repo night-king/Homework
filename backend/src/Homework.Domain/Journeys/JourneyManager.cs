@@ -94,8 +94,8 @@ public class JourneyManager : DomainService
     /// <summary>旅程区间内会产出的食物总数 = 各工作日的活跃模板数 × 该工作日在 [StartDate, EndDate] 内出现次数。</summary>
     private async Task<int> ComputeExpectedFoodCountAsync(Journey journey)
     {
-        var journeyId = journey.Id;
-        var templates = await _templateRepository.GetListAsync(t => t.JourneyId == journeyId && t.IsActive);
+        var sharedJourneyId = journey.SharedJourneyId;
+        var templates = await _templateRepository.GetListAsync(t => t.SharedJourneyId == sharedJourneyId && t.IsActive);
         if (templates.Count == 0)
         {
             return 0;

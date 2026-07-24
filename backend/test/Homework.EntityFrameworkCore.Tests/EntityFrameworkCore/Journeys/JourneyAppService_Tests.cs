@@ -1,5 +1,4 @@
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Homework.Catalog;
 using Homework.Children;
@@ -12,6 +11,7 @@ using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Guids;
 using Volo.Abp.Security.Claims;
+using System.Security.Claims;
 using Xunit;
 
 namespace Homework.EntityFrameworkCore.Journeys;
@@ -22,6 +22,9 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
     private readonly IJourneyAppService _service;
     private readonly IJourneyPlayAppService _play;
     private readonly IRepository<ChildProfile, Guid> _childRepo;
+    private readonly IRepository<Journey, Guid> _journeyRepo;
+    private readonly IRepository<SharedJourney, Guid> _sharedJourneyRepo;
+    private readonly IRepository<JourneyTaskTemplateItem, Guid> _templateRepo;
     private readonly IRepository<PetSpecies, Guid> _speciesRepo;
     private readonly IGuidGenerator _guid;
     private readonly ICurrentPrincipalAccessor _principal;
@@ -31,6 +34,9 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         _service = GetRequiredService<IJourneyAppService>();
         _play = GetRequiredService<IJourneyPlayAppService>();
         _childRepo = GetRequiredService<IRepository<ChildProfile, Guid>>();
+        _journeyRepo = GetRequiredService<IRepository<Journey, Guid>>();
+        _sharedJourneyRepo = GetRequiredService<IRepository<SharedJourney, Guid>>();
+        _templateRepo = GetRequiredService<IRepository<JourneyTaskTemplateItem, Guid>>();
         _speciesRepo = GetRequiredService<IRepository<PetSpecies, Guid>>();
         _guid = GetRequiredService<IGuidGenerator>();
         _principal = GetRequiredService<ICurrentPrincipalAccessor>();
@@ -47,66 +53,52 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         return childId;
     }
 
-    [Fact]
-    public async Task Create_Then_Get()
+    /// <summary>
+    /// 直接经仓储种一个 Draft 旅程（挂在一份 SharedJourney 上）。
+    /// Chunk 2 起旅程不再经 JourneyAppService.CreateAsync 建（那已移除，建单在 Chunk 4 的 AddParticipants）。
+    /// SharedJourneyId = journeyId：本 chunk 里模板挂同一键，生成器才找得到。
+    /// </summary>
+    private async Task<Guid> SeedDraftJourneyAsync(Guid parentId, Guid childId, string title,
+        DayOfWeek? templateDow = null)
     {
-        var pid = _guid.Create();
-        var childId = await SeedChildAsync(pid);
-        var medalId = _guid.Create();
-
-        using (_principal.Change(Parent(pid)))
+        var journeyId = _guid.Create();
+        await WithUnitOfWorkAsync(async () =>
         {
-            var created = await _service.CreateAsync(new CreateJourneyDto
+            var sj = new SharedJourney(journeyId, parentId, title,
+                new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), _guid.Create());
+            await _sharedJourneyRepo.InsertAsync(sj, autoSave: true);
+
+            var j = new Journey(journeyId, journeyId, parentId, childId, title,
+                new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), _guid.Create());
+            await _journeyRepo.InsertAsync(j, autoSave: true);
+
+            if (templateDow is DayOfWeek dow)
             {
-                ChildId = childId, Title = "暑假之旅", Description = "背单词",
-                StartDate = new DateOnly(2026, 7, 1), EndDate = new DateOnly(2026, 8, 31),
-                MedalId = medalId
-            });
-            created.ChildId.ShouldBe(childId);
-            created.Title.ShouldBe("暑假之旅");
-            created.Description.ShouldBe("背单词");
-            created.MedalId.ShouldBe(medalId);
-            created.Status.ShouldBe(JourneyStatus.Draft);
-            created.CurrentLevel.ShouldBe(1);
-
-            var fetched = await _service.GetAsync(created.Id);
-            fetched.Id.ShouldBe(created.Id);
-            fetched.Title.ShouldBe("暑假之旅");
-            fetched.StartDate.ShouldBe(new DateOnly(2026, 7, 1));
-            fetched.EndDate.ShouldBe(new DateOnly(2026, 8, 31));
-
-            var list = await _service.GetListAsync(new GetJourneyListInput { ChildId = childId });
-            list.Items.Count.ShouldBe(1);
-        }
+                await _templateRepo.InsertAsync(
+                    new JourneyTaskTemplateItem(_guid.Create(), journeyId, dow, $"{title}的口算", order: 0),
+                    autoSave: true);
+            }
+        });
+        return journeyId;
     }
 
     [Fact]
-    public async Task Update_Changes_Fields()
+    public async Task Get_Returns_Seeded_Journey()
     {
         var pid = _guid.Create();
         var childId = await SeedChildAsync(pid);
+        var journeyId = await SeedDraftJourneyAsync(pid, childId, "暑假之旅");
 
         using (_principal.Change(Parent(pid)))
         {
-            var created = await _service.CreateAsync(new CreateJourneyDto
-            {
-                ChildId = childId, Title = "旧标题", Description = "旧描述",
-                StartDate = new DateOnly(2026, 7, 1), EndDate = new DateOnly(2026, 8, 31),
-                MedalId = _guid.Create()
-            });
+            var fetched = await _service.GetAsync(journeyId);
+            fetched.Id.ShouldBe(journeyId);
+            fetched.Title.ShouldBe("暑假之旅");
+            fetched.ChildId.ShouldBe(childId);
+            fetched.Status.ShouldBe(JourneyStatus.Draft);
 
-            var newMedal = _guid.Create();
-            var updated = await _service.UpdateAsync(created.Id, new UpdateJourneyDto
-            {
-                Title = "新标题", Description = null,
-                StartDate = new DateOnly(2026, 9, 1), EndDate = new DateOnly(2026, 9, 30),
-                MedalId = newMedal
-            });
-            updated.Title.ShouldBe("新标题");
-            updated.Description.ShouldBeNull();
-            updated.StartDate.ShouldBe(new DateOnly(2026, 9, 1));
-            updated.EndDate.ShouldBe(new DateOnly(2026, 9, 30));
-            updated.MedalId.ShouldBe(newMedal);
+            var list = await _service.GetListAsync(new GetJourneyListInput { ChildId = childId });
+            list.Items.Count.ShouldBe(1);
         }
     }
 
@@ -115,18 +107,7 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
     {
         var owner = _guid.Create();
         var childId = await SeedChildAsync(owner);
-        Guid journeyId;
-
-        using (_principal.Change(Parent(owner)))
-        {
-            var created = await _service.CreateAsync(new CreateJourneyDto
-            {
-                ChildId = childId, Title = "私有旅程",
-                StartDate = new DateOnly(2026, 7, 1), EndDate = new DateOnly(2026, 8, 31),
-                MedalId = _guid.Create()
-            });
-            journeyId = created.Id;
-        }
+        var journeyId = await SeedDraftJourneyAsync(owner, childId, "私有旅程");
 
         var stranger = _guid.Create();
         using (_principal.Change(Parent(stranger)))
@@ -134,52 +115,6 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
             await Should.ThrowAsync<EntityNotFoundException>(async () =>
                 await _service.GetAsync(journeyId));
         }
-    }
-
-    [Fact]
-    public async Task Delete_Also_Removes_Its_Task_Templates()
-    {
-        var pid = _guid.Create();
-        var childId = await SeedChildAsync(pid);
-        var templateService = GetRequiredService<Homework.Tasks.IJourneyTaskTemplateAppService>();
-        var templateRepo = GetRequiredService<IRepository<JourneyTaskTemplateItem, Guid>>();
-        Guid journeyId;
-
-        using (_principal.Change(Parent(pid)))
-        {
-            var journey = await _service.CreateAsync(new CreateJourneyDto
-            {
-                ChildId = childId, Title = "旅程",
-                StartDate = new DateOnly(2026, 7, 1), EndDate = new DateOnly(2026, 8, 31),
-                MedalId = _guid.Create()
-            });
-            journeyId = journey.Id;
-            await templateService.CreateAsync(new CreateJourneyTaskTemplateItemDto
-            {
-                JourneyId = journeyId, DayOfWeek = DayOfWeek.Monday, Title = "背单词", Order = 0, RewardIsRandom = true
-            });
-            await templateService.CreateAsync(new CreateJourneyTaskTemplateItemDto
-            {
-                JourneyId = journeyId, DayOfWeek = DayOfWeek.Tuesday, Title = "读书", Order = 0, RewardIsRandom = true
-            });
-        }
-
-        await WithUnitOfWorkAsync(async () =>
-        {
-            var items = await templateRepo.GetListAsync(t => t.JourneyId == journeyId);
-            items.Count.ShouldBe(2);
-        });
-
-        using (_principal.Change(Parent(pid)))
-        {
-            await _service.DeleteAsync(journeyId);
-        }
-
-        await WithUnitOfWorkAsync(async () =>
-        {
-            var items = await templateRepo.GetListAsync(t => t.JourneyId == journeyId);
-            items.Count.ShouldBe(0);
-        });
     }
 
     private async Task<Guid> SeedSpeciesAsync()
@@ -203,29 +138,18 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         return id;
     }
 
-    /// <summary>建旅程 + 周一模板 → 开始（Draft→Active，任务只可能由 Active 旅程生成）。</summary>
+    /// <summary>种旅程 + 周一模板 → 开始（Draft→Active，任务只可能由 Active 旅程生成）。</summary>
     private async Task<Guid> StartJourneyWithMondayTaskAsync(Guid pid, Guid childId, Guid speciesId, string title)
     {
-        var templateService = GetRequiredService<IJourneyTaskTemplateAppService>();
+        var journeyId = await SeedDraftJourneyAsync(pid, childId, title, DayOfWeek.Monday);
         using (_principal.Change(Parent(pid)))
         {
-            var journey = await _service.CreateAsync(new CreateJourneyDto
-            {
-                ChildId = childId, Title = title,
-                StartDate = new DateOnly(2026, 7, 1), EndDate = new DateOnly(2026, 8, 31),
-                MedalId = _guid.Create()
-            });
-            await templateService.CreateAsync(new CreateJourneyTaskTemplateItemDto
-            {
-                JourneyId = journey.Id, DayOfWeek = DayOfWeek.Monday,
-                Title = $"{title}的口算", Order = 0, RewardIsRandom = true
-            });
             await _play.StartAsync(new StartJourneyDto
             {
-                ChildId = childId, JourneyId = journey.Id, PetSpeciesId = speciesId
+                ChildId = childId, JourneyId = journeyId, PetSpeciesId = speciesId
             });
-            return journey.Id;
         }
+        return journeyId;
     }
 
     /// <summary>

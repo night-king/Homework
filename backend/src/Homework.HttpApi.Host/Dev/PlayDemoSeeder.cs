@@ -45,6 +45,7 @@ public class PlayDemoSeeder : ITransientDependency
 
     private readonly IRepository<PetSpecies, Guid> _speciesRepo;
     private readonly IRepository<Journey, Guid> _journeyRepo;
+    private readonly IRepository<SharedJourney, Guid> _sharedJourneyRepo;
     private readonly IRepository<JourneyTaskTemplateItem, Guid> _templateRepo;
     private readonly IRepository<ChildProfile, Guid> _childRepo;
     private readonly IRepository<Medal, Guid> _medalRepo;
@@ -59,6 +60,7 @@ public class PlayDemoSeeder : ITransientDependency
     public PlayDemoSeeder(
         IRepository<PetSpecies, Guid> speciesRepo,
         IRepository<Journey, Guid> journeyRepo,
+        IRepository<SharedJourney, Guid> sharedJourneyRepo,
         IRepository<JourneyTaskTemplateItem, Guid> templateRepo,
         IRepository<ChildProfile, Guid> childRepo,
         IRepository<Medal, Guid> medalRepo,
@@ -70,7 +72,8 @@ public class PlayDemoSeeder : ITransientDependency
         IConfiguration config,
         ILogger<PlayDemoSeeder> logger)
     {
-        _speciesRepo = speciesRepo; _journeyRepo = journeyRepo; _templateRepo = templateRepo;
+        _speciesRepo = speciesRepo; _journeyRepo = journeyRepo; _sharedJourneyRepo = sharedJourneyRepo;
+        _templateRepo = templateRepo;
         _childRepo = childRepo; _medalRepo = medalRepo; _blob = blob;
         _userManager = userManager; _guid = guid; _clock = clock; _uowManager = uowManager;
         _config = config; _logger = logger;
@@ -190,19 +193,25 @@ public class PlayDemoSeeder : ITransientDependency
         var today = _clock.Now;
         var start = DateOnly.FromDateTime(today);
         var end = start.AddDays(60);
+
+        // 先建共享计划（模板挂它），孩子的 Journey 再挂上去（SharedJourneyId）。
+        var sharedJourney = new SharedJourney(_guid.Create(), demo.Id, "暑假成长大冒险", start, end, medal.Id);
+        sharedJourney.SetDescription("每天完成任务，喂养你的伙伴，一起进化到满级！");
+        await _sharedJourneyRepo.InsertAsync(sharedJourney, autoSave: true);
+
         var journeyId = _guid.Create();
-        var journey = new Journey(journeyId, demo.Id, child.Id, "暑假成长大冒险", start, end, medal.Id);
+        var journey = new Journey(journeyId, sharedJourney.Id, demo.Id, child.Id, "暑假成长大冒险", start, end, medal.Id);
         journey.SetDescription("每天完成任务，喂养你的伙伴，一起进化到满级！");
         await _journeyRepo.InsertAsync(journey, autoSave: true);
 
-        // 周一~周五各 2 项任务模板（随机奖励，由默认构造保证）
+        // 周一~周五各 2 项任务模板（随机奖励，由默认构造保证），挂在共享计划上
         var weekdays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
         foreach (var day in weekdays)
         {
             await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(
-                _guid.Create(), journeyId, day, "口算 20 分钟", "math", 0, 20), autoSave: true);
+                _guid.Create(), sharedJourney.Id, day, "口算 20 分钟", "math", 0, 20), autoSave: true);
             await _templateRepo.InsertAsync(new JourneyTaskTemplateItem(
-                _guid.Create(), journeyId, day, "阅读打卡", "reading", 1, 15), autoSave: true);
+                _guid.Create(), sharedJourney.Id, day, "阅读打卡", "reading", 1, 15), autoSave: true);
         }
 
         _logger.LogInformation("PlayDemoSeeder：已给「哥哥」种 Draft 旅程 + 周任务模板。");

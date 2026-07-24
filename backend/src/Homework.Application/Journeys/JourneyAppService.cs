@@ -42,27 +42,6 @@ public class JourneyAppService : HomeworkAppService, IJourneyAppService
 
     public async Task<JourneyDto> GetAsync(Guid id) => ObjectMapper.Map<Journey, JourneyDto>(await GetOwnedAsync(id));
 
-    public async Task<JourneyDto> CreateAsync(CreateJourneyDto input)
-    {
-        await _childManager.EnsureChildOwnedAsync(input.ChildId);
-        var journey = new Journey(GuidGenerator.Create(), CurrentUser.GetId(), input.ChildId,
-            input.Title, input.StartDate, input.EndDate, input.MedalId);
-        journey.SetDescription(input.Description);
-        await _repository.InsertAsync(journey, autoSave: true);
-        return ObjectMapper.Map<Journey, JourneyDto>(journey);
-    }
-
-    public async Task<JourneyDto> UpdateAsync(Guid id, UpdateJourneyDto input)
-    {
-        var journey = await GetOwnedAsync(id);
-        journey.SetTitle(input.Title);
-        journey.SetDescription(input.Description);
-        journey.SetPeriod(input.StartDate, input.EndDate);
-        journey.SetMedal(input.MedalId);
-        await _repository.UpdateAsync(journey, autoSave: true);
-        return ObjectMapper.Map<Journey, JourneyDto>(journey);
-    }
-
     public async Task DeleteAsync(Guid id)
     {
         var journey = await GetOwnedAsync(id);

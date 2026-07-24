@@ -173,7 +173,9 @@ public class HomeworkDbContext :
             b.ConfigureByConvention();
             b.Property(x => x.Title).IsRequired().HasMaxLength(128);
             b.Property(x => x.Description).HasMaxLength(512);
+            // 迁移期新增：域内始终有值；旧行由 Chunk 3 回填（列默认 Guid.Empty）。
             b.HasIndex(x => new { x.ChildId, x.Status });
+            b.HasIndex(x => x.SharedJourneyId);
             b.HasMany(x => x.Stages).WithOne()
                 .HasForeignKey(s => s.JourneyId).OnDelete(DeleteBehavior.Cascade);
             b.HasMany(x => x.Backpack).WithOne()
@@ -209,7 +211,9 @@ public class HomeworkDbContext :
             b.ConfigureByConvention();
             b.Property(x => x.Title).IsRequired().HasMaxLength(128);
             b.Property(x => x.Subject).HasMaxLength(64);
+            // 模板改键：新增 SharedJourneyId，旧 JourneyId 列保留至 Chunk 6。
             b.HasIndex(x => new { x.JourneyId, x.DayOfWeek });
+            b.HasIndex(x => new { x.SharedJourneyId, x.DayOfWeek });
         });
     }
 }

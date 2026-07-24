@@ -30,7 +30,7 @@ public class JourneyPersistence_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var j = new Journey(id, _guid.Create(), _guid.Create(), "旅程",
+            var j = new Journey(id, _guid.Create(), _guid.Create(), _guid.Create(), "旅程",
                 new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), _guid.Create());
             j.Start(_guid.Create(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
             j.GrantReward(item);

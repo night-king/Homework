@@ -12,6 +12,7 @@ public class Journey : FullAuditedAggregateRoot<Guid>
 {
     public const int MaxLevel = 5;
 
+    public Guid SharedJourneyId { get; private set; }
     public Guid ParentId { get; private set; }
     public Guid ChildId { get; private set; }
     public string Title { get; private set; } = string.Empty;
@@ -33,9 +34,10 @@ public class Journey : FullAuditedAggregateRoot<Guid>
 
     protected Journey() { }
 
-    public Journey(Guid id, Guid parentId, Guid childId, [NotNull] string title,
+    public Journey(Guid id, Guid sharedJourneyId, Guid parentId, Guid childId, [NotNull] string title,
         DateOnly startDate, DateOnly endDate, Guid medalId) : base(id)
     {
+        SharedJourneyId = sharedJourneyId;
         ParentId = parentId;
         ChildId = childId;
         SetTitle(title);
@@ -44,6 +46,12 @@ public class Journey : FullAuditedAggregateRoot<Guid>
         Status = JourneyStatus.Draft;
         CurrentLevel = 1;
         GrowthPoints = 0;
+    }
+
+    public Journey SetSharedJourneyId(Guid id)
+    {
+        SharedJourneyId = id;
+        return this;
     }
 
     public Journey SetTitle([NotNull] string title)

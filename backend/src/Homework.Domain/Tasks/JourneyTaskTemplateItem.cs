@@ -8,6 +8,8 @@ namespace Homework.Tasks;
 /// <summary>旅程的周任务模板项（含奖励配置：指定道具或系统随机）。</summary>
 public class JourneyTaskTemplateItem : FullAuditedAggregateRoot<Guid>
 {
+    public Guid SharedJourneyId { get; private set; }
+    // 保留旧键：Chunk 3 的 C# 回填要读它，Chunk 6 才彻底删。新构造已不再写它。
     public Guid JourneyId { get; private set; }
     public DayOfWeek DayOfWeek { get; private set; }
     public string Title { get; private set; } = string.Empty;
@@ -20,10 +22,10 @@ public class JourneyTaskTemplateItem : FullAuditedAggregateRoot<Guid>
 
     protected JourneyTaskTemplateItem() { }
 
-    public JourneyTaskTemplateItem(Guid id, Guid journeyId, DayOfWeek dayOfWeek, [NotNull] string title,
+    public JourneyTaskTemplateItem(Guid id, Guid sharedJourneyId, DayOfWeek dayOfWeek, [NotNull] string title,
         string? subject = null, int order = 0, int? estimatedMinutes = null) : base(id)
     {
-        JourneyId = journeyId;
+        SharedJourneyId = sharedJourneyId;
         DayOfWeek = dayOfWeek;
         SetTitle(title);
         Subject = subject;
@@ -33,6 +35,8 @@ public class JourneyTaskTemplateItem : FullAuditedAggregateRoot<Guid>
         RewardIsRandom = true;
         RewardItemId = null;
     }
+
+    public void SetSharedJourneyId(Guid id) => SharedJourneyId = id;
 
     public JourneyTaskTemplateItem SetTitle([NotNull] string title)
     {

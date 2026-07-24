@@ -53,8 +53,13 @@ public class JourneyManager_Tests : HomeworkEntityFrameworkCoreTestBase
         return id;
     }
 
-    private Journey NewDraft(Guid childId) => new(_guid.Create(), _guid.Create(), childId, "旅程",
-        new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), _guid.Create());
+    private Journey NewDraft(Guid childId)
+    {
+        var id = _guid.Create();
+        // SharedJourneyId = 自身 Id：模板挂同一键，计划缩放/生成才找得到（本 chunk 语义约束）
+        return new Journey(id, id, _guid.Create(), childId, "旅程",
+            new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), _guid.Create());
+    }
 
     [Fact]
     public async Task Start_Snapshots_Species_Stage_Thresholds()
@@ -86,7 +91,9 @@ public class JourneyManager_Tests : HomeworkEntityFrameworkCoreTestBase
         var speciesId = await SeedSpeciesAsync();           // 静态阈值 20/40/60/80（形状 1:2:3:4）
         var childId = _guid.Create();
         // 4 周旅程（28 天：每个工作日恰好各出现 4 次）
-        var journey = new Journey(_guid.Create(), _guid.Create(), childId, "计划缩放",
+        var journeyId = _guid.Create();
+        // SharedJourneyId = journeyId：下面的模板挂同一键，ComputeExpectedFoodCount 才数得到
+        var journey = new Journey(journeyId, journeyId, _guid.Create(), childId, "计划缩放",
             new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 28), _guid.Create());
 
         await WithUnitOfWorkAsync(async () =>

@@ -13,7 +13,7 @@ public class JourneyGrowth_Tests
 
     private static Journey Started()
     {
-        var j = new Journey(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "旅程",
+        var j = new Journey(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "旅程",
             new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), Guid.NewGuid());
         // 阶阈值：到2阶需20，到3阶需40，到4阶需60，到5阶需80，5阶无
         j.Start(Guid.NewGuid(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });

@@ -58,9 +58,9 @@ public class DailyTaskGenerator : DomainService
         }
 
         var dow = date.DayOfWeek;
-        var journeyId = journey.Id;
+        var sharedJourneyId = journey.SharedJourneyId;
         var templates = (await _templateRepository.GetListAsync(
-                t => t.JourneyId == journeyId && t.DayOfWeek == dow && t.IsActive))
+                t => t.SharedJourneyId == sharedJourneyId && t.DayOfWeek == dow && t.IsActive))
             .OrderBy(t => t.Order).ToList();
 
         var existingTemplateIds = existing
@@ -76,7 +76,7 @@ public class DailyTaskGenerator : DomainService
             }
 
             var rewardItemId = await _rewardResolver.ResolveAsync(t.RewardItemId, t.RewardIsRandom);
-            var task = new DailyTask(GuidGenerator.Create(), childId, journeyId, date, t.Title,
+            var task = new DailyTask(GuidGenerator.Create(), childId, journey.Id, date, t.Title,
                 t.Subject, t.Order, t.Id, rewardItemId, t.EstimatedMinutes);
             await _dailyTaskRepository.InsertAsync(task, autoSave: true);
             existing.Add(task);
@@ -146,9 +146,9 @@ public class DailyTaskGenerator : DomainService
 
             if (journey != null)
             {
-                var journeyId = journey.Id;
+                var sharedJourneyId = journey.SharedJourneyId;
                 var templates = await _templateRepository.GetListAsync(
-                    t => t.JourneyId == journeyId && t.IsActive);
+                    t => t.SharedJourneyId == sharedJourneyId && t.IsActive);
                 templateCountByDow = templates.GroupBy(t => t.DayOfWeek)
                     .ToDictionary(g => g.Key, g => g.Count());
             }

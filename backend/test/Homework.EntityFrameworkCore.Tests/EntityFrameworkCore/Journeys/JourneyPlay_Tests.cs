@@ -88,7 +88,8 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
             reward.Activate();
             await _rewardRepo.InsertAsync(reward, autoSave: true);
 
-            var j = new Journey(journeyId, pid, childId, "旅程", start, start.AddDays(60), _guid.Create());
+            // SharedJourneyId = journeyId：下面的模板挂同一键，生成器才找得到
+            var j = new Journey(journeyId, journeyId, pid, childId, "旅程", start, start.AddDays(60), _guid.Create());
             j.Start(_guid.Create(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
             await _journeyRepo.InsertAsync(j, autoSave: true);
 
@@ -176,7 +177,7 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
         // Create a draft journey — capture id before inserting
         await WithUnitOfWorkAsync(async () =>
         {
-            var j = new Journey(journeyId, pid, childId, "暑假之旅",
+            var j = new Journey(journeyId, journeyId, pid, childId, "暑假之旅",
                 new DateOnly(2026, 7, 1), new DateOnly(2026, 8, 31), medalId);
             await _journeyRepo.InsertAsync(j, autoSave: true);
         });
@@ -220,7 +221,7 @@ public class JourneyPlay_Tests : HomeworkEntityFrameworkCoreTestBase
         // Seed an active journey (started directly, bypassing manager) — capture id before inserting
         await WithUnitOfWorkAsync(async () =>
         {
-            var j = new Journey(journeyId, pid, childId, "暑假之旅",
+            var j = new Journey(journeyId, journeyId, pid, childId, "暑假之旅",
                 monday, monday.AddDays(60), _guid.Create());
             j.Start(_guid.Create(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
             await _journeyRepo.InsertAsync(j, autoSave: true);

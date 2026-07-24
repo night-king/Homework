@@ -43,7 +43,8 @@ public class DailyTaskGenerator_Tests : HomeworkEntityFrameworkCoreTestBase
         {
             var reward = new RewardItem(_guid.Create(), "能量果实", 12, 1); reward.Activate();
             await _rewardRepo.InsertAsync(reward, autoSave: true);
-            var j = new Journey(journeyId, _guid.Create(), childId, "旅程", start, start.AddDays(60), _guid.Create());
+            // SharedJourneyId = journeyId：模板也挂在这个键上，生成器才找得到（本 chunk 语义约束）
+            var j = new Journey(journeyId, journeyId, _guid.Create(), childId, "旅程", start, start.AddDays(60), _guid.Create());
             j.Start(_guid.Create(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
             await _journeyRepo.InsertAsync(j, autoSave: true);
         });

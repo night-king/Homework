@@ -61,7 +61,7 @@ public class OwnershipIsolation_Tests : HomeworkEntityFrameworkCoreTestBase
             {
                 var reward = new RewardItem(_guid.Create(), "能量果实", 12, 1); reward.Activate();
                 await _rewardRepo.InsertAsync(reward, autoSave: true);
-                var j = new Journey(journeyId, pA, childOfA, "旅程", monday, monday.AddDays(60), _guid.Create());
+                var j = new Journey(journeyId, journeyId, pA, childOfA, "旅程", monday, monday.AddDays(60), _guid.Create());
                 j.Start(_guid.Create(), new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
                 await _journeyRepo.InsertAsync(j, autoSave: true);
                 await _journeyTemplateRepo.InsertAsync(

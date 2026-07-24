@@ -16,6 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- JourneyTestFactory 需要域实体（Journey / SharedJourney / JourneyTaskTemplateItem） -->
+    <ProjectReference Include="..\..\src\Homework.Domain\Homework.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17">

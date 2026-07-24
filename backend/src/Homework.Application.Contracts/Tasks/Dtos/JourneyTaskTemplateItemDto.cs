@@ -5,7 +5,7 @@ namespace Homework.Tasks.Dtos;
 
 public class JourneyTaskTemplateItemDto : EntityDto<Guid>
 {
-    public Guid JourneyId { get; set; }
+    public Guid SharedJourneyId { get; set; }
     public DayOfWeek DayOfWeek { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Subject { get; set; }

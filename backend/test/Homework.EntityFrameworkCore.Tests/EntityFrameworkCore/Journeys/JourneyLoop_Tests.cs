@@ -128,7 +128,7 @@ public class JourneyLoop_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var j = new Journey(journeyId, pid, childId, "完成奖励测试旅程",
+            var j = new Journey(journeyId, journeyId, pid, childId, "完成奖励测试旅程",
                 monday, monday.AddDays(60), medalId);
             await _journeyRepo.InsertAsync(j, autoSave: true);
         });
@@ -183,7 +183,7 @@ public class JourneyLoop_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var j = new Journey(journeyId, pid, childId, "进化全链路旅程",
+            var j = new Journey(journeyId, journeyId, pid, childId, "进化全链路旅程",
                 monday, monday.AddDays(60), medalId);
             await _journeyRepo.InsertAsync(j, autoSave: true);
         });
@@ -266,7 +266,7 @@ public class JourneyLoop_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var j = new Journey(journeyId, pid, childId, "撤销回收测试旅程",
+            var j = new Journey(journeyId, journeyId, pid, childId, "撤销回收测试旅程",
                 monday, monday.AddDays(60), medalId);
             await _journeyRepo.InsertAsync(j, autoSave: true);
         });
@@ -325,7 +325,7 @@ public class JourneyLoop_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var j = new Journey(journeyId, pid, childId, "取消完成测试旅程",
+            var j = new Journey(journeyId, journeyId, pid, childId, "取消完成测试旅程",
                 monday, monday.AddDays(60), medalId);
             await _journeyRepo.InsertAsync(j, autoSave: true);
         });
@@ -378,7 +378,7 @@ public class JourneyLoop_Tests : HomeworkEntityFrameworkCoreTestBase
 
         await WithUnitOfWorkAsync(async () =>
         {
-            var j = new Journey(journeyId, pid, childId, "喂养后撤销不重复发奖旅程",
+            var j = new Journey(journeyId, journeyId, pid, childId, "喂养后撤销不重复发奖旅程",
                 monday, monday.AddDays(60), medalId);
             await _journeyRepo.InsertAsync(j, autoSave: true);
         });

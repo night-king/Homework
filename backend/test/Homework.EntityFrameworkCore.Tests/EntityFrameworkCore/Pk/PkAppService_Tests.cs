@@ -73,7 +73,7 @@ public class PkAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         {
             await _childRepo.InsertAsync(new ChildProfile(childId, parentId, name, 3), autoSave: true);
             var jid = _guid.Create();
-            var j = new Journey(jid, parentId, childId, name + "的旅程",
+            var j = new Journey(jid, jid, parentId, childId, name + "的旅程",
                 today.AddDays(-2), today.AddDays(30), _guid.Create());
             j.Start(speciesId, new (int, int?)[] { (1, 20), (2, 40), (3, 60), (4, 80), (5, null) });
             await _journeyRepo.InsertAsync(j, autoSave: true);

@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Homework.Children;
 using Homework.Journeys;
 using Homework.Permissions;
 using Homework.Tasks.Dtos;
@@ -15,25 +14,22 @@ namespace Homework.Tasks;
 public class JourneyTaskTemplateAppService : HomeworkAppService, IJourneyTaskTemplateAppService
 {
     private readonly IRepository<JourneyTaskTemplateItem, Guid> _repository;
-    private readonly IRepository<Journey, Guid> _journeyRepository;
-    private readonly ChildProfileManager _childManager;
+    private readonly SharedJourneyManager _sharedJourneyManager;
 
     public JourneyTaskTemplateAppService(
         IRepository<JourneyTaskTemplateItem, Guid> repository,
-        IRepository<Journey, Guid> journeyRepository,
-        ChildProfileManager childManager)
+        SharedJourneyManager sharedJourneyManager)
     {
         _repository = repository;
-        _journeyRepository = journeyRepository;
-        _childManager = childManager;
+        _sharedJourneyManager = sharedJourneyManager;
     }
 
     public async Task<ListResultDto<JourneyTaskTemplateItemDto>> GetListAsync(GetJourneyTemplateInput input)
     {
-        await EnsureJourneyOwnedAsync(input.JourneyId);
-        var journeyId = input.JourneyId;
+        await _sharedJourneyManager.GetOwnedAsync(input.SharedJourneyId);
+        var sharedJourneyId = input.SharedJourneyId;
         var dow = input.DayOfWeek;
-        var items = await _repository.GetListAsync(t => t.JourneyId == journeyId && (dow == null || t.DayOfWeek == dow));
+        var items = await _repository.GetListAsync(t => t.SharedJourneyId == sharedJourneyId && (dow == null || t.DayOfWeek == dow));
         var dtos = items.OrderBy(t => t.DayOfWeek).ThenBy(t => t.Order)
             .Select(t => ObjectMapper.Map<JourneyTaskTemplateItem, JourneyTaskTemplateItemDto>(t)).ToList();
         return new ListResultDto<JourneyTaskTemplateItemDto>(dtos);
@@ -41,8 +37,8 @@ public class JourneyTaskTemplateAppService : HomeworkAppService, IJourneyTaskTem
 
     public async Task<JourneyTaskTemplateItemDto> CreateAsync(CreateJourneyTaskTemplateItemDto input)
     {
-        await EnsureJourneyOwnedAsync(input.JourneyId);
-        var item = new JourneyTaskTemplateItem(GuidGenerator.Create(), input.JourneyId, input.DayOfWeek,
+        await _sharedJourneyManager.GetOwnedAsync(input.SharedJourneyId);
+        var item = new JourneyTaskTemplateItem(GuidGenerator.Create(), input.SharedJourneyId, input.DayOfWeek,
             input.Title, input.Subject, input.Order, input.EstimatedMinutes);
         item.SetReward(input.RewardItemId, input.RewardIsRandom);
         await _repository.InsertAsync(item, autoSave: true);
@@ -52,7 +48,7 @@ public class JourneyTaskTemplateAppService : HomeworkAppService, IJourneyTaskTem
     public async Task<JourneyTaskTemplateItemDto> UpdateAsync(Guid id, UpdateJourneyTaskTemplateItemDto input)
     {
         var item = await _repository.GetAsync(id);
-        await EnsureJourneyOwnedAsync(item.JourneyId);
+        await _sharedJourneyManager.GetOwnedAsync(item.SharedJourneyId);
         item.SetTitle(input.Title);
         item.SetSubject(input.Subject);
         item.SetOrder(input.Order);
@@ -66,13 +62,7 @@ public class JourneyTaskTemplateAppService : HomeworkAppService, IJourneyTaskTem
     public async Task DeleteAsync(Guid id)
     {
         var item = await _repository.GetAsync(id);
-        await EnsureJourneyOwnedAsync(item.JourneyId);
+        await _sharedJourneyManager.GetOwnedAsync(item.SharedJourneyId);
         await _repository.DeleteAsync(item);
-    }
-
-    private async Task EnsureJourneyOwnedAsync(Guid journeyId)
-    {
-        var journey = await _journeyRepository.GetAsync(journeyId);
-        await _childManager.EnsureChildOwnedAsync(journey.ChildId);
     }
 }

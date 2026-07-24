@@ -4,6 +4,6 @@ namespace Homework.Tasks.Dtos;
 
 public class GetJourneyTemplateInput
 {
-    public Guid JourneyId { get; set; }
+    public Guid SharedJourneyId { get; set; }
     public DayOfWeek? DayOfWeek { get; set; }
 }
