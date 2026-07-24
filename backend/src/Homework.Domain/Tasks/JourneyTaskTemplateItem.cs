@@ -38,6 +38,9 @@ public class JourneyTaskTemplateItem : FullAuditedAggregateRoot<Guid>
 
     public void SetSharedJourneyId(Guid id) => SharedJourneyId = id;
 
+    /// <summary>迁移专用：回填前的旧数据用 JourneyId 关联到 Journey。随 JourneyId 字段在清理阶段(Chunk 6)一并移除。</summary>
+    public JourneyTaskTemplateItem SetJourneyId(Guid journeyId) { JourneyId = journeyId; return this; }
+
     public JourneyTaskTemplateItem SetTitle([NotNull] string title)
     {
         Title = Check.NotNullOrWhiteSpace(title, nameof(title), maxLength: 128);
