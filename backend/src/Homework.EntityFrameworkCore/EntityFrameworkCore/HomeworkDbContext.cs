@@ -39,6 +39,7 @@ public class HomeworkDbContext :
     public DbSet<Medal> Medals { get; set; }
     public DbSet<PetSpecies> PetSpecies { get; set; }
     public DbSet<Journey> Journeys { get; set; }
+    public DbSet<SharedJourney> SharedJourneys { get; set; }
     public DbSet<JourneyTaskTemplateItem> JourneyTaskTemplateItems { get; set; }
 
     #region Entities from the modules
@@ -177,6 +178,15 @@ public class HomeworkDbContext :
                 .HasForeignKey(s => s.JourneyId).OnDelete(DeleteBehavior.Cascade);
             b.HasMany(x => x.Backpack).WithOne()
                 .HasForeignKey(bp => bp.JourneyId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<SharedJourney>(b =>
+        {
+            b.ToTable(HomeworkConsts.DbTablePrefix + "SharedJourneys", HomeworkConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Description).HasMaxLength(512);
+            b.HasIndex(x => x.ParentId);
         });
 
         builder.Entity<JourneyPetStage>(b =>
