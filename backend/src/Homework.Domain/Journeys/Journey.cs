@@ -84,6 +84,21 @@ public class Journey : FullAuditedAggregateRoot<Guid>
         return this;
     }
 
+    /// <summary>
+    /// 共享计划被编辑时，把反范式化的计划字段同步到这份孩子旅程的副本上。
+    /// <b>只碰副本字段</b>（Title/Description/StartDate/EndDate/MedalId），
+    /// 刻意不动 Stages/Status/CurrentLevel/GrowthPoints —— 已开始的孩子进化阈值在 Start 时快照冻结，
+    /// 编辑计划不得重算，否则会改掉进行中孩子的进度门槛。
+    /// </summary>
+    public Journey SyncPlan(string title, string? description, DateOnly startDate, DateOnly endDate, Guid medalId)
+    {
+        SetTitle(title);
+        SetDescription(description);
+        SetPeriod(startDate, endDate);
+        MedalId = medalId;
+        return this;
+    }
+
     /// <summary>孩子开始旅程：选定宠物 + 快照 5 阶阈值；仅 Draft 可开始。</summary>
     public void Start(Guid petSpeciesId, IEnumerable<(int Level, int? GrowthToNext)> stages)
     {

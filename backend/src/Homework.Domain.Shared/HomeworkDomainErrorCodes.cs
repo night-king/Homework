@@ -10,4 +10,7 @@ public static class HomeworkDomainErrorCodes
     public const string JourneyAlreadyHasActive = "Homework:Journey.AlreadyHasActive";
     public const string JourneyNotActive = "Homework:Journey.NotActive";
     public const string JourneyBackpackEmpty = "Homework:Journey.BackpackEmpty";
+
+    public const string SharedJourneyParticipantStarted = "Homework:SharedJourney.ParticipantStarted";
+    public const string SharedJourneyHasStartedParticipant = "Homework:SharedJourney.HasStartedParticipant";
 }

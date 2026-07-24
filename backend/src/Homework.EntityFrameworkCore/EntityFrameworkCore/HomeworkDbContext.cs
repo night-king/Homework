@@ -173,8 +173,8 @@ public class HomeworkDbContext :
             b.ConfigureByConvention();
             b.Property(x => x.Title).IsRequired().HasMaxLength(128);
             b.Property(x => x.Description).HasMaxLength(512);
-            // 迁移期新增：域内始终有值；旧行由 Chunk 3 回填（列默认 Guid.Empty）。
             b.HasIndex(x => new { x.ChildId, x.Status });
+            // 迁移期新增：域内始终有值；旧行由 Chunk 3 回填（列默认 Guid.Empty）。
             b.HasIndex(x => x.SharedJourneyId);
             b.HasMany(x => x.Stages).WithOne()
                 .HasForeignKey(s => s.JourneyId).OnDelete(DeleteBehavior.Cascade);

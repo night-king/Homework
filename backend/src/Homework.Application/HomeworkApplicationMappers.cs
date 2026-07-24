@@ -80,3 +80,10 @@ public partial class JourneyMapper : MapperBase<Journey, JourneyDto>
     public override partial JourneyDto Map(Journey source);
     public override partial void Map(Journey source, JourneyDto destination);
 }
+
+[Mapper]
+public partial class SharedJourneyMapper : MapperBase<SharedJourney, SharedJourneyDto>
+{
+    public override partial SharedJourneyDto Map(SharedJourney source);
+    public override partial void Map(SharedJourney source, SharedJourneyDto destination);
+}

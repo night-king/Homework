@@ -186,6 +186,41 @@ public class JourneyAppService_Tests : HomeworkEntityFrameworkCoreTestBase
         }
     }
 
+    /// <summary>
+    /// 删单份旅程只清它自己的 DailyTask，<b>绝不碰共享计划的模板</b>——模板挂在 SharedJourneyId 上，
+    /// 归共享计划删除时清理。真机症状：Chunk 2 前删旅程会连模板一起删（按已废弃的 JourneyId 键），
+    /// 把同一份共享计划下别人的模板也误删了。
+    /// </summary>
+    [Fact]
+    public async Task Delete_Removes_Its_DailyTasks_But_Keeps_SharedJourney_Templates()
+    {
+        var pid = _guid.Create();
+        var childId = await SeedChildAsync(pid);
+        var speciesId = await SeedSpeciesAsync();
+        var monday = new DateOnly(2026, 7, 6);
+
+        // SeedDraftJourneyAsync 里 SharedJourneyId == journeyId，且顺带种了一条周一模板
+        var journeyId = await StartJourneyWithMondayTaskAsync(pid, childId, speciesId, "会被删的旅程");
+
+        using (_principal.Change(Parent(pid)))
+        {
+            // 生成当天任务
+            var board = await _play.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+            board.Tasks.Count.ShouldBeGreaterThan(0);
+
+            await _service.DeleteAsync(journeyId);
+
+            // 它自己的 DailyTask 被清（看板再取应为空）
+            var afterBoard = await _play.GetDailyBoardAsync(new GetDailyBoardInput { ChildId = childId, Date = monday });
+            afterBoard.Tasks.Count.ShouldBe(0);
+        }
+
+        // 模板（挂 SharedJourneyId == journeyId）仍在
+        var templates = await WithUnitOfWorkAsync(async () =>
+            await _templateRepo.GetListAsync(t => t.SharedJourneyId == journeyId));
+        templates.Count.ShouldBeGreaterThan(0);
+    }
+
     /// <summary>删旅程按 JourneyId 精确清理，不能波及别的孩子当天的任务。</summary>
     [Fact]
     public async Task Delete_Keeps_Daily_Tasks_Of_Another_Child()
